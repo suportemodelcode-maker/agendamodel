@@ -6119,15 +6119,70 @@ function calculateDashboard() {
             + '<span class="text-emerald-400 font-black text-[10px] bg-emerald-500/10 px-2 py-1 rounded">R$ ' + c.rev.toFixed(2).replace('.', ',') + '</span></div>';
         }).join('');
 
-    if (!window.Chart) return;
+if (!window.Chart) return;
     const chartData = chartLabels.map(function(l) { return chartMap[l] ? chartMap[l] : 0; });
     if (revenueChartInstance) revenueChartInstance.destroy();
     const canvas = document.getElementById('revenueChart');
     if (!canvas) return;
+    canvas.style.touchAction = 'pan-y';
     const ctx = canvas.getContext('2d');
     const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(249,115,22,.4)');
+    gradient.addColorStop(0, 'rgba(249,115,22,.45)');
     gradient.addColorStop(1, 'rgba(249,115,22,0)');
+
+    const intuitiveChartPlugin = {
+      id: 'intuitiveChartPlugin',
+      afterDatasetsDraw: function(chart) {
+        const c = chart.ctx;
+        const meta = chart.getDatasetMeta(0);
+        const data = chart.data.datasets[0].data;
+
+        // Linha guia vertical ao passar o mouse ou deslizar o dedo no celular
+        const activeElements = chart.getActiveElements();
+        if (activeElements && activeElements.length > 0) {
+          const activeX = activeElements[0].element.x;
+          c.save();
+          c.beginPath();
+          c.moveTo(activeX, chart.scales.y.top);
+          c.lineTo(activeX, chart.scales.y.bottom);
+          c.lineWidth = 1.5;
+          c.strokeStyle = 'rgba(249, 115, 22, 0.65)';
+          c.setLineDash([4, 4]);
+          c.stroke();
+          c.restore();
+        }
+
+        // Exibe os valores acima de cada ponto que tiver faturamento (> 0)
+        c.save();
+        c.font = "800 10px 'Inter', sans-serif";
+        c.textAlign = 'center';
+        c.textBaseline = 'middle';
+        meta.data.forEach(function(point, index) {
+          const val = data[index];
+          if (val > 0) {
+            const text = 'R$ ' + val.toFixed(0);
+            const textW = c.measureText(text).width;
+            const boxW = textW + 10;
+            const boxH = 18;
+            const boxX = Math.min(Math.max(point.x - boxW / 2, chart.scales.x.left), chart.scales.x.right - boxW);
+            const boxY = Math.max(chart.scales.y.top - 10, point.y - 26);
+
+            c.fillStyle = 'rgba(24, 24, 27, 0.92)';
+            c.strokeStyle = 'rgba(249, 115, 22, 0.55)';
+            c.lineWidth = 1;
+            c.beginPath();
+            if (c.roundRect) c.roundRect(boxX, boxY, boxW, boxH, 6);
+            else c.rect(boxX, boxY, boxW, boxH);
+            c.fill();
+            c.stroke();
+
+            c.fillStyle = '#fb923c';
+            c.fillText(text, boxX + boxW / 2, boxY + boxH / 2);
+          }
+        });
+        c.restore();
+      }
+    };
 
     revenueChartInstance = new Chart(ctx, {
       type: 'line',
@@ -6139,35 +6194,69 @@ function calculateDashboard() {
           borderColor: '#f97316',
           backgroundColor: gradient,
           borderWidth: 3,
-          pointBackgroundColor: '#fff',
-          pointBorderColor: '#f97316',
+          pointBackgroundColor: chartData.map(function(v) { return v > 0 ? '#f97316' : '#27272a'; }),
+          pointBorderColor: chartData.map(function(v) { return v > 0 ? '#fff' : '#52525b'; }),
           pointBorderWidth: 2,
-          pointRadius: 3,
-          pointHoverRadius: 6,
+          pointRadius: chartData.map(function(v) { return v > 0 ? 5 : 2.5; }),
+          pointHoverRadius: 8,
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: '#f97316',
+          pointHoverBorderWidth: 3,
+          pointHitRadius: 35,
           fill: true,
-          tension: 0.4
+          tension: 0.35
         }]
       },
+      plugins: [intuitiveChartPlugin],
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: { top: 26, right: 12, left: 4, bottom: 0 }
+        },
+        events: ['mousemove', 'mouseout', 'click', 'touchstart', 'touchmove'],
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(24,24,27,.95)',
-            titleColor: '#a1a1aa',
-            bodyColor: '#fff',
+            enabled: true,
+            backgroundColor: 'rgba(9, 9, 11, 0.96)',
+            titleColor: '#fb923c',
+            titleFont: { size: 11, weight: '900' },
+            bodyColor: '#ffffff',
+            bodyFont: { size: 13, weight: '800' },
             padding: 12,
-            borderColor: '#3f3f46',
+            cornerRadius: 12,
+            borderColor: 'rgba(249, 115, 22, 0.45)',
             borderWidth: 1,
+            displayColors: false,
             callbacks: {
-              label: function(context) { return ' R$ ' + context.parsed.y.toFixed(2).replace('.', ','); }
+              title: function(items) {
+                return '📅 Período: ' + items[0].label;
+              },
+              label: function(context) {
+                return '💰 Receita: R$ ' + context.parsed.y.toFixed(2).replace('.', ',');
+              }
             }
           }
         },
         scales: {
-          y: { beginAtZero: true, grid: { color: '#27272a', drawBorder: false }, ticks: { color: '#a1a1aa', font: { size: 9, weight: 'bold' } } },
-          x: { grid: { display: false }, ticks: { color: '#a1a1aa', font: { size: 9, weight: 'bold' } } }
+          y: {
+            beginAtZero: true,
+            grid: { color: '#27272a', drawBorder: false },
+            ticks: {
+              color: '#a1a1aa',
+              font: { size: 9, weight: 'bold' },
+              callback: function(value) { return 'R$ ' + value; }
+            }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { color: '#a1a1aa', font: { size: 9, weight: 'bold' }, maxRotation: 0, autoSkip: true, maxTicksLimit: 10 }
+          }
         }
       }
     });
