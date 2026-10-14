@@ -18,8 +18,7 @@
     .custom-scroll::-webkit-scrollbar-track { background: transparent; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 9999px; }
     .custom-scroll::-webkit-scrollbar-thumb:hover { background: #f97316; }
-    input[type="date"]::-webkit-calendar-picker-indicator,
-    input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(.8); cursor: pointer; }
+    input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.8); cursor: pointer; }
     .no-select { user-select: none; }
     .glass { background: rgba(24,24,27,.62); border: 1px solid rgba(63,63,70,.75); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
     .glass-soft { background: rgba(24,24,27,.42); border: 1px solid rgba(63,63,70,.55); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
@@ -34,7 +33,7 @@
     .mobile-action { transition: transform .2s ease, border-color .2s ease, background .2s ease; }
     .mobile-action:active { transform: scale(.96); }
     .manual-time-option { transition: all 0.2s ease; }
-    .manual-time-option.selected { border-color: #10b981; background: rgba(16, 185, 129, 0.1); color: #fff; }
+    .manual-time-option.selected { border-color: #10b981; background: rgba(16, 185, 129, 0.15); color: #fff; }
     .manual-time-option.available:hover { border-color: #3f3f46; }
 
     /* MENU LATERAL FIXO E EXPANSÍVEL SEM EMPURRAR A TELA */
@@ -82,6 +81,12 @@
     .cal-day.selected { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important; color: #09090b !important; font-weight: 900 !important; border-color: #fb923c !important; box-shadow: 0 8px 25px rgba(249, 115, 22, 0.35); }
     .cal-day.selected .cal-badge { background: #09090b !important; color: #f97316 !important; border-color: transparent !important; }
     .cal-day.today:not(.selected) { border-color: #f97316; color: #fb923c; }
+
+    /* SELETOR DE HORÁRIO CUSTOMIZADO */
+    .tp-chip { transition: all 0.15s ease; }
+    .tp-chip:hover { border-color: rgba(249, 115, 22, 0.5); color: #fff; }
+    .tp-chip.active { background: linear-gradient(135deg, #f97316, #ea580c); color: #09090b; font-weight: 900; border-color: #fb923c; box-shadow: 0 4px 15px rgba(249,115,22,0.3); }
+    .weekday-pill.active { background: #ef4444; color: #fff; border-color: #f87171; font-weight: 900; }
   </style>
 </head>
 
@@ -105,6 +110,25 @@
       <input type="password" id="admin-pass" placeholder="SENHA MESTRA" onkeydown="if(event.key==='Enter'){event.preventDefault();checkAdmin(event);}" class="w-full py-4 px-4 rounded-2xl bg-zinc-950 border border-zinc-700 text-white focus:border-orange-500 outline-none mb-3 text-center tracking-widest font-bold transition-all placeholder:text-zinc-600">
       <button type="button" onclick="checkAdmin(event)" class="w-full py-4 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-black font-black uppercase tracking-widest rounded-2xl shadow-[0_0_25px_rgba(249,115,22,.18)] transition-all transform hover:scale-[1.01]">
         Desbloquear
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL POPUP DE SELEÇÃO DE HORÁRIO BONITO -->
+<div id="modal-time-picker" class="hidden fixed inset-0 z-[70] bg-zinc-950/80 backdrop-blur-md flex items-center justify-center p-4">
+  <div class="bg-zinc-900 border border-zinc-700/80 rounded-[28px] p-6 w-full max-w-sm shadow-2xl space-y-4">
+    <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+      <div>
+        <p class="text-[9px] text-orange-500 uppercase font-black tracking-widest">Selecionar Horário</p>
+        <h3 id="tp-modal-title" class="text-base font-black text-white mt-0.5">Horário</h3>
+      </div>
+      <button type="button" onclick="closeTimePickerModal()" class="text-zinc-400 hover:text-white bg-zinc-800 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
+    </div>
+    <div id="tp-grid" class="grid grid-cols-4 gap-2 max-h-[320px] overflow-y-auto custom-scroll pr-1"></div>
+    <div id="tp-clear-container" class="hidden pt-2 border-t border-zinc-800">
+      <button type="button" onclick="clearTimePickerTarget()" class="w-full py-3 rounded-xl bg-zinc-950 hover:bg-red-950/40 text-zinc-400 hover:text-red-400 border border-zinc-800 text-[10px] font-black uppercase tracking-widest transition-all">
+        Limpar / Sem Intervalo
       </button>
     </div>
   </div>
@@ -136,36 +160,153 @@
           <p id="detail-modified" class="text-xs font-semibold text-zinc-300">Data</p>
         </div>
       </div>
-      <div id="detail-whatsapp-container" class="pt-2"></div>
+      <div id="detail-whatsapp-container" class="pt-2 space-y-2"></div>
     </div>
   </div>
 </div>
 
-<!-- MODAL BLOQUEIO -->
+<!-- MODAL EDITAR AGENDAMENTO -->
+<div id="modal-edit-booking" class="hidden fixed inset-0 z-[65] bg-zinc-950/85 backdrop-blur-md flex flex-col justify-end md:items-center md:justify-center p-0 md:p-4">
+  <div class="bg-zinc-900 border border-zinc-700/60 md:rounded-[28px] rounded-t-[28px] p-6 w-full max-w-sm flex flex-col max-h-[90vh] shadow-2xl">
+    <div class="flex justify-between items-center border-b border-zinc-800 pb-4 shrink-0">
+      <h3 class="font-black text-white text-lg flex items-center gap-2 tracking-wide"><span class="text-orange-500">✏️</span> Editar Horário Agendado</h3>
+      <button onclick="closeEditModal()" class="text-zinc-400 hover:text-white bg-zinc-800 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
+    </div>
+    <div class="overflow-y-auto custom-scroll flex-1 pt-4 pb-2 space-y-4">
+      <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3.5">
+        <p class="text-[9px] text-zinc-500 uppercase font-black tracking-wider">Cliente & Serviço</p>
+        <p id="edit-client-name" class="text-sm font-black text-white mt-0.5">Cliente</p>
+        <p id="edit-service-info" class="text-[10px] text-orange-400 font-bold uppercase tracking-wider mt-0.5">Serviço</p>
+      </div>
+      <div>
+        <label class="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5">Nova Data</label>
+        <input type="date" id="edit-date" onchange="fetchEditTimes()" class="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-xl text-white outline-none focus:border-orange-500 text-sm">
+      </div>
+      <div>
+        <label class="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5">Novo Horário Disponível</label>
+        <div id="edit-time-grid" class="grid grid-cols-4 gap-2"></div>
+      </div>
+    </div>
+    <div class="pt-4 border-t border-zinc-800 shrink-0 flex gap-2">
+      <button id="btn-save-edit" onclick="saveEditedBooking()" class="w-full py-4 bg-orange-500 hover:bg-orange-400 text-zinc-950 font-black uppercase tracking-widest rounded-xl transition-all">
+        Salvar Novo Horário
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TRAVA DE CONFLITOS DE EXPEDIENTE / BLOQUEIO -->
+<div id="modal-schedule-conflicts" class="hidden fixed inset-0 z-[60] bg-zinc-950/90 backdrop-blur-md flex items-center justify-center p-4">
+  <div class="bg-zinc-900 border border-red-500/40 rounded-[28px] p-6 w-full max-w-lg shadow-2xl flex flex-col max-h-[88vh]">
+    <div class="flex items-start justify-between border-b border-zinc-800 pb-4 shrink-0 gap-4">
+      <div>
+        <span class="px-2.5 py-1 rounded-md bg-red-500/15 text-red-400 border border-red-500/30 text-[9px] font-black uppercase tracking-widest">⚠️ Alteração Bloqueada</span>
+        <h3 id="conflict-modal-title" class="font-black text-white text-lg mt-2 leading-tight">Horários marcados fora do novo expediente</h3>
+        <p id="conflict-modal-subtitle" class="text-xs text-zinc-400 mt-1">Ajuste ou remarque os agendamentos abaixo antes de modificar o horário de funcionamento.</p>
+      </div>
+      <button onclick="closeConflictsModal()" class="text-zinc-400 hover:text-white bg-zinc-800 w-8 h-8 rounded-full flex items-center justify-center shrink-0">✕</button>
+    </div>
+    <div id="conflicts-list-container" class="overflow-y-auto custom-scroll flex-1 space-y-3 py-4 pr-1"></div>
+    <div class="pt-4 border-t border-zinc-800 shrink-0 flex items-center justify-between gap-3">
+      <button onclick="closeConflictsModal()" class="px-5 py-3.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] font-black uppercase tracking-widest transition-all">
+        Fechar
+      </button>
+      <button id="btn-retry-save-settings" onclick="saveSettings()" class="flex-1 py-3.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-zinc-950 text-[10px] font-black uppercase tracking-widest transition-all">
+        Verificar & Salvar Expediente
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL BLOQUEIO (ÚNICO E FIXO/RECORRENTE) -->
 <div id="modal-block" class="hidden fixed inset-0 z-50 bg-zinc-950/85 backdrop-blur-md flex flex-col justify-end md:items-center md:justify-center p-0 md:p-4">
-  <div class="bg-zinc-900 border border-zinc-700/60 md:rounded-[28px] rounded-t-[28px] p-6 w-full max-w-sm space-y-4 shadow-2xl">
-    <div class="flex justify-between items-center border-b border-zinc-800 pb-4">
-      <h3 class="font-black text-white text-lg flex items-center gap-2 tracking-wide"><span class="text-red-500">🚫</span> Bloquear horários</h3>
+  <div class="bg-zinc-900 border border-zinc-700/60 md:rounded-[28px] rounded-t-[28px] p-6 w-full max-w-md flex flex-col max-h-[92vh] shadow-2xl">
+    <div class="flex justify-between items-center border-b border-zinc-800 pb-4 shrink-0">
+      <h3 class="font-black text-white text-lg flex items-center gap-2 tracking-wide"><span class="text-red-500">🚫</span> Bloquear Horários</h3>
       <button onclick="closeBlockModal()" class="text-zinc-400 hover:text-white bg-zinc-800 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
     </div>
-    <div class="space-y-4 pt-2">
-      <div>
-        <label class="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5">Data</label>
-        <input type="date" id="block-date" class="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-xl text-white outline-none focus:border-red-500">
+
+    <div class="overflow-y-auto custom-scroll flex-1 pt-4 space-y-4 pr-1">
+      <!-- Seletor de Modo -->
+      <div class="grid grid-cols-2 gap-1.5 bg-zinc-950 p-1.5 rounded-2xl border border-zinc-800">
+        <button type="button" id="btn-block-mode-single" onclick="setBlockMode('single')" class="py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-red-600 text-white transition-all">
+          📅 Data Única
+        </button>
+        <button type="button" id="btn-block-mode-recurring" onclick="setBlockMode('recurring')" class="py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all">
+          🔄 Horário Fixo
+        </button>
       </div>
-      <div class="flex gap-3">
-        <div class="flex-1">
+
+      <!-- Campo Data Única -->
+      <div id="block-single-fields">
+        <label class="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5">Data do Bloqueio</label>
+        <input type="date" id="block-date" class="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-xl text-white outline-none focus:border-red-500 font-bold">
+      </div>
+
+      <!-- Campos Horário Fixo / Recorrente -->
+      <div id="block-recurring-fields" class="hidden space-y-4">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-[10px] text-zinc-400 uppercase font-black tracking-wider">Repetir nos dias</label>
+            <button type="button" onclick="selectAllBlockWeekdays()" class="text-[9px] text-orange-400 hover:text-orange-300 font-black uppercase tracking-wider">Todos os dias</button>
+          </div>
+          <div class="grid grid-cols-7 gap-1.5">
+            <button type="button" onclick="toggleBlockWeekday(0)" data-day="0" class="weekday-pill py-2.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-400 text-[10px] font-bold">Dom</button>
+            <button type="button" onclick="toggleBlockWeekday(1)" data-day="1" class="weekday-pill active py-2.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-400 text-[10px] font-bold">Seg</button>
+            <button type="button" onclick="toggleBlockWeekday(2)" data-day="2" class="weekday-pill active py-2.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-400 text-[10px] font-bold">Ter</button>
+            <button type="button" onclick="toggleBlockWeekday(3)" data-day="3" class="weekday-pill active py-2.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-400 text-[10px] font-bold">Qua</button>
+            <button type="button" onclick="toggleBlockWeekday(4)" data-day="4" class="weekday-pill active py-2.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-400 text-[10px] font-bold">Qui</button>
+            <button type="button" onclick="toggleBlockWeekday(5)" data-day="5" class="weekday-pill active py-2.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-400 text-[10px] font-bold">Sex</button>
+            <button type="button" onclick="toggleBlockWeekday(6)" data-day="6" class="weekday-pill active py-2.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-400 text-[10px] font-bold">Sáb</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5">Motivo / Nome</label>
+            <input type="text" id="block-reason" placeholder="Ex: Compromisso, Almoço" value="Compromisso Fixo" class="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-700 rounded-xl text-white text-xs outline-none focus:border-red-500">
+          </div>
+          <div>
+            <label class="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5">Duração</label>
+            <select id="block-weeks" class="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-700 rounded-xl text-white text-xs outline-none focus:border-red-500 font-bold">
+              <option value="4">Próximas 4 semanas</option>
+              <option value="8" selected>Próximas 8 semanas</option>
+              <option value="12">Próximas 12 semanas</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Horário de Início e Fim com Seletor Bonito -->
+      <div class="grid grid-cols-2 gap-3">
+        <div>
           <label class="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5">Início</label>
-          <input type="time" id="block-start" value="12:00" class="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-xl text-white outline-none focus:border-red-500">
+          <input type="hidden" id="block-start" value="13:00">
+          <div class="flex items-center bg-zinc-950 border border-zinc-700 rounded-xl p-1">
+            <button type="button" onclick="stepTimeInput('block-start', -30)" class="w-8 h-9 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white font-black">−</button>
+            <button type="button" onclick="openTimePickerModal('block-start', 'Início do Bloqueio', false)" id="display-block-start" class="flex-1 text-center font-black text-white text-sm py-1.5">13:00</button>
+            <button type="button" onclick="stepTimeInput('block-start', 30)" class="w-8 h-9 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white font-black">+</button>
+          </div>
         </div>
-        <div class="flex-1">
+        <div>
           <label class="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5">Fim</label>
-          <input type="time" id="block-end" value="14:00" class="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-xl text-white outline-none focus:border-red-500">
+          <input type="hidden" id="block-end" value="14:30">
+          <div class="flex items-center bg-zinc-950 border border-zinc-700 rounded-xl p-1">
+            <button type="button" onclick="stepTimeInput('block-end', -30)" class="w-8 h-9 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white font-black">−</button>
+            <button type="button" onclick="openTimePickerModal('block-end', 'Fim do Bloqueio', false)" id="display-block-end" class="flex-1 text-center font-black text-white text-sm py-1.5">14:30</button>
+            <button type="button" onclick="stepTimeInput('block-end', 30)" class="w-8 h-9 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white font-black">+</button>
+          </div>
         </div>
       </div>
-      <button id="btn-confirm-block" onclick="confirmBlock()" class="w-full py-3.5 mt-2 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-widest rounded-xl transition-all">
+
+      <button id="btn-confirm-block" onclick="confirmBlock()" class="w-full py-3.5 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-widest rounded-xl transition-all shadow-lg">
         Confirmar Bloqueio
       </button>
+
+      <!-- Lista de Bloqueios Fixos Ativos -->
+      <div class="pt-3 border-t border-zinc-800">
+        <p class="text-[9px] text-zinc-400 uppercase font-black tracking-widest mb-2">Bloqueios Fixos Ativos</p>
+        <div id="recurring-blocks-list" class="space-y-2"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -338,7 +479,7 @@
       </div>
     </header>
 
-    <!-- ABA HOJE (VISÍVEL POR PADRÃO) -->
+    <!-- ABA HOJE -->
     <main id="tab-hoje" class="flex flex-1 flex-col min-h-0 p-4 md:p-8 overflow-y-auto custom-scroll relative z-0">
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5">
         <div>
@@ -371,7 +512,10 @@
           <p id="today-completed" class="text-[10px] text-zinc-500 font-medium mt-1">R$ 0 realizados hoje</p>
         </div>
         <div class="stat-card rounded-2xl p-4">
-          <p class="text-[8px] text-zinc-500 uppercase tracking-widest font-black">Ocupação do dia</p>
+          <div class="flex items-center justify-between">
+            <p class="text-[8px] text-zinc-500 uppercase tracking-widest font-black">Ocupação do dia</p>
+            <span id="today-free-slots-label" class="text-[8px] text-zinc-500 font-bold uppercase">0 livres</span>
+          </div>
           <p id="today-occupancy" class="text-xl md:text-2xl font-black text-purple-400 mt-1">0%</p>
           <div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden mt-2">
             <div id="today-occupancy-bar" class="h-full bg-purple-500 rounded-full transition-all" style="width:0%"></div>
@@ -656,66 +800,129 @@
     </main>
 
     <!-- ABA CONFIG -->
-    <main id="tab-config" class="hidden flex-1 flex-col p-4 md:p-8 overflow-y-auto min-h-0 relative z-0">
+    <main id="tab-config" class="hidden flex-1 flex-col p-4 md:p-8 overflow-y-auto custom-scroll min-h-0 relative z-0">
       <div class="mb-6">
         <p class="text-[9px] text-orange-500 uppercase font-black tracking-[.25em]">Sistema</p>
         <h2 class="text-xl font-black text-zinc-100 tracking-wide">Configurações</h2>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 w-full max-w-4xl">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full max-w-5xl">
+        <!-- Card Horário Operacional com Seletor Bonito -->
         <div class="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-6 md:p-8 shadow-2xl">
-          <h3 class="text-sm font-black tracking-widest uppercase text-orange-500 mb-6 border-b border-zinc-800 pb-3">Horário Operacional</h3>
+          <div class="flex items-center justify-between border-b border-zinc-800 pb-4 mb-6">
+            <div>
+              <h3 class="text-sm font-black tracking-widest uppercase text-orange-500">Horário Operacional</h3>
+              <p class="text-[10px] text-zinc-500 font-semibold mt-0.5">Toque no horário para abrir a grade ou ajuste em ±30m</p>
+            </div>
+            <span id="config-total-hours-badge" class="px-2.5 py-1 rounded-lg bg-orange-500/10 border border-orange-500/25 text-orange-400 text-[9px] font-black uppercase">Expediente</span>
+          </div>
+
           <div class="space-y-5">
-            <div>
-              <label class="text-[10px] text-zinc-400 uppercase font-black tracking-widest block mb-2">Abertura</label>
-              <input type="time" id="set-open" value="09:00" class="w-full px-5 py-3.5 bg-zinc-950 border border-zinc-700 rounded-xl text-white outline-none focus:border-orange-500 font-bold">
-            </div>
-            <div>
-              <label class="text-[10px] text-zinc-400 uppercase font-black tracking-widest block mb-2">Fecho</label>
-              <input type="time" id="set-close" value="20:30" class="w-full px-5 py-3.5 bg-zinc-950 border border-zinc-700 rounded-xl text-white outline-none focus:border-orange-500 font-bold">
-            </div>
-            <div class="mt-6 border-t border-zinc-800 pt-5">
-              <h4 class="text-[11px] font-black tracking-widest uppercase text-zinc-300 mb-4">Intervalo de Descanso</h4>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="text-[10px] text-zinc-400 uppercase font-black tracking-widest block mb-2">Início do Descanso</label>
-                  <input type="time" id="set-break-start" class="w-full px-5 py-3.5 bg-zinc-950 border border-zinc-700 rounded-xl text-white outline-none focus:border-orange-500 font-bold">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-[10px] text-zinc-400 uppercase font-black tracking-widest block mb-2">Abertura</label>
+                <input type="hidden" id="set-open" value="09:00">
+                <div class="flex items-center bg-zinc-950 border border-zinc-700/80 hover:border-orange-500/50 rounded-2xl p-1.5 transition-all">
+                  <button type="button" onclick="stepTimeInput('set-open', -30)" class="w-9 h-10 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white font-black text-base transition-colors">−</button>
+                  <button type="button" onclick="openTimePickerModal('set-open', 'Horário de Abertura', false)" class="flex-1 flex flex-col items-center justify-center py-1">
+                    <span id="display-set-open" class="text-lg font-black text-white tracking-tight">09:00</span>
+                    <span class="text-[8px] text-orange-400 uppercase font-bold tracking-widest">Trocar</span>
+                  </button>
+                  <button type="button" onclick="stepTimeInput('set-open', 30)" class="w-9 h-10 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white font-black text-base transition-colors">+</button>
                 </div>
-                <div>
-                  <label class="text-[10px] text-zinc-400 uppercase font-black tracking-widest block mb-2">Fim do Descanso</label>
-                  <input type="time" id="set-break-end" class="w-full px-5 py-3.5 bg-zinc-950 border border-zinc-700 rounded-xl text-white outline-none focus:border-orange-500 font-bold">
+              </div>
+
+              <div>
+                <label class="text-[10px] text-zinc-400 uppercase font-black tracking-widest block mb-2">Fecho</label>
+                <input type="hidden" id="set-close" value="20:30">
+                <div class="flex items-center bg-zinc-950 border border-zinc-700/80 hover:border-orange-500/50 rounded-2xl p-1.5 transition-all">
+                  <button type="button" onclick="stepTimeInput('set-close', -30)" class="w-9 h-10 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white font-black text-base transition-colors">−</button>
+                  <button type="button" onclick="openTimePickerModal('set-close', 'Horário de Fechamento', false)" class="flex-1 flex flex-col items-center justify-center py-1">
+                    <span id="display-set-close" class="text-lg font-black text-white tracking-tight">20:30</span>
+                    <span class="text-[8px] text-orange-400 uppercase font-bold tracking-widest">Trocar</span>
+                  </button>
+                  <button type="button" onclick="stepTimeInput('set-close', 30)" class="w-9 h-10 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white font-black text-base transition-colors">+</button>
                 </div>
               </div>
             </div>
-            <button onclick="saveSettings()" class="w-full py-4 mt-4 bg-zinc-200 hover:bg-white text-zinc-900 font-black uppercase tracking-widest rounded-xl text-xs transition-all">
+
+            <div class="mt-6 border-t border-zinc-800 pt-5">
+              <div class="flex items-center justify-between mb-3">
+                <h4 class="text-[11px] font-black tracking-widest uppercase text-zinc-300">Intervalo de Descanso</h4>
+                <button type="button" onclick="clearBreakInputs()" class="text-[9px] text-zinc-400 hover:text-red-400 font-black uppercase tracking-wider bg-zinc-950 px-2.5 py-1 rounded-lg border border-zinc-800">
+                  Limpar Descanso
+                </button>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="text-[10px] text-zinc-400 uppercase font-black tracking-widest block mb-2">Início do Descanso</label>
+                  <input type="hidden" id="set-break-start" value="">
+                  <div class="flex items-center bg-zinc-950 border border-zinc-700/80 hover:border-orange-500/50 rounded-2xl p-1.5 transition-all">
+                    <button type="button" onclick="stepTimeInput('set-break-start', -30)" class="w-9 h-10 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white font-black text-base transition-colors">−</button>
+                    <button type="button" onclick="openTimePickerModal('set-break-start', 'Início do Descanso', true)" class="flex-1 flex flex-col items-center justify-center py-1">
+                      <span id="display-set-break-start" class="text-base font-black text-zinc-400 tracking-tight">--:--</span>
+                      <span class="text-[8px] text-zinc-500 uppercase font-bold tracking-widest">Definir</span>
+                    </button>
+                    <button type="button" onclick="stepTimeInput('set-break-start', 30)" class="w-9 h-10 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white font-black text-base transition-colors">+</button>
+                  </div>
+                </div>
+                <div>
+                  <label class="text-[10px] text-zinc-400 uppercase font-black tracking-widest block mb-2">Fim do Descanso</label>
+                  <input type="hidden" id="set-break-end" value="">
+                  <div class="flex items-center bg-zinc-950 border border-zinc-700/80 hover:border-orange-500/50 rounded-2xl p-1.5 transition-all">
+                    <button type="button" onclick="stepTimeInput('set-break-end', -30)" class="w-9 h-10 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white font-black text-base transition-colors">−</button>
+                    <button type="button" onclick="openTimePickerModal('set-break-end', 'Fim do Descanso', true)" class="flex-1 flex flex-col items-center justify-center py-1">
+                      <span id="display-set-break-end" class="text-base font-black text-zinc-400 tracking-tight">--:--</span>
+                      <span class="text-[8px] text-zinc-500 uppercase font-bold tracking-widest">Definir</span>
+                    </button>
+                    <button type="button" onclick="stepTimeInput('set-break-end', 30)" class="w-9 h-10 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white font-black text-base transition-colors">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button onclick="saveSettings()" class="w-full py-4 mt-4 bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-400 hover:to-orange-300 text-zinc-950 font-black uppercase tracking-widest rounded-2xl text-xs transition-all shadow-[0_0_25px_rgba(249,115,22,.2)]">
               Salvar Alterações
             </button>
           </div>
         </div>
 
-        <div class="premium-card rounded-3xl p-6 md:p-8">
-          <h3 class="text-sm font-black tracking-widest uppercase text-white mb-6 border-b border-zinc-800 pb-3">Atalhos Rápidos</h3>
-          <div class="grid grid-cols-2 gap-3">
-            <button onclick="switchTab('kanban')" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-orange-500/40 text-left transition-all">
-              <span class="text-xl">📅</span>
-              <p class="text-xs font-black text-white mt-3">Calendário</p>
-              <p class="text-[9px] text-zinc-500 mt-1">Consultar datas</p>
-            </button>
-            <button onclick="openBlockModal()" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-red-500/40 text-left transition-all">
-              <span class="text-xl">🚫</span>
-              <p class="text-xs font-black text-white mt-3">Bloquear horários</p>
-              <p class="text-[9px] text-zinc-500 mt-1">Fechar horário</p>
-            </button>
-            <button onclick="switchTab('clientes')" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-blue-500/40 text-left transition-all">
-              <span class="text-xl">👤</span>
-              <p class="text-xs font-black text-white mt-3">Clientes</p>
-              <p class="text-[9px] text-zinc-500 mt-1">Carteira & Retorno</p>
-            </button>
-            <button onclick="openManualModal()" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-emerald-500/40 text-left transition-all">
-              <span class="text-xl">✨</span>
-              <p class="text-xs font-black text-white mt-3">Novo</p>
-              <p class="text-[9px] text-zinc-500 mt-1">Agendar manual</p>
-            </button>
+        <div class="flex flex-col gap-6">
+          <div class="premium-card rounded-3xl p-6 md:p-8">
+            <h3 class="text-sm font-black tracking-widest uppercase text-white mb-6 border-b border-zinc-800 pb-3">Atalhos Rápidos</h3>
+            <div class="grid grid-cols-2 gap-3">
+              <button onclick="switchTab('kanban')" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-orange-500/40 text-left transition-all">
+                <span class="text-xl">📅</span>
+                <p class="text-xs font-black text-white mt-3">Calendário</p>
+                <p class="text-[9px] text-zinc-500 mt-1">Consultar datas</p>
+              </button>
+              <button onclick="openBlockModal()" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-red-500/40 text-left transition-all">
+                <span class="text-xl">🚫</span>
+                <p class="text-xs font-black text-white mt-3">Bloquear horários</p>
+                <p class="text-[9px] text-zinc-500 mt-1">Único ou Fixo Semanal</p>
+              </button>
+              <button onclick="switchTab('clientes')" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-blue-500/40 text-left transition-all">
+                <span class="text-xl">👤</span>
+                <p class="text-xs font-black text-white mt-3">Clientes</p>
+                <p class="text-[9px] text-zinc-500 mt-1">Carteira & Retorno</p>
+              </button>
+              <button onclick="openManualModal()" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-emerald-500/40 text-left transition-all">
+                <span class="text-xl">✨</span>
+                <p class="text-xs font-black text-white mt-3">Novo</p>
+                <p class="text-[9px] text-zinc-500 mt-1">Agendar manual</p>
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-6 shadow-xl">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3 mb-4">
+              <div>
+                <h3 class="text-xs font-black tracking-widest uppercase text-red-400">🔄 Bloqueios Fixos Semanais</h3>
+                <p class="text-[10px] text-zinc-500 mt-0.5">Compromissos recorrentes ativos na agenda</p>
+              </div>
+              <button onclick="openBlockModal(); setBlockMode('recurring');" class="px-3 py-1.5 rounded-xl bg-red-500/15 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/30 text-[9px] font-black uppercase tracking-wider transition-all">+ Novo Fixo</button>
+            </div>
+            <div id="config-recurring-blocks-list" class="space-y-2"></div>
           </div>
         </div>
       </div>
@@ -747,6 +954,12 @@ let todayAppointmentsCache = [];
 let allAppointments = [];
 let pollTimer = null;
 window.currentPeriodCancellations = [];
+
+let currentTpTargetId = null;
+let blockMode = 'single';
+let selectedBlockWeekdays = [1, 2, 3, 4, 5, 6];
+let editingAppointment = null;
+let editSelectedTime = null;
 
 function pad2(n) {
   return String(n).padStart(2, '0');
@@ -847,6 +1060,112 @@ function updateHeaderDate() {
   }
 }
 
+/* ==========================================
+   SELETOR DE HORÁRIO CUSTOMIZADO E BONITO
+   ========================================== */
+function syncTimeDisplay(inputId) {
+  const input = document.getElementById(inputId);
+  const display = document.getElementById('display-' + inputId);
+  if (!input || !display) return;
+  const val = input.value ? input.value.trim() : '';
+  if (val) {
+    display.innerText = val;
+    display.classList.remove('text-zinc-400');
+    display.classList.add('text-white');
+  } else {
+    display.innerText = '--:--';
+    display.classList.remove('text-white');
+    display.classList.add('text-zinc-400');
+  }
+  updateExpedienteSummaryBadge();
+}
+
+function updateExpedienteSummaryBadge() {
+  const badge = document.getElementById('config-total-hours-badge');
+  if (!badge) return;
+  const o = timeToMinutes(document.getElementById('set-open').value || '09:00');
+  const c = timeToMinutes(document.getElementById('set-close').value || '20:30');
+  const bs = document.getElementById('set-break-start').value;
+  const be = document.getElementById('set-break-end').value;
+  let totalMins = Math.max(0, c - o);
+  if (bs && be) {
+    const bStart = timeToMinutes(bs);
+    const bEnd = timeToMinutes(be);
+    if (bEnd > bStart && bStart >= o && bEnd <= c) {
+      totalMins -= (bEnd - bStart);
+    }
+  }
+  const hrs = (totalMins / 60).toFixed(1).replace('.0', '');
+  badge.innerText = hrs + 'h úteis (' + Math.floor(totalMins / 30) + ' horários)';
+}
+
+function stepTimeInput(inputId, deltaMins) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  let currentVal = input.value;
+  if (!currentVal) {
+    currentVal = inputId.includes('break') ? '12:00' : '09:00';
+  }
+  let mins = timeToMinutes(currentVal) + deltaMins;
+  if (mins < 360) mins = 360; // 06:00
+  if (mins > 1410) mins = 1410; // 23:30
+  input.value = minutesToTime(mins);
+  syncTimeDisplay(inputId);
+}
+
+function openTimePickerModal(inputId, title, allowClear) {
+  currentTpTargetId = inputId;
+  document.getElementById('tp-modal-title').innerText = title || 'Selecionar Horário';
+  const clearBox = document.getElementById('tp-clear-container');
+  if (clearBox) clearBox.classList.toggle('hidden', !allowClear);
+
+  const currentVal = document.getElementById(inputId).value || '';
+  const grid = document.getElementById('tp-grid');
+  let html = '';
+  for (let m = 6 * 60; m <= 23 * 60 + 30; m += 30) {
+    const tStr = minutesToTime(m);
+    const isActive = tStr === currentVal ? 'active' : '';
+    html += '<button type="button" onclick="selectTimeFromPicker(\'' + tStr + '\')" class="tp-chip py-2.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-300 text-xs font-bold ' + isActive + '">' + tStr + '</button>';
+  }
+  grid.innerHTML = html;
+  const modal = document.getElementById('modal-time-picker');
+  modal.classList.remove('hidden');
+}
+
+function selectTimeFromPicker(tStr) {
+  if (currentTpTargetId) {
+    const input = document.getElementById(currentTpTargetId);
+    if (input) {
+      input.value = tStr;
+      syncTimeDisplay(currentTpTargetId);
+    }
+  }
+  closeTimePickerModal();
+}
+
+function clearTimePickerTarget() {
+  if (currentTpTargetId) {
+    const input = document.getElementById(currentTpTargetId);
+    if (input) {
+      input.value = '';
+      syncTimeDisplay(currentTpTargetId);
+    }
+  }
+  closeTimePickerModal();
+}
+
+function clearBreakInputs() {
+  document.getElementById('set-break-start').value = '';
+  document.getElementById('set-break-end').value = '';
+  syncTimeDisplay('set-break-start');
+  syncTimeDisplay('set-break-end');
+}
+
+function closeTimePickerModal() {
+  currentTpTargetId = null;
+  document.getElementById('modal-time-picker').classList.add('hidden');
+}
+
 function checkAdmin(e) {
   if (e && e.preventDefault) e.preventDefault();
   const passInput = document.getElementById('admin-pass');
@@ -860,7 +1179,7 @@ function checkAdmin(e) {
   return false;
 }
 
-function processLogin() {
+async function processLogin() {
   const authScreen = document.getElementById('auth-screen');
   const mainPanel = document.getElementById('main-panel');
   if (authScreen) {
@@ -879,14 +1198,15 @@ function processLogin() {
   }
   updateHeaderDate();
   switchTab('hoje');
-  renderBoards();
   if (sb) {
-    loadSettings();
-    loadAgendaData();
+    await loadSettings();
+    await loadAgendaData();
     fetchHistoryData();
     subscribeToRealtime();
     if (pollTimer) clearInterval(pollTimer);
     pollTimer = setInterval(function() { loadAgendaData(true); }, 4000);
+  } else {
+    renderBoards();
   }
 }
 
@@ -902,6 +1222,7 @@ document.addEventListener('DOMContentLoaded', function() {
     Chart.defaults.font.family = "'Inter', sans-serif";
   }
   updateHeaderDate();
+  ['set-open', 'set-close', 'set-break-start', 'set-break-end', 'block-start', 'block-end'].forEach(syncTimeDisplay);
   try {
     if (localStorage.getItem('rb_admin_logged') === 'true') {
       processLogin();
@@ -930,6 +1251,7 @@ function switchTab(tab) {
   if (activeInd) activeInd.classList.remove('hidden');
 
   if (tab === 'kanban') renderCalendarSection();
+  if (tab === 'config') renderRecurringBlocksList();
   if (tab === 'historico' ? true : (tab === 'financeiro' ? true : tab === 'clientes')) fetchHistoryData();
   if (tab === 'financeiro') setTimeout(calculateDashboard, 100);
 }
@@ -942,8 +1264,8 @@ function subscribeToRealtime() {
       fetchHistoryData();
       if (!document.getElementById('modal-manual-booking').classList.contains('hidden')) fetchManualTimes();
     })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, function() {
-      loadSettings();
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, async function() {
+      await loadSettings();
       loadAgendaData();
     })
     .subscribe();
@@ -974,6 +1296,82 @@ function brDateToIso(brDateStr) {
   if (!brDateStr ? true : !brDateStr.includes('/')) return '';
   const parts = brDateStr.split('/');
   return parts[2] + '-' + pad2(parts[1]) + '-' + pad2(parts[0]);
+}
+
+/* ========================================================
+   CÁLCULO UNIFICADO DE OCUPAÇÃO E HORÁRIOS LIVRES DO DIA
+   ======================================================== */
+function calculateDayOccupancyMetrics(dayAptsRaw) {
+  const openEl = document.getElementById('set-open');
+  const closeEl = document.getElementById('set-close');
+  const bStartEl = document.getElementById('set-break-start');
+  const bEndEl = document.getElementById('set-break-end');
+
+  const openMin = timeToMinutes(openEl && openEl.value ? openEl.value : '09:00');
+  const closeMin = timeToMinutes(closeEl && closeEl.value ? closeEl.value : '20:30');
+  const breakStart = bStartEl && bStartEl.value ? bStartEl.value : '';
+  const breakEnd = bEndEl && bEndEl.value ? bEndEl.value : '';
+  const bStartMin = breakStart ? timeToMinutes(breakStart) : -1;
+  const bEndMin = breakEnd ? timeToMinutes(breakEnd) : -1;
+
+  let dayCuts = 0;
+  let dayRev = 0;
+  let occupiedIntervals = [];
+
+  dayAptsRaw.forEach(function(a) {
+    const isBlock = isBlockItem(a);
+    const startMin = timeToMinutes(a.time);
+    let dur = 30;
+    if (!isBlock) {
+      dur = getServiceDuration(a.service);
+      dayCuts++;
+      dayRev += parseFloat(a.price ? a.price : 0);
+    }
+    occupiedIntervals.push({ start: startMin, end: startMin + dur, type: isBlock ? 'block' : 'apt', data: a });
+  });
+
+  let freeSlotsCount = 0;
+  let totalAvailableSlots = 0;
+  let bookedClientSlots = 0;
+
+  for (let t = openMin; t <= closeMin - 30; t += 30) {
+    if (bStartMin >= 0 && bEndMin > bStartMin && t >= bStartMin && t < bEndMin) continue;
+    const isBlockedSlot = occupiedIntervals.some(function(i) {
+      return i.type === 'block' && t < i.end && (t + 30) > i.start;
+    });
+    if (isBlockedSlot) continue;
+
+    totalAvailableSlots++;
+    const hasClient = occupiedIntervals.some(function(i) {
+      return i.type === 'apt' && t < i.end && (t + 30) > i.start;
+    });
+    if (hasClient) {
+      bookedClientSlots++;
+    } else {
+      freeSlotsCount++;
+    }
+  }
+
+  let occPercent = 0;
+  if (totalAvailableSlots > 0) {
+    occPercent = Math.min(100, Math.round((bookedClientSlots / totalAvailableSlots) * 100));
+  } else if (dayCuts > 0) {
+    occPercent = 100;
+  }
+
+  return {
+    openMin: openMin,
+    closeMin: closeMin,
+    bStartMin: bStartMin,
+    bEndMin: bEndMin,
+    dayCuts: dayCuts,
+    dayRev: dayRev,
+    freeSlotsCount: freeSlotsCount,
+    totalAvailableSlots: totalAvailableSlots,
+    bookedClientSlots: bookedClientSlots,
+    occPercent: occPercent,
+    occupiedIntervals: occupiedIntervals
+  };
 }
 
 function renderCalendarSection() {
@@ -1105,51 +1503,13 @@ function renderSelectedDaySchedule() {
     .filter(function(a) { return a.date === selectedCalendarDateStr; })
     .sort(function(a, b) { return timeToMinutes(a.time) - timeToMinutes(b.time); });
 
-  let dayCuts = 0;
-  let dayRev = 0;
-  let occupiedIntervals = [];
-  let occupiedMinutes = 0;
+  const metrics = calculateDayOccupancyMetrics(dayAptsRaw);
 
-  dayAptsRaw.forEach(function(a) {
-    const isBlock = isBlockItem(a);
-    const startMin = timeToMinutes(a.time);
-    let dur = 30;
-    if (!isBlock) {
-      dur = getServiceDuration(a.service);
-      dayCuts++;
-      dayRev += parseFloat(a.price ? a.price : 0);
-      occupiedMinutes += dur;
-    }
-    occupiedIntervals.push({ start: startMin, end: startMin + dur, type: isBlock ? 'block' : 'apt', data: a });
-  });
-
-  const openEl = document.getElementById('set-open');
-  const closeEl = document.getElementById('set-close');
-  const bStartEl = document.getElementById('set-break-start');
-  const bEndEl = document.getElementById('set-break-end');
-
-  const openMin = timeToMinutes(openEl && openEl.value ? openEl.value : '09:00');
-  const closeMin = timeToMinutes(closeEl && closeEl.value ? closeEl.value : '20:30');
-  const breakStart = bStartEl && bStartEl.value ? bStartEl.value : '';
-  const breakEnd = bEndEl && bEndEl.value ? bEndEl.value : '';
-  const bStartMin = breakStart ? timeToMinutes(breakStart) : -1;
-  const bEndMin = breakEnd ? timeToMinutes(breakEnd) : -1;
-
-  let freeSlotsCount = 0;
-  let totalWorkSlots = 0;
-  for (let t = openMin; t <= closeMin - 30; t += 30) {
-    if (bStartMin >= 0 && bEndMin > bStartMin && t >= bStartMin && t < bEndMin) continue;
-    totalWorkSlots++;
-    const busy = occupiedIntervals.some(function(i) { return t < i.end && (t + 30) > i.start; });
-    if (!busy) freeSlotsCount++;
-  }
-
-  const occPercent = totalWorkSlots > 0 ? Math.min(100, Math.round((occupiedMinutes / (totalWorkSlots * 30)) * 100)) : 0;
-  document.getElementById('cal-stat-cuts').innerText = dayCuts;
-  document.getElementById('cal-stat-rev').innerText = 'R$ ' + dayRev.toFixed(0);
-  document.getElementById('cal-stat-free').innerText = freeSlotsCount;
-  document.getElementById('cal-stat-occ-text').innerText = occPercent + '%';
-  document.getElementById('cal-stat-occ-bar').style.width = occPercent + '%';
+  document.getElementById('cal-stat-cuts').innerText = metrics.dayCuts;
+  document.getElementById('cal-stat-rev').innerText = 'R$ ' + metrics.dayRev.toFixed(0);
+  document.getElementById('cal-stat-free').innerText = metrics.freeSlotsCount;
+  document.getElementById('cal-stat-occ-text').innerText = metrics.occPercent + '%';
+  document.getElementById('cal-stat-occ-bar').style.width = metrics.occPercent + '%';
 
   const searchInput = document.getElementById('cal-day-search');
   const searchQuery = (searchInput && searchInput.value ? searchInput.value : '').toLowerCase().trim();
@@ -1183,6 +1543,12 @@ function renderSelectedDaySchedule() {
     container.innerHTML = html;
     return;
   }
+
+  const openMin = metrics.openMin;
+  const closeMin = metrics.closeMin;
+  const bStartMin = metrics.bStartMin;
+  const bEndMin = metrics.bEndMin;
+  const occupiedIntervals = metrics.occupiedIntervals;
 
   let timelineHtml = '<div class="space-y-2.5">';
   for (let t = openMin; t <= closeMin - 30; t += 30) {
@@ -1230,6 +1596,7 @@ function renderSelectedDaySchedule() {
           const itemJson = JSON.stringify(a).replace(/'/g, "&apos;");
           actionsHtml = '<div class="flex items-center gap-2 shrink-0">'
             + whatsBtn
+            + '<button onclick=\'openEditModal(' + itemJson + ')\' class="px-3 py-1.5 rounded-xl bg-orange-500/15 hover:bg-orange-500 text-orange-400 hover:text-zinc-950 border border-orange-500/30 text-[9px] font-black uppercase tracking-wider transition-all">Editar</button>'
             + '<button onclick=\'openDetailsModal(' + itemJson + ')\' class="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[9px] font-black uppercase tracking-wider transition-all">Detalhes</button>'
             + '<button onclick="deleteAppointment(\'' + a.id + '\', false)" class="px-3 py-1.5 rounded-xl bg-zinc-950 hover:bg-red-600 text-zinc-400 hover:text-white border border-zinc-800 text-[9px] font-black uppercase tracking-wider transition-all">Cancelar</button>'
             + '</div>';
@@ -1423,7 +1790,7 @@ async function fetchManualTimes() {
 }
 
 function selectManualTime(value, element) {
-  document.querySelectorAll('.manual-time-option').forEach(function(el) { el.classList.remove('selected'); });
+  document.querySelectorAll('#manual-time-grid .manual-time-option').forEach(function(el) { el.classList.remove('selected'); });
   element.classList.add('selected');
   manualSelectedTime = value;
   updateManualBtn();
@@ -1487,6 +1854,174 @@ async function saveManualBooking() {
   fetchHistoryData();
 }
 
+/* ========================================================
+   EDIÇÃO DE HORÁRIO AGENDADO (REMARCAÇÃO DIRETA)
+   ======================================================== */
+function openEditModal(item) {
+  editingAppointment = item;
+  editSelectedTime = item.time || null;
+  closeDetailsModal();
+
+  const clientName = item.profiles && item.profiles.full_name ? item.profiles.full_name : 'Cliente';
+  document.getElementById('edit-client-name').innerText = clientName;
+  document.getElementById('edit-service-info').innerText = (item.service || 'Serviço') + ' · Atual: ' + (item.date || '') + ' às ' + (item.time || '');
+
+  const dateInput = document.getElementById('edit-date');
+  const todayIso = formatIsoDate(new Date());
+  dateInput.min = todayIso;
+  dateInput.value = brDateToIso(item.date) || todayIso;
+
+  document.getElementById('modal-edit-booking').classList.remove('hidden');
+  document.getElementById('modal-edit-booking').classList.add('flex');
+  fetchEditTimes();
+}
+
+function closeEditModal() {
+  editingAppointment = null;
+  editSelectedTime = null;
+  document.getElementById('modal-edit-booking').classList.add('hidden');
+  document.getElementById('modal-edit-booking').classList.remove('flex');
+}
+
+async function fetchEditTimes() {
+  if (!editingAppointment || !sb) return;
+  const dateVal = document.getElementById('edit-date').value;
+  const grid = document.getElementById('edit-time-grid');
+  if (!dateVal) return;
+
+  const dur = getServiceDuration(editingAppointment.service);
+  grid.innerHTML = '<div class="col-span-4 text-center py-4"><div class="w-4 h-4 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin mx-auto"></div></div>';
+
+  const parts = dateVal.split('-');
+  const targetDate = parts[2] + '/' + parts[1] + '/' + parts[0];
+  const targetDateNoZero = parseInt(parts[2], 10) + '/' + parseInt(parts[1], 10) + '/' + parts[0];
+
+  const res = await sb.from('appointments').select('id, service, time, calendar_event_id').in('date', [targetDate, targetDateNoZero]);
+  const booked = res.data || [];
+
+  let occupiedIntervals = [];
+  booked.forEach(function(b) {
+    if (String(b.id) === String(editingAppointment.id)) return;
+    if (isCancelledItem(b)) return;
+    const sMin = timeToMinutes(b.time);
+    const bDur = isBlockItem(b) ? 30 : getServiceDuration(b.service);
+    occupiedIntervals.push({ start: sMin, end: sMin + bDur });
+  });
+
+  const openTime = document.getElementById('set-open').value || '09:00';
+  const closeTime = document.getElementById('set-close').value || '20:30';
+  const breakStart = document.getElementById('set-break-start').value;
+  const breakEnd = document.getElementById('set-break-end').value;
+
+  if (breakStart && breakEnd) {
+    const bs = timeToMinutes(breakStart);
+    const be = timeToMinutes(breakEnd);
+    if (be > bs) occupiedIntervals.push({ start: bs, end: be });
+  }
+
+  const startMin = timeToMinutes(openTime);
+  const endMin = timeToMinutes(closeTime);
+  let html = '';
+
+  for (let t = startMin; t <= endMin - dur; t += 30) {
+    const slot = minutesToTime(t);
+    const slotEnd = t + dur;
+    const isOccupied = occupiedIntervals.some(function(i) { return t < i.end && slotEnd > i.start; });
+    if (isOccupied) {
+      html += '<div class="py-2.5 rounded-xl border border-white/5 bg-zinc-950 text-center opacity-30 cursor-not-allowed"><span class="text-zinc-600 font-medium text-[10px] line-through">' + slot + '</span></div>';
+    } else {
+      const isSel = editSelectedTime === slot ? 'selected' : '';
+      html += '<button type="button" onclick="selectEditTime(\'' + slot + '\', this)" class="manual-time-option available py-2.5 rounded-xl border border-zinc-800 bg-zinc-950 text-center text-zinc-300 font-bold text-[10px] ' + isSel + '">' + slot + '</button>';
+    }
+  }
+
+  grid.innerHTML = html || '<div class="col-span-4 text-center py-4 text-xs text-zinc-500">Nenhum horário disponível nesta data.</div>';
+}
+
+function selectEditTime(slot, btnEl) {
+  document.querySelectorAll('#edit-time-grid .manual-time-option').forEach(function(el) { el.classList.remove('selected'); });
+  btnEl.classList.add('selected');
+  editSelectedTime = slot;
+}
+
+async function saveEditedBooking() {
+  if (!sb || !editingAppointment || !editSelectedTime) {
+    return alert('Selecione um novo horário disponível.');
+  }
+  const dateVal = document.getElementById('edit-date').value;
+  if (!dateVal) return alert('Selecione a data.');
+  const parts = dateVal.split('-');
+  const newBrDate = parts[2] + '/' + parts[1] + '/' + parts[0];
+
+  const btn = document.getElementById('btn-save-edit');
+  btn.disabled = true;
+  btn.innerText = 'Atualizando...';
+
+  const res = await sb.from('appointments')
+    .update({ date: newBrDate, time: editSelectedTime })
+    .eq('id', editingAppointment.id);
+
+  btn.disabled = false;
+  btn.innerText = 'Salvar Novo Horário';
+
+  if (res.error) {
+    return alert('Erro ao atualizar horário: ' + res.error.message);
+  }
+
+  closeEditModal();
+  await loadAgendaData();
+  await fetchHistoryData();
+
+  if (!document.getElementById('modal-schedule-conflicts').classList.contains('hidden')) {
+    refreshScheduleConflictsModal();
+  }
+}
+
+/* ========================================================
+   BLOQUEIO DE HORÁRIOS (ÚNICO E FIXO/RECORRENTE SEMANAL)
+   ======================================================== */
+function setBlockMode(mode) {
+  blockMode = mode;
+  const singleBtn = document.getElementById('btn-block-mode-single');
+  const recBtn = document.getElementById('btn-block-mode-recurring');
+  const singleFields = document.getElementById('block-single-fields');
+  const recFields = document.getElementById('block-recurring-fields');
+
+  if (mode === 'single') {
+    singleBtn.className = 'py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-red-600 text-white transition-all';
+    recBtn.className = 'py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all';
+    singleFields.classList.remove('hidden');
+    recFields.classList.add('hidden');
+  } else {
+    recBtn.className = 'py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-red-600 text-white transition-all';
+    singleBtn.className = 'py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all';
+    singleFields.classList.add('hidden');
+    recFields.classList.remove('hidden');
+  }
+}
+
+function toggleBlockWeekday(dayIndex) {
+  const idx = selectedBlockWeekdays.indexOf(dayIndex);
+  if (idx >= 0) {
+    selectedBlockWeekdays.splice(idx, 1);
+  } else {
+    selectedBlockWeekdays.push(dayIndex);
+  }
+  updateWeekdayPillsUI();
+}
+
+function selectAllBlockWeekdays() {
+  selectedBlockWeekdays = [0, 1, 2, 3, 4, 5, 6];
+  updateWeekdayPillsUI();
+}
+
+function updateWeekdayPillsUI() {
+  document.querySelectorAll('#block-recurring-fields .weekday-pill').forEach(function(btn) {
+    const d = parseInt(btn.getAttribute('data-day'), 10);
+    btn.classList.toggle('active', selectedBlockWeekdays.includes(d));
+  });
+}
+
 function openBlockModal(customIsoDate) {
   const todayIso = formatIsoDate(new Date());
   const input = document.getElementById('block-date');
@@ -1494,6 +2029,9 @@ function openBlockModal(customIsoDate) {
     input.min = todayIso;
     input.value = customIsoDate ? customIsoDate : todayIso;
   }
+  syncTimeDisplay('block-start');
+  syncTimeDisplay('block-end');
+  renderRecurringBlocksList();
   document.getElementById('modal-block').classList.remove('hidden');
   document.getElementById('modal-block').classList.add('flex');
 }
@@ -1503,73 +2041,90 @@ function closeBlockModal() {
   document.getElementById('modal-block').classList.remove('flex');
 }
 
+async function getDummyUserIdForBlock() {
+  const resDummyProf = await sb.from('profiles').select('id').limit(1);
+  if (resDummyProf.data && resDummyProf.data.length) return resDummyProf.data[0].id;
+  const resDummyApt = await sb.from('appointments').select('user_id').not('user_id', 'is', null).limit(1);
+  if (resDummyApt.data && resDummyApt.data.length) return resDummyApt.data[0].user_id;
+  return null;
+}
+
 async function confirmBlock() {
   if (!sb) return;
-  const dateVal = document.getElementById('block-date').value;
   const start = document.getElementById('block-start').value;
   const end = document.getElementById('block-end').value;
-
-  if (!dateVal) return alert('Selecione uma data.');
-  const now = new Date();
-  const todayStr = formatIsoDate(now);
   const startMin = timeToMinutes(start);
   const endMin = timeToMinutes(end);
 
-  if (dateVal < todayStr) return alert('Data no passado.');
-  if (dateVal === todayStr && startMin <= now.getHours() * 60 + now.getMinutes()) return alert('Horário passado.');
-  if (startMin >= endMin) return alert('O fim precisa ser maior que o início.');
+  if (startMin >= endMin) return alert('O horário de fim precisa ser maior que o início.');
 
-  const parts = dateVal.split('-');
-  const formattedDate = parts[2] + '/' + parts[1] + '/' + parts[0];
-  const formattedDateNoZero = parseInt(parts[2], 10) + '/' + parseInt(parts[1], 10) + '/' + parts[0];
   const btn = document.getElementById('btn-confirm-block');
   btn.disabled = true;
   btn.innerText = 'Processando...';
 
-  const resSearch = await sb.from('appointments').select('*, profiles(full_name)')
-    .in('date', [formattedDate, formattedDateNoZero])
-    .neq('calendar_event_id', 'cancelled_by_barber')
-    .neq('calendar_event_id', 'cancelled_by_client')
-    .neq('calendar_event_id', 'blocked_time');
+  let targetDatesBr = [];
+  let blockLabel = '🚫 Bloqueado';
 
-  if (resSearch.error) {
-    alert('Erro: ' + resSearch.error.message);
-    btn.disabled = false;
-    btn.innerText = 'Confirmar Bloqueio';
-    return;
-  }
+  if (blockMode === 'single') {
+    const dateVal = document.getElementById('block-date').value;
+    if (!dateVal) {
+      btn.disabled = false;
+      btn.innerText = 'Confirmar Bloqueio';
+      return alert('Selecione uma data.');
+    }
+    const parts = dateVal.split('-');
+    targetDatesBr.push(parts[2] + '/' + parts[1] + '/' + parts[0]);
+  } else {
+    if (!selectedBlockWeekdays.length) {
+      btn.disabled = false;
+      btn.innerText = 'Confirmar Bloqueio';
+      return alert('Selecione pelo menos um dia da semana.');
+    }
+    const weeks = parseInt(document.getElementById('block-weeks').value || '8', 10);
+    const reason = (document.getElementById('block-reason').value || 'Fixo').trim();
+    const diasNomes = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    const diasTag = selectedBlockWeekdays.length === 7
+      ? 'Todos os dias'
+      : selectedBlockWeekdays.slice().sort().map(function(d) { return diasNomes[d]; }).join(',');
+    blockLabel = '🚫 Fixo (' + diasTag + ' ' + start + '-' + end + '): ' + reason;
 
-  let conflictClient = null;
-  const existingApts = resSearch.data;
-  if (existingApts && existingApts.length) {
-    for (let i = 0; i < existingApts.length; i++) {
-      const apt = existingApts[i];
-      const aptStart = timeToMinutes(apt.time);
-      const dur = getServiceDuration(apt.service);
-      if (aptStart < endMin && aptStart + dur > startMin) {
-        const cName = apt.profiles && apt.profiles.full_name ? apt.profiles.full_name : 'Cliente';
-        conflictClient = { name: cName, time: apt.time };
-        break;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const totalDays = weeks * 7;
+    for (let i = 0; i < totalDays; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      if (selectedBlockWeekdays.includes(d.getDay())) {
+        targetDatesBr.push(formatBrDate(d));
       }
     }
   }
 
-  if (conflictClient) {
-    alert('Conflito: "' + conflictClient.name + '" às ' + conflictClient.time + '.');
+  // Verifica conflitos com agendamentos de clientes nas datas alvo
+  const conflicts = allAppointments.filter(function(apt) {
+    if (isBlockItem(apt) || isCancelledItem(apt)) return false;
+    if (!targetDatesBr.includes(apt.date)) return false;
+    const aptStart = timeToMinutes(apt.time);
+    const aptEnd = aptStart + getServiceDuration(apt.service);
+    return aptStart < endMin && aptEnd > startMin;
+  });
+
+  if (conflicts.length > 0) {
     btn.disabled = false;
     btn.innerText = 'Confirmar Bloqueio';
+    closeBlockModal();
+    openConflictsModalWithList(
+      conflicts.map(function(c) {
+        return { apt: c, reason: 'Conflito com bloqueio (' + start + ' às ' + end + ')' };
+      }),
+      'Conflito ao bloquear horário',
+      'Existem clientes agendados no horário que você tentou bloquear. Acione o cliente ou edite o horário agendado antes de bloquear.',
+      false
+    );
     return;
   }
 
-  let targetUserId = null;
-  const resDummyProf = await sb.from('profiles').select('id').limit(1);
-  if (resDummyProf.data && resDummyProf.data.length) {
-    targetUserId = resDummyProf.data[0].id;
-  } else {
-    const resDummyApt = await sb.from('appointments').select('user_id').not('user_id', 'is', null).limit(1);
-    if (resDummyApt.data && resDummyApt.data.length) targetUserId = resDummyApt.data[0].user_id;
-  }
-
+  const targetUserId = await getDummyUserIdForBlock();
   if (!targetUserId) {
     alert('Exige pelo menos um perfil cadastrado para vincular.');
     btn.disabled = false;
@@ -1578,22 +2133,94 @@ async function confirmBlock() {
   }
 
   const inserts = [];
-  for (let t = startMin; t < endMin; t += 30) {
-    inserts.push({
-      user_id: targetUserId,
-      service: '🚫 Bloqueado',
-      price: 0,
-      date: formattedDate,
-      time: minutesToTime(t),
-      calendar_event_id: 'blocked_time'
-    });
+  targetDatesBr.forEach(function(dBr) {
+    for (let t = startMin; t < endMin; t += 30) {
+      const slotStr = minutesToTime(t);
+      const alreadyBlocked = allAppointments.some(function(a) {
+        return isBlockItem(a) && a.date === dBr && a.time === slotStr;
+      });
+      if (!alreadyBlocked) {
+        inserts.push({
+          user_id: targetUserId,
+          service: blockLabel,
+          price: 0,
+          date: dBr,
+          time: slotStr,
+          calendar_event_id: 'blocked_time'
+        });
+      }
+    }
+  });
+
+  if (inserts.length > 0) {
+    const resIns = await sb.from('appointments').insert(inserts);
+    if (resIns.error) {
+      alert('Erro ao bloquear: ' + resIns.error.message);
+      btn.disabled = false;
+      btn.innerText = 'Confirmar Bloqueio';
+      return;
+    }
   }
 
-  const resIns = await sb.from('appointments').insert(inserts);
-  if (resIns.error) alert('Erro ao bloquear: ' + resIns.error.message);
-  else { closeBlockModal(); loadAgendaData(); }
   btn.disabled = false;
   btn.innerText = 'Confirmar Bloqueio';
+  closeBlockModal();
+  await loadAgendaData();
+  renderRecurringBlocksList();
+}
+
+function renderRecurringBlocksList() {
+  const modalList = document.getElementById('recurring-blocks-list');
+  const configList = document.getElementById('config-recurring-blocks-list');
+
+  const todayMidnight = new Date();
+  todayMidnight.setHours(0, 0, 0, 0);
+
+  const groups = {};
+  allAppointments.forEach(function(a) {
+    if (!isBlockItem(a)) return;
+    if (!a.service || !a.service.startsWith('🚫 Fixo')) return;
+    const dObj = parseBrDateToObj(a.date);
+    if (dObj < todayMidnight) return;
+    if (!groups[a.service]) {
+      groups[a.service] = { label: a.service.replace('🚫 ', ''), ids: [], dates: new Set() };
+    }
+    groups[a.service].ids.push(a.id);
+    groups[a.service].dates.add(a.date);
+  });
+
+  const keys = Object.keys(groups);
+  const emptyHtml = '<p class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider py-2">Nenhum bloqueio fixo recorrente ativo.</p>';
+
+  if (!keys.length) {
+    if (modalList) modalList.innerHTML = emptyHtml;
+    if (configList) configList.innerHTML = emptyHtml;
+    return;
+  }
+
+  const html = keys.map(function(k) {
+    const g = groups[k];
+    const idsStr = g.ids.join(',');
+    return '<div class="flex items-center justify-between p-3 rounded-2xl bg-zinc-950 border border-zinc-800 gap-2">'
+      + '<div class="min-w-0">'
+      + '<p class="text-xs font-black text-zinc-200 truncate">' + g.label + '</p>'
+      + '<p class="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mt-0.5">' + g.dates.size + ' datas bloqueadas na agenda</p>'
+      + '</div>'
+      + '<button type="button" onclick="deleteRecurringBlockSeries(\'' + idsStr + '\')" class="px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/20 text-[9px] font-black uppercase tracking-wider shrink-0 transition-all">Remover Fixo</button>'
+      + '</div>';
+  }).join('');
+
+  if (modalList) modalList.innerHTML = html;
+  if (configList) configList.innerHTML = html;
+}
+
+async function deleteRecurringBlockSeries(idsStr) {
+  if (!sb || !idsStr) return;
+  if (!confirm('Remover este bloqueio fixo de todas as datas futuras?')) return;
+  const ids = idsStr.split(',');
+  await sb.from('appointments').delete().in('id', ids);
+  await loadAgendaData();
+  renderRecurringBlocksList();
 }
 
 async function deleteAppointment(idsStr, isBlocked) {
@@ -1601,10 +2228,16 @@ async function deleteAppointment(idsStr, isBlocked) {
   if (!confirm(isBlocked ? 'Liberar horário?' : 'Cancelar agendamento?')) return;
   if (isBlocked) await sb.from('appointments').delete().in('id', idsStr.split(','));
   else await sb.from('appointments').update({ calendar_event_id: 'cancelled_by_barber', created_at: new Date().toISOString() }).eq('id', idsStr);
-  loadAgendaData();
-  fetchHistoryData();
+  await loadAgendaData();
+  await fetchHistoryData();
+  if (!document.getElementById('modal-schedule-conflicts').classList.contains('hidden')) {
+    refreshScheduleConflictsModal();
+  }
 }
 
+/* ========================================================
+   CONFIGURAÇÕES + TRAVA DE CONFLITOS DE EXPEDIENTE
+   ======================================================== */
 async function loadSettings() {
   if (!sb) return;
   const res = await sb.from('settings').select('*').eq('id', 1).maybeSingle();
@@ -1615,19 +2248,158 @@ async function loadSettings() {
     document.getElementById('set-break-start').value = data.break_start ? data.break_start : '';
     document.getElementById('set-break-end').value = data.break_end ? data.break_end : '';
   }
+  ['set-open', 'set-close', 'set-break-start', 'set-break-end'].forEach(syncTimeDisplay);
+}
+
+function getScheduleConflictsForSettings(openTime, closeTime, breakStart, breakEnd) {
+  const openMin = timeToMinutes(openTime);
+  const closeMin = timeToMinutes(closeTime);
+  const hasBreak = Boolean(breakStart && breakEnd);
+  const bStartMin = hasBreak ? timeToMinutes(breakStart) : -1;
+  const bEndMin = hasBreak ? timeToMinutes(breakEnd) : -1;
+
+  const now = new Date();
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+  const conflicts = [];
+  allAppointments.forEach(function(apt) {
+    if (isBlockItem(apt) || isCancelledItem(apt)) return;
+    const dObj = parseBrDateToObj(apt.date);
+    const aptMidnight = new Date(dObj.getFullYear(), dObj.getMonth(), dObj.getDate()).getTime();
+    if (aptMidnight < todayMidnight) return;
+
+    const aptStart = timeToMinutes(apt.time);
+    const aptEnd = aptStart + getServiceDuration(apt.service);
+
+    if (aptStart < openMin) {
+      conflicts.push({
+        apt: apt,
+        reason: 'Antes da abertura (' + openTime + ')'
+      });
+    } else if (aptEnd > closeMin) {
+      conflicts.push({
+        apt: apt,
+        reason: 'Após o fechamento (' + closeTime + ')'
+      });
+    } else if (hasBreak && bEndMin > bStartMin && aptStart < bEndMin && aptEnd > bStartMin) {
+      conflicts.push({
+        apt: apt,
+        reason: 'Dentro do descanso (' + breakStart + ' às ' + breakEnd + ')'
+      });
+    }
+  });
+
+  conflicts.sort(function(a, b) {
+    return (parseBrDateToObj(a.apt.date).getTime() + timeToMinutes(a.apt.time) * 60000) -
+           (parseBrDateToObj(b.apt.date).getTime() + timeToMinutes(b.apt.time) * 60000);
+  });
+
+  return conflicts;
+}
+
+function openConflictsModalWithList(conflicts, title, subtitle, showRetrySaveBtn) {
+  document.getElementById('conflict-modal-title').innerText = title || 'Horários marcados fora do novo expediente';
+  document.getElementById('conflict-modal-subtitle').innerText = subtitle || 'Não é possível salvar o novo horário de funcionamento sem antes ajustar os agendamentos abaixo:';
+  document.getElementById('btn-retry-save-settings').classList.toggle('hidden', !showRetrySaveBtn);
+
+  const container = document.getElementById('conflicts-list-container');
+  if (!conflicts.length) {
+    container.innerHTML = '<div class="p-6 rounded-2xl bg-emerald-950/30 border border-emerald-500/30 text-center">'
+      + '<p class="text-sm font-black text-emerald-400 uppercase tracking-wider">✅ Todos os horários foram ajustados!</p>'
+      + '<p class="text-xs text-zinc-400 mt-1">Agora você já pode clicar em Salvar Expediente abaixo.</p>'
+      + '</div>';
+  } else {
+    container.innerHTML = conflicts.map(function(item) {
+      const a = item.apt;
+      const clientName = a.profiles && a.profiles.full_name ? a.profiles.full_name : 'Cliente';
+      const rawPhone = a.profiles && a.profiles.phone ? a.profiles.phone : '';
+      const cleanPhone = rawPhone.replace(/\D/g, '');
+      const msg = 'Olá ' + clientName + ', tudo bem? Aqui é da RB Barbearia. Precisamos ajustar o seu horário de ' + (a.service || 'atendimento') + ' agendado para ' + a.date + ' às ' + a.time + ' devido a uma alteração no nosso horário de expediente. Qual horário fica melhor para você?';
+      const whatsLink = cleanPhone ? ('https://wa.me/55' + cleanPhone + '?text=' + encodeURIComponent(msg)) : '';
+      const itemJson = JSON.stringify(a).replace(/'/g, "&apos;");
+
+      const whatsBtn = whatsLink
+        ? '<a href="' + whatsLink + '" target="_blank" class="px-3 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 border border-emerald-500/30 text-[9px] font-black uppercase tracking-wider transition-all">💬 WhatsApp</a>'
+        : '<span class="text-[9px] text-zinc-600 font-bold uppercase px-2">Sem Whats</span>';
+
+      return '<div class="p-4 rounded-2xl bg-zinc-950 border border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-l-4 border-l-red-500">'
+        + '<div class="min-w-0">'
+        + '<div class="flex items-center gap-2 flex-wrap">'
+        + '<span class="text-xs font-black text-white bg-zinc-900 px-2.5 py-1 rounded-lg border border-zinc-700">' + a.date + ' às ' + a.time + '</span>'
+        + '<span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-red-500/15 text-red-400 border border-red-500/30">' + item.reason + '</span>'
+        + '</div>'
+        + '<p class="text-sm font-black text-white mt-2 truncate">' + clientName + '</p>'
+        + '<p class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">' + (a.service || 'Serviço') + '</p>'
+        + '</div>'
+        + '<div class="flex items-center gap-2 shrink-0">'
+        + whatsBtn
+        + '<button type="button" onclick=\'openEditModal(' + itemJson + ')\' class="px-3 py-2 rounded-xl bg-orange-500 hover:bg-orange-400 text-zinc-950 text-[9px] font-black uppercase tracking-wider transition-all">✏️ Editar Horário</button>'
+        + '<button type="button" onclick="deleteAppointment(\'' + a.id + '\', false)" class="px-2.5 py-2 rounded-xl bg-zinc-900 hover:bg-red-600 text-zinc-400 hover:text-white border border-zinc-800 text-[9px] font-black uppercase">✕</button>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  const modal = document.getElementById('modal-schedule-conflicts');
+  modal.classList.remove('hidden');
+}
+
+function refreshScheduleConflictsModal() {
+  const openVal = document.getElementById('set-open').value;
+  const closeVal = document.getElementById('set-close').value;
+  const bStartVal = document.getElementById('set-break-start').value;
+  const bEndVal = document.getElementById('set-break-end').value;
+  const conflicts = getScheduleConflictsForSettings(openVal, closeVal, bStartVal, bEndVal);
+  openConflictsModalWithList(conflicts, null, null, true);
+}
+
+function closeConflictsModal() {
+  document.getElementById('modal-schedule-conflicts').classList.add('hidden');
 }
 
 async function saveSettings() {
   if (!sb) return;
+  const openVal = document.getElementById('set-open').value;
+  const closeVal = document.getElementById('set-close').value;
+  const bStartVal = document.getElementById('set-break-start').value;
+  const bEndVal = document.getElementById('set-break-end').value;
+
+  if (timeToMinutes(openVal) >= timeToMinutes(closeVal)) {
+    return alert('O horário de fechamento deve ser maior que o de abertura.');
+  }
+  if ((bStartVal && !bEndVal) || (!bStartVal && bEndVal)) {
+    return alert('Preencha o início e o fim do intervalo de descanso ou clique em Limpar Descanso.');
+  }
+  if (bStartVal && bEndVal && timeToMinutes(bStartVal) >= timeToMinutes(bEndVal)) {
+    return alert('O fim do intervalo de descanso deve ser maior que o início.');
+  }
+
+  await loadAgendaData(true);
+  const conflicts = getScheduleConflictsForSettings(openVal, closeVal, bStartVal, bEndVal);
+  if (conflicts.length > 0) {
+    openConflictsModalWithList(
+      conflicts,
+      'Horários marcados fora do novo expediente',
+      'Não é possível salvar o novo horário de funcionamento sem ajustar os agendamentos abaixo. Acione o cliente no WhatsApp ou edite o horário agendado:',
+      true
+    );
+    return;
+  }
+
   const res = await sb.from('settings').upsert({
     id: 1,
-    open_time: document.getElementById('set-open').value,
-    close_time: document.getElementById('set-close').value,
-    break_start: document.getElementById('set-break-start').value,
-    break_end: document.getElementById('set-break-end').value
+    open_time: openVal,
+    close_time: closeVal,
+    break_start: bStartVal,
+    break_end: bEndVal
   });
-  if (res.error) alert('Erro: ' + res.error.message);
-  else { alert('Configurações salvas!'); loadAgendaData(); }
+  if (res.error) {
+    alert('Erro: ' + res.error.message);
+  } else {
+    closeConflictsModal();
+    alert('Horário de funcionamento atualizado com sucesso!');
+    loadAgendaData();
+  }
 }
 
 function formatDateForDisplay(isoString) {
@@ -1733,6 +2505,7 @@ function renderHistoryTable() {
 
 function openDetailsModal(item) {
   const isBlock = isBlockItem(item);
+  const isCanc = isCancelledItem(item);
   const clientName = item.profiles && item.profiles.full_name ? item.profiles.full_name : (isBlock ? 'Barbearia' : 'Cliente');
   const rawPhone = item.profiles && item.profiles.phone ? item.profiles.phone : '';
   const cleanPhone = rawPhone.replace(/\D/g, '');
@@ -1753,11 +2526,15 @@ function openDetailsModal(item) {
 
   document.getElementById('detail-status').innerHTML = statusMsg;
   const container = document.getElementById('detail-whatsapp-container');
-  if (whatsLink && !isBlock) {
-    container.innerHTML = '<a href="' + whatsLink + '" target="_blank" class="flex items-center justify-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 border border-emerald-500/20 px-4 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all mt-3 w-full">WhatsApp</a>';
-  } else {
-    container.innerHTML = '';
+  let btnsHtml = '';
+  if (!isBlock && !isCanc) {
+    const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
+    btnsHtml += '<button type="button" onclick=\'openEditModal(' + itemJson + ')\' class="flex items-center justify-center gap-1.5 bg-orange-500 hover:bg-orange-400 text-zinc-950 px-4 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all w-full">✏️ Editar Horário Agendado</button>';
   }
+  if (whatsLink && !isBlock) {
+    btnsHtml += '<a href="' + whatsLink + '" target="_blank" class="flex items-center justify-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 border border-emerald-500/20 px-4 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all w-full">WhatsApp</a>';
+  }
+  container.innerHTML = btnsHtml;
   document.getElementById('modal-details').classList.remove('hidden');
 }
 
@@ -2160,13 +2937,13 @@ function generateCardHtml(item) {
   if (isBlock) {
     const idsArr = item.block_ids ? item.block_ids : [item.id];
     const idsStr = idsArr.join(',');
-    const timeDisplay = item.time === item.end_time ? ('Às ' + item.time) : ('Das ' + item.time + ' até ' + add30Mins(item.end_time));
+    const timeDisplay = item.time === item.end_time ? ('Das ' + item.time + ' até ' + add30Mins(item.time)) : ('Das ' + item.time + ' até ' + add30Mins(item.end_time));
     const blockServ = (item.service ? item.service : '').replace('🚫 ', '');
     const searchData = ('bloqueio ' + blockServ + ' ' + timeDisplay).toLowerCase();
     return '<div class="agenda-card bg-red-950/25 border border-red-900/40 border-l-4 border-l-red-600 rounded-2xl p-4 relative shrink-0 shadow-md backdrop-blur-sm w-full" data-search="' + searchData + '">'
       + '<div class="flex items-center justify-between mb-2.5">'
       + '<span class="text-[8px] font-black text-red-400 bg-red-500/10 px-2 py-1 rounded uppercase tracking-widest border border-red-500/20">🚫 Bloqueio</span>'
-      + '<button onclick="deleteAppointment(\'' + idsStr + '\', true)" class="text-zinc-500 hover:text-red-400 text-[9px] font-black uppercase tracking-wider">Liberar</button>'
+      + '<button onclick="deleteAppointment(\'' + idsStr + '\', true)" class="text-zinc-400 hover:text-red-400 text-[9px] font-black uppercase tracking-wider">Liberar Dia</button>'
       + '</div>'
       + '<p class="font-black text-zinc-100 text-sm">' + timeDisplay + '</p>'
       + '<p class="text-[10px] text-zinc-400 mt-1.5 truncate uppercase font-bold tracking-wide">' + blockServ + '</p>'
@@ -2176,12 +2953,13 @@ function generateCardHtml(item) {
   const sTheme = getServiceTheme(item.service);
   const searchStr = (clientName + ' ' + servLabel + ' ' + timeLabel).toLowerCase();
   const priceStr = parseFloat(item.price ? item.price : 0).toFixed(2).replace('.', ',');
+  const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
   const whatsHtml = cleanPhone
-    ? '<a href="' + whatsLink + '" target="_blank" class="text-emerald-400 hover:text-zinc-950 text-[9px] uppercase tracking-widest font-black flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500 px-3 py-1.5 rounded-lg border border-emerald-500/20 transition-all backdrop-blur-sm">WhatsApp</a>'
-    : '<span class="text-zinc-300 font-bold text-[9px] uppercase tracking-widest drop-shadow-md">Sem contato</span>';
+    ? '<a href="' + whatsLink + '" target="_blank" class="text-emerald-400 hover:text-zinc-950 text-[9px] uppercase tracking-widest font-black flex items-center gap-1 bg-emerald-500/10 hover:bg-emerald-500 px-2.5 py-1.5 rounded-lg border border-emerald-500/20 transition-all backdrop-blur-sm">WhatsApp</a>'
+    : '<span class="text-zinc-400 font-bold text-[9px] uppercase tracking-widest drop-shadow-md">Sem contato</span>';
 
   return '<div class="agenda-card card-bg-image rounded-2xl flex flex-col shrink-0 transition-all transform hover:-translate-y-1 shadow-lg group w-full border border-zinc-800 ' + sTheme.borderHover + ' relative overflow-hidden" data-search="' + searchStr + '" style="background-image:url(\'' + sTheme.img + '\')">'
-    + '<div class="absolute inset-0 bg-zinc-950/55 backdrop-blur-sm group-hover:bg-zinc-950/35 transition-all"></div>'
+    + '<div class="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm group-hover:bg-zinc-950/40 transition-all"></div>'
     + '<div class="absolute left-0 top-0 bottom-0 w-1.5 ' + sTheme.borderL + ' z-20"></div>'
     + '<div class="relative z-10 p-4 w-full drop-shadow-md">'
     + '<div class="flex items-center justify-between mb-3">'
@@ -2190,10 +2968,12 @@ function generateCardHtml(item) {
     + '</div>'
     + '<p class="font-black text-white text-[15px] leading-tight truncate tracking-wide drop-shadow-lg">' + clientName + '</p>'
     + '<p class="text-[10px] ' + sTheme.text + ' truncate mt-1.5 font-bold uppercase tracking-widest drop-shadow-md">' + (item.service ? item.service : '-') + '</p>'
-    + '<div class="pt-3.5 mt-3.5 border-t border-zinc-500/30 flex items-center justify-between">'
+    + '<div class="pt-3.5 mt-3.5 border-t border-zinc-500/30 flex items-center justify-between gap-1.5">'
     + whatsHtml
-    + '<button onclick="deleteAppointment(\'' + item.id + '\', false)" class="text-zinc-300 hover:text-white text-[9px] uppercase font-black tracking-widest bg-zinc-900/80 hover:bg-red-600 px-3 py-1.5 rounded-lg border border-zinc-700/50 transition-all backdrop-blur-sm">Cancelar</button>'
-    + '</div></div></div>';
+    + '<div class="flex items-center gap-1.5">'
+    + '<button onclick=\'openEditModal(' + itemJson + ')\' class="text-orange-300 hover:text-zinc-950 text-[9px] uppercase font-black tracking-wider bg-zinc-900/85 hover:bg-orange-500 px-2.5 py-1.5 rounded-lg border border-orange-500/30 transition-all backdrop-blur-sm">Editar</button>'
+    + '<button onclick="deleteAppointment(\'' + item.id + '\', false)" class="text-zinc-300 hover:text-white text-[9px] uppercase font-black tracking-wider bg-zinc-900/85 hover:bg-red-600 px-2.5 py-1.5 rounded-lg border border-zinc-700/50 transition-all backdrop-blur-sm">Cancelar</button>'
+    + '</div></div></div></div>';
 }
 
 async function loadAgendaData(silent) {
@@ -2222,17 +3002,9 @@ function renderBoards() {
     .filter(function(a) { return a.date === todayStr; })
     .sort(function(a, b) { return timeToMinutes(a.time) - timeToMinutes(b.time); });
   todayAppointmentsCache = todayAptsRaw;
-  
-  let todayCuts = 0;
-  let todayRevenue = 0;
-  todayAptsRaw.forEach(function(a) {
-    if (!isBlockItem(a)) {
-      todayCuts++;
-      todayRevenue += parseFloat(a.price ? a.price : 0);
-    }
-  });
 
-  updateTodaySmartStats(todayAptsRaw, todayCuts, todayRevenue);
+  const metrics = calculateDayOccupancyMetrics(todayAptsRaw);
+  updateTodaySmartStats(todayAptsRaw, metrics);
 
   const mergedToday = mergeBlocks(todayAptsRaw);
   if (dailyContainer) {
@@ -2242,6 +3014,7 @@ function renderBoards() {
   }
 
   renderCalendarSection();
+  renderRecurringBlocksList();
   filterAgendaCards();
 }
 
@@ -2257,7 +3030,7 @@ function formatNextWhenLabel(dateStr, todayStr) {
   return (diaNome + ' · ' + shortDate).trim();
 }
 
-function updateTodaySmartStats(appointments, total, revenue) {
+function updateTodaySmartStats(appointments, metrics) {
   const now = new Date();
   const todayStr = formatBrDate(now);
   const currentMins = now.getHours() * 60 + now.getMinutes();
@@ -2292,14 +3065,14 @@ function updateTodaySmartStats(appointments, total, revenue) {
       }
     } else {
       nextTime.innerText = '--:--';
-      nextClient.innerText = total ? 'Atendimentos concluídos' : 'Nenhum agendamento';
+      nextClient.innerText = metrics.dayCuts ? 'Atendimentos concluídos' : 'Nenhum agendamento';
       if (nextService) nextService.innerText = '';
       if (nextWhen) { nextWhen.innerText = ''; nextWhen.classList.add('hidden'); }
     }
   }
 
-  document.getElementById('today-total-count').innerText = total;
-  document.getElementById('today-revenue').innerText = 'R$ ' + revenue.toFixed(2).replace('.', ',');
+  document.getElementById('today-total-count').innerText = metrics.dayCuts;
+  document.getElementById('today-revenue').innerText = 'R$ ' + metrics.dayRev.toFixed(2).replace('.', ',');
 
   let completedRevenue = 0;
   appointments.forEach(function(a) {
@@ -2308,15 +3081,12 @@ function updateTodaySmartStats(appointments, total, revenue) {
   });
   document.getElementById('today-completed').innerText = 'R$ ' + completedRevenue.toFixed(2).replace('.', ',') + ' realizados hoje';
 
-  const valid = appointments.filter(function(a) { return !isBlockItem(a); });
-  let occupiedMinutes = 0;
-  valid.forEach(function(a) {
-    occupiedMinutes += getServiceDuration(a.service);
-  });
-
-  const occupancy = Math.min(100, Math.round((occupiedMinutes / (11 * 60)) * 100));
-  document.getElementById('today-occupancy').innerText = occupancy + '%';
-  document.getElementById('today-occupancy-bar').style.width = occupancy + '%';
+  document.getElementById('today-occupancy').innerText = metrics.occPercent + '%';
+  document.getElementById('today-occupancy-bar').style.width = metrics.occPercent + '%';
+  const freeLabel = document.getElementById('today-free-slots-label');
+  if (freeLabel) {
+    freeLabel.innerText = metrics.freeSlotsCount + (metrics.freeSlotsCount === 1 ? ' livre' : ' livres');
+  }
 }
 
 function filterAgendaCards() {
