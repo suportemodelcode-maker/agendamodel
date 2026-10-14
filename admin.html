@@ -89,7 +89,7 @@
 
 <audio id="notification-sound" src="https://cdnjs.cloudflare.com/ajax/libs/ion-sound/3.0.7/sounds/water_droplet.mp3" preload="auto"></audio>
 
-<!-- LOGIN (TOTALMENTE DESVINCULADO DO SUPABASE E SEM RELOAD DE FORMULÁRIO) -->
+<!-- LOGIN -->
 <div id="auth-screen" class="fixed inset-0 bg-zinc-950 z-50 flex items-center justify-center p-4">
   <div class="absolute inset-0 overflow-hidden pointer-events-none">
     <div class="absolute top-[15%] left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-orange-500/10 blur-[100px] rounded-full"></div>
@@ -109,46 +109,6 @@
     </div>
   </div>
 </div>
-
-<!-- SCRIPT INDEPENDENTE DE LOGIN LOCAL -->
-<script>
-  const ADMIN_PASSWORD = "rb";
-
-  function unlockAdminUI() {
-    const authScreen = document.getElementById('auth-screen');
-    const mainPanel = document.getElementById('main-panel');
-    if (authScreen) {
-      authScreen.classList.add('hidden');
-      authScreen.classList.remove('flex');
-      authScreen.style.display = 'none';
-    }
-    if (mainPanel) {
-      mainPanel.classList.remove('hidden');
-      mainPanel.style.display = 'flex';
-    }
-    if (typeof window.initAdminPanelData === 'function') {
-      window.initAdminPanelData();
-    }
-  }
-
-  function checkAdmin(e) {
-    if (e && e.preventDefault) e.preventDefault();
-    const passInput = document.getElementById('admin-pass');
-    const typedPass = (passInput ? passInput.value : '').trim().toLowerCase();
-    if (typedPass === ADMIN_PASSWORD) {
-      try { localStorage.setItem('rb_admin_logged', 'true'); } catch (err) {}
-      unlockAdminUI();
-    } else {
-      alert('Senha incorreta.');
-    }
-    return false;
-  }
-
-  function logoutAdmin() {
-    try { localStorage.removeItem('rb_admin_logged'); } catch (err) {}
-    window.location.reload();
-  }
-</script>
 
 <!-- MODAL DETALHES -->
 <div id="modal-details" class="hidden fixed inset-0 z-50 bg-zinc-950/85 backdrop-blur-md flex items-center justify-center p-4">
@@ -288,8 +248,8 @@
     </div>
     
     <nav class="flex flex-row md:flex-col gap-1 md:gap-2 w-full flex-1 justify-around md:justify-start items-center md:items-stretch">
-      <button onclick="switchTab('hoje')" id="nav-btn-hoje" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
-        <div id="nav-ind-hoje" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
+      <button onclick="switchTab('hoje')" id="nav-btn-hoje" class="nav-btn nav-active text-white w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
+        <div id="nav-ind-hoje" class="desktop-indicator absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
         <div class="sidebar-label text-left ml-3.5">
           <p class="text-xs font-extrabold leading-none">Agenda de Hoje</p>
@@ -378,8 +338,8 @@
       </div>
     </header>
 
-    <!-- ABA HOJE -->
-    <main id="tab-hoje" class="hidden flex-1 flex-col min-h-0 p-4 md:p-8 overflow-y-auto custom-scroll relative z-0">
+    <!-- ABA HOJE (VISÍVEL POR PADRÃO) -->
+    <main id="tab-hoje" class="flex flex-1 flex-col min-h-0 p-4 md:p-8 overflow-y-auto custom-scroll relative z-0">
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5">
         <div>
           <p class="text-[9px] text-orange-500 uppercase font-black tracking-[.25em] mb-1">Visão operacional</p>
@@ -708,11 +668,11 @@
           <div class="space-y-5">
             <div>
               <label class="text-[10px] text-zinc-400 uppercase font-black tracking-widest block mb-2">Abertura</label>
-              <input type="time" id="set-open" class="w-full px-5 py-3.5 bg-zinc-950 border border-zinc-700 rounded-xl text-white outline-none focus:border-orange-500 font-bold">
+              <input type="time" id="set-open" value="09:00" class="w-full px-5 py-3.5 bg-zinc-950 border border-zinc-700 rounded-xl text-white outline-none focus:border-orange-500 font-bold">
             </div>
             <div>
               <label class="text-[10px] text-zinc-400 uppercase font-black tracking-widest block mb-2">Fecho</label>
-              <input type="time" id="set-close" class="w-full px-5 py-3.5 bg-zinc-950 border border-zinc-700 rounded-xl text-white outline-none focus:border-orange-500 font-bold">
+              <input type="time" id="set-close" value="20:30" class="w-full px-5 py-3.5 bg-zinc-950 border border-zinc-700 rounded-xl text-white outline-none focus:border-orange-500 font-bold">
             </div>
             <div class="mt-6 border-t border-zinc-800 pt-5">
               <h4 class="text-[11px] font-black tracking-widest uppercase text-zinc-300 mb-4">Intervalo de Descanso</h4>
@@ -764,15 +724,17 @@
 </div>
 
 <script>
+const ADMIN_PASSWORD = "rb";
 const SUPABASE_URL = 'https://cifrmupwumffzrcqwfjv.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_AcMuSuUE6DK5gGQ9eStmMw_muIgJsG6';
+
 let sb = null;
 try {
   if (window.supabase && typeof window.supabase.createClient === 'function') {
     sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
 } catch (err) {
-  console.error('Erro ao iniciar cliente Supabase:', err);
+  console.error('Erro ao iniciar Supabase:', err);
 }
 
 let realtimeSubscription = null;
@@ -786,10 +748,22 @@ let allAppointments = [];
 let pollTimer = null;
 window.currentPeriodCancellations = [];
 
+function pad2(n) {
+  return String(n).padStart(2, '0');
+}
+
+function formatBrDate(d) {
+  return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + '/' + d.getFullYear();
+}
+
+function formatIsoDate(d) {
+  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+}
+
 const initNow = new Date();
 let calCurrentYear = initNow.getFullYear();
 let calCurrentMonth = initNow.getMonth();
-let selectedCalendarDateStr = `${String(initNow.getDate()).padStart(2, '0')}/${String(initNow.getMonth() + 1).padStart(2, '0')}/${initNow.getFullYear()}`;
+let selectedCalendarDateStr = formatBrDate(initNow);
 let calendarViewMode = 'cards';
 let prefillTimeSlot = null;
 
@@ -804,47 +778,125 @@ let manualSelectedTime = null;
 let manualSelectedDuration = 30;
 let manualSelectedPrice = 0;
 
+function isBlockItem(item) {
+  if (!item) return false;
+  if (item.calendar_event_id === 'blocked_time') return true;
+  if (item.service && item.service.startsWith('🚫')) return true;
+  return false;
+}
+
+function isCancelledItem(item) {
+  if (!item) return false;
+  if (item.calendar_event_id === 'cancelled_by_barber') return true;
+  if (item.calendar_event_id === 'cancelled_by_client') return true;
+  return false;
+}
+
+function getServiceDuration(serviceName) {
+  const s = (serviceName ? serviceName : '').toLowerCase();
+  if (s.includes('corte e barba')) return 60;
+  if (s.includes('combo')) return 60;
+  if (s.includes('completo')) return 60;
+  if (s.includes('progressiva')) return 120;
+  if (s.includes('sobrancelha')) return 20;
+  return 30;
+}
+
 function getServiceTheme(serviceName) {
-  const s = (serviceName || '').toLowerCase();
-  if (s.includes('corte e barba') || s.includes('combo') || s.includes('completo')) return { borderL: 'border-l-purple-500', borderHover: 'hover:border-purple-500/50', text: 'text-purple-300', img: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=300&auto=format&fit=crop&q=80' };
-  if (s.includes('progressiva')) return { borderL: 'border-l-pink-500', borderHover: 'hover:border-pink-500/50', text: 'text-pink-300', img: './progressiva.jpg' };
-  if (s.includes('barba')) return { borderL: 'border-l-orange-500', borderHover: 'hover:border-orange-500/50', text: 'text-orange-300', img: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300&auto=format&fit=crop&q=80' };
-  if (s.includes('sobrancelha')) return { borderL: 'border-l-teal-500', borderHover: 'hover:border-teal-500/50', text: 'text-teal-300', img: './sobrancelha.jpeg' };
+  const s = (serviceName ? serviceName : '').toLowerCase();
+  if (s.includes('corte e barba') ? true : (s.includes('combo') ? true : s.includes('completo'))) {
+    return { borderL: 'border-l-purple-500', borderHover: 'hover:border-purple-500/50', text: 'text-purple-300', img: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=300&auto=format&fit=crop&q=80' };
+  }
+  if (s.includes('progressiva')) {
+    return { borderL: 'border-l-pink-500', borderHover: 'hover:border-pink-500/50', text: 'text-pink-300', img: './progressiva.jpg' };
+  }
+  if (s.includes('barba')) {
+    return { borderL: 'border-l-orange-500', borderHover: 'hover:border-orange-500/50', text: 'text-orange-300', img: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300&auto=format&fit=crop&q=80' };
+  }
+  if (s.includes('sobrancelha')) {
+    return { borderL: 'border-l-teal-500', borderHover: 'hover:border-teal-500/50', text: 'text-teal-300', img: './sobrancelha.jpeg' };
+  }
   return { borderL: 'border-l-blue-500', borderHover: 'hover:border-blue-500/50', text: 'text-blue-300', img: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=300&auto=format&fit=crop&q=80' };
 }
 
-function getServiceImage(serviceName) { return getServiceTheme(serviceName).img; }
+function getServiceImage(serviceName) {
+  return getServiceTheme(serviceName).img;
+}
 
 function generateUUID() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.floor(Math.random() * 16);
+    const v = c === 'x' ? r : ((r & 3) + 8);
+    return v.toString(16);
   });
 }
 
 function maskAdminPhone(input) {
   let v = input.value.replace(/\D/g, '');
   if (v.length > 11) v = v.slice(0, 11);
-  if (v.length > 6) input.value = `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7)}`;
-  else if (v.length > 2) input.value = `(${v.slice(0, 2)}) ${v.slice(2)}`;
+  if (v.length > 6) input.value = '(' + v.slice(0, 2) + ') ' + v.slice(2, 7) + '-' + v.slice(7);
+  else if (v.length > 2) input.value = '(' + v.slice(0, 2) + ') ' + v.slice(2);
   else input.value = v;
 }
 
-window.initAdminPanelData = function() {
+function updateHeaderDate() {
+  const hDate = document.getElementById('header-date');
+  if (hDate) {
+    hDate.innerText = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+}
+
+function checkAdmin(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const passInput = document.getElementById('admin-pass');
+  const typedPass = (passInput ? passInput.value : '').trim().toLowerCase();
+  if (typedPass === ADMIN_PASSWORD) {
+    try { localStorage.setItem('rb_admin_logged', 'true'); } catch (err) {}
+    processLogin();
+  } else {
+    alert('Senha incorreta.');
+  }
+  return false;
+}
+
+function processLogin() {
+  const authScreen = document.getElementById('auth-screen');
+  const mainPanel = document.getElementById('main-panel');
+  if (authScreen) {
+    authScreen.classList.add('hidden');
+    authScreen.classList.remove('flex');
+    authScreen.style.display = 'none';
+  }
+  if (mainPanel) {
+    mainPanel.classList.remove('hidden');
+    mainPanel.style.display = 'flex';
+  }
   const sound = document.getElementById('notification-sound');
-  if (sound) { sound.play().catch(() => {}); sound.pause(); }
+  if (sound) {
+    sound.play().catch(function() {});
+    sound.pause();
+  }
+  updateHeaderDate();
   switchTab('hoje');
+  renderBoards();
   if (sb) {
     loadSettings();
     loadAgendaData();
     fetchHistoryData();
     subscribeToRealtime();
     if (pollTimer) clearInterval(pollTimer);
-    pollTimer = setInterval(() => { loadAgendaData(true); }, 4000);
+    pollTimer = setInterval(function() { loadAgendaData(true); }, 4000);
   }
-};
+}
 
-document.addEventListener('DOMContentLoaded', () => {
+function logoutAdmin() {
+  try { localStorage.removeItem('rb_admin_logged'); } catch (err) {}
+  if (pollTimer) clearInterval(pollTimer);
+  window.location.reload();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
   if (window.Chart) {
     Chart.defaults.color = '#71717a';
     Chart.defaults.font.family = "'Inter', sans-serif";
@@ -852,23 +904,18 @@ document.addEventListener('DOMContentLoaded', () => {
   updateHeaderDate();
   try {
     if (localStorage.getItem('rb_admin_logged') === 'true') {
-      unlockAdminUI();
+      processLogin();
     }
   } catch (err) {}
 });
 
-function updateHeaderDate() {
-  const hDate = document.getElementById('header-date');
-  if (hDate) hDate.innerText = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-}
-
 function switchTab(tab) {
-  ['tab-hoje','tab-kanban','tab-historico','tab-clientes','tab-financeiro','tab-config'].forEach(id => {
+  ['tab-hoje','tab-kanban','tab-historico','tab-clientes','tab-financeiro','tab-config'].forEach(function(id) {
     const el = document.getElementById(id);
     if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
   });
   
-  ['hoje','kanban','historico','clientes','financeiro','config'].forEach(id => {
+  ['hoje','kanban','historico','clientes','financeiro','config'].forEach(function(id) {
     const btn = document.getElementById('nav-btn-' + id);
     const ind = document.getElementById('nav-ind-' + id);
     if (btn) { btn.classList.remove('nav-active', 'text-white'); btn.classList.add('text-zinc-400'); }
@@ -883,19 +930,19 @@ function switchTab(tab) {
   if (activeInd) activeInd.classList.remove('hidden');
 
   if (tab === 'kanban') renderCalendarSection();
-  if (tab === 'historico' || tab === 'financeiro' || tab === 'clientes') fetchHistoryData();
+  if (tab === 'historico' ? true : (tab === 'financeiro' ? true : tab === 'clientes')) fetchHistoryData();
   if (tab === 'financeiro') setTimeout(calculateDashboard, 100);
 }
 
 function subscribeToRealtime() {
-  if (realtimeSubscription || !sb) return;
+  if (realtimeSubscription ? true : !sb) return;
   realtimeSubscription = sb.channel('public:admin_sync')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, function() {
       loadAgendaData();
       fetchHistoryData();
       if (!document.getElementById('modal-manual-booking').classList.contains('hidden')) fetchManualTimes();
     })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, () => {
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, function() {
       loadSettings();
       loadAgendaData();
     })
@@ -905,23 +952,34 @@ function subscribeToRealtime() {
 function timeToMinutes(tStr) {
   if (!tStr) return 0;
   const p = tStr.split(':');
-  return (parseInt(p[0], 10) || 0) * 60 + (parseInt(p[1], 10) || 0);
+  const h = parseInt(p[0], 10);
+  const m = parseInt(p[1], 10);
+  return (isNaN(h) ? 0 : h) * 60 + (isNaN(m) ? 0 : m);
+}
+
+function minutesToTime(mins) {
+  return pad2(Math.floor(mins / 60)) + ':' + pad2(mins % 60);
 }
 
 function add30Mins(timeStr) {
   if (!timeStr) return '';
   const parts = timeStr.split(':');
-  const d = new Date(0, 0, 0, parseInt(parts[0], 10) || 0, (parseInt(parts[1], 10) || 0) + 30);
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  const h = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10);
+  const d = new Date(0, 0, 0, isNaN(h) ? 0 : h, (isNaN(m) ? 0 : m) + 30);
+  return pad2(d.getHours()) + ':' + pad2(d.getMinutes());
 }
 
 function brDateToIso(brDateStr) {
-  if (!brDateStr || !brDateStr.includes('/')) return '';
-  const [d, m, y] = brDateStr.split('/');
-  return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  if (!brDateStr ? true : !brDateStr.includes('/')) return '';
+  const parts = brDateStr.split('/');
+  return parts[2] + '-' + pad2(parts[1]) + '-' + pad2(parts[0]);
 }
 
-function renderCalendarSection() { renderCalendarGrid(); renderSelectedDaySchedule(); }
+function renderCalendarSection() {
+  renderCalendarGrid();
+  renderSelectedDaySchedule();
+}
 
 function changeCalendarMonth(delta) {
   calCurrentMonth += delta;
@@ -932,22 +990,24 @@ function changeCalendarMonth(delta) {
 
 function selectCalendarToday() {
   const now = new Date();
-  calCurrentYear = now.getFullYear(); calCurrentMonth = now.getMonth();
-  selectedCalendarDateStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+  calCurrentYear = now.getFullYear();
+  calCurrentMonth = now.getMonth();
+  selectedCalendarDateStr = formatBrDate(now);
   renderCalendarSection();
 }
 
 function selectCalendarDate(dateStr) {
   selectedCalendarDateStr = dateStr;
   const dObj = parseBrDateToObj(dateStr);
-  calCurrentYear = dObj.getFullYear(); calCurrentMonth = dObj.getMonth();
+  calCurrentYear = dObj.getFullYear();
+  calCurrentMonth = dObj.getMonth();
   renderCalendarSection();
 }
 
 function stepSelectedDate(daysDelta) {
   const dObj = parseBrDateToObj(selectedCalendarDateStr);
   dObj.setDate(dObj.getDate() + daysDelta);
-  selectCalendarDate(`${String(dObj.getDate()).padStart(2, '0')}/${String(dObj.getMonth() + 1).padStart(2, '0')}/${dObj.getFullYear()}`);
+  selectCalendarDate(formatBrDate(dObj));
 }
 
 function setCalendarViewMode(mode) {
@@ -964,46 +1024,54 @@ function setCalendarViewMode(mode) {
 function renderCalendarGrid() {
   const grid = document.getElementById('calendar-days-grid');
   const title = document.getElementById('cal-month-title');
-  if (!grid || !title) return;
+  if (!grid ? true : !title) return;
 
   const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  title.innerText = `${meses[calCurrentMonth]} ${calCurrentYear}`;
+  title.innerText = meses[calCurrentMonth] + ' ' + calCurrentYear;
 
   const firstDayOfMonth = new Date(calCurrentYear, calCurrentMonth, 1).getDay();
   const daysInMonth = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
-  const now = new Date();
-  const todayStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+  const todayStr = formatBrDate(new Date());
 
-  const countsMap = {}, blocksMap = {};
-  allAppointments.forEach(a => {
+  const countsMap = {};
+  const blocksMap = {};
+  allAppointments.forEach(function(a) {
     if (!a.date) return;
-    const isBlock = a.calendar_event_id === 'blocked_time' || (a.service && a.service.startsWith('🚫'));
-    if (isBlock) blocksMap[a.date] = (blocksMap[a.date] || 0) + 1;
-    else countsMap[a.date] = (countsMap[a.date] || 0) + 1;
+    if (isBlockItem(a)) {
+      blocksMap[a.date] = (blocksMap[a.date] ? blocksMap[a.date] : 0) + 1;
+    } else {
+      countsMap[a.date] = (countsMap[a.date] ? countsMap[a.date] : 0) + 1;
+    }
   });
 
   let html = '';
-  for (let i = 0; i < firstDayOfMonth; i++) html += `<div class="cal-day-empty h-11 rounded-xl"></div>`;
+  for (let i = 0; i < firstDayOfMonth; i++) {
+    html += '<div class="cal-day-empty h-11 rounded-xl"></div>';
+  }
 
   for (let day = 1; day <= daysInMonth; day++) {
-    const dStr = `${String(day).padStart(2, '0')}/${String(calCurrentMonth + 1).padStart(2, '0')}/${calCurrentYear}`;
+    const dStr = pad2(day) + '/' + pad2(calCurrentMonth + 1) + '/' + calCurrentYear;
     const isSelected = dStr === selectedCalendarDateStr;
     const isToday = dStr === todayStr;
-    const count = countsMap[dStr] || 0;
-    const hasBlock = (blocksMap[dStr] || 0) > 0;
+    const count = countsMap[dStr] ? countsMap[dStr] : 0;
+    const hasBlock = (blocksMap[dStr] ? blocksMap[dStr] : 0) > 0;
     const isSunday = new Date(calCurrentYear, calCurrentMonth, day).getDay() === 0;
 
     let badgeHtml = '';
-    if (count > 0) badgeHtml = `<span class="cal-badge text-[8px] font-black px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 leading-tight mt-0.5">${count}</span>`;
-    else if (hasBlock) badgeHtml = `<span class="w-1.5 h-1.5 rounded-full bg-red-500 mt-1"></span>`;
+    if (count > 0) {
+      badgeHtml = '<span class="cal-badge text-[8px] font-black px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 leading-tight mt-0.5">' + count + '</span>';
+    } else if (hasBlock) {
+      badgeHtml = '<span class="w-1.5 h-1.5 rounded-full bg-red-500 mt-1"></span>';
+    }
 
-    html += `
-      <button type="button" onclick="selectCalendarDate('${dStr}')"
-        class="cal-day h-12 rounded-2xl border border-zinc-800/80 bg-zinc-950/80 flex flex-col items-center justify-center ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''} ${isSunday && !isSelected ? 'opacity-45' : ''}">
-        <span class="text-xs font-extrabold leading-none">${day}</span>
-        ${badgeHtml}
-      </button>
-    `;
+    const clsSelected = isSelected ? 'selected ' : '';
+    const clsToday = isToday ? 'today ' : '';
+    const clsSunday = (isSunday && !isSelected) ? 'opacity-45 ' : '';
+
+    html += '<button type="button" onclick="selectCalendarDate(\'' + dStr + '\')" class="cal-day h-12 rounded-2xl border border-zinc-800/80 bg-zinc-950/80 flex flex-col items-center justify-center ' + clsSelected + clsToday + clsSunday + '">'
+      + '<span class="text-xs font-extrabold leading-none">' + day + '</span>'
+      + badgeHtml
+      + '</button>';
   }
   grid.innerHTML = html;
 }
@@ -1027,92 +1095,105 @@ function renderSelectedDaySchedule() {
   if (diffDays === 0) relLabel = 'Hoje';
   else if (diffDays === 1) relLabel = 'Amanhã';
   else if (diffDays === -1) relLabel = 'Ontem';
-  else if (diffDays > 1) relLabel = `Daqui a ${diffDays} dias`;
-  else if (diffDays < -1) relLabel = `Há ${Math.abs(diffDays)} dias`;
+  else if (diffDays > 1) relLabel = 'Daqui a ' + diffDays + ' dias';
+  else if (diffDays < -1) relLabel = 'Há ' + Math.abs(diffDays) + ' dias';
 
   document.getElementById('selected-day-relative-tag').innerText = relLabel;
   document.getElementById('cal-summary-badge').innerText = relLabel;
 
-  const dayAptsRaw = allAppointments.filter(a => a.date === selectedCalendarDateStr).sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
-  let dayCuts = 0, dayRev = 0, occupiedIntervals = [], occupiedMinutes = 0;
+  const dayAptsRaw = allAppointments
+    .filter(function(a) { return a.date === selectedCalendarDateStr; })
+    .sort(function(a, b) { return timeToMinutes(a.time) - timeToMinutes(b.time); });
 
-  dayAptsRaw.forEach(a => {
-    const isBlock = a.calendar_event_id === 'blocked_time' || (a.service && a.service.startsWith('🚫'));
+  let dayCuts = 0;
+  let dayRev = 0;
+  let occupiedIntervals = [];
+  let occupiedMinutes = 0;
+
+  dayAptsRaw.forEach(function(a) {
+    const isBlock = isBlockItem(a);
     const startMin = timeToMinutes(a.time);
     let dur = 30;
-    const s = (a.service || '').toLowerCase();
     if (!isBlock) {
-      if (s.includes('corte e barba') || s.includes('combo') || s.includes('completo')) dur = 60;
-      else if (s.includes('progressiva')) dur = 120;
-      else if (s.includes('sobrancelha')) dur = 20;
-      dayCuts++; dayRev += parseFloat(a.price || 0); occupiedMinutes += dur;
+      dur = getServiceDuration(a.service);
+      dayCuts++;
+      dayRev += parseFloat(a.price ? a.price : 0);
+      occupiedMinutes += dur;
     }
     occupiedIntervals.push({ start: startMin, end: startMin + dur, type: isBlock ? 'block' : 'apt', data: a });
   });
 
-  const openMin = timeToMinutes(document.getElementById('set-open')?.value || '09:00');
-  const closeMin = timeToMinutes(document.getElementById('set-close')?.value || '20:30');
-  const breakStart = document.getElementById('set-break-start')?.value || '';
-  const breakEnd = document.getElementById('set-break-end')?.value || '';
+  const openEl = document.getElementById('set-open');
+  const closeEl = document.getElementById('set-close');
+  const bStartEl = document.getElementById('set-break-start');
+  const bEndEl = document.getElementById('set-break-end');
+
+  const openMin = timeToMinutes(openEl && openEl.value ? openEl.value : '09:00');
+  const closeMin = timeToMinutes(closeEl && closeEl.value ? closeEl.value : '20:30');
+  const breakStart = bStartEl && bStartEl.value ? bStartEl.value : '';
+  const breakEnd = bEndEl && bEndEl.value ? bEndEl.value : '';
   const bStartMin = breakStart ? timeToMinutes(breakStart) : -1;
   const bEndMin = breakEnd ? timeToMinutes(breakEnd) : -1;
 
-  let freeSlotsCount = 0, totalWorkSlots = 0;
+  let freeSlotsCount = 0;
+  let totalWorkSlots = 0;
   for (let t = openMin; t <= closeMin - 30; t += 30) {
     if (bStartMin >= 0 && bEndMin > bStartMin && t >= bStartMin && t < bEndMin) continue;
     totalWorkSlots++;
-    if (!occupiedIntervals.some(i => t < i.end && (t + 30) > i.start)) freeSlotsCount++;
+    const busy = occupiedIntervals.some(function(i) { return t < i.end && (t + 30) > i.start; });
+    if (!busy) freeSlotsCount++;
   }
 
   const occPercent = totalWorkSlots > 0 ? Math.min(100, Math.round((occupiedMinutes / (totalWorkSlots * 30)) * 100)) : 0;
   document.getElementById('cal-stat-cuts').innerText = dayCuts;
-  document.getElementById('cal-stat-rev').innerText = `R$ ${dayRev.toFixed(0)}`;
+  document.getElementById('cal-stat-rev').innerText = 'R$ ' + dayRev.toFixed(0);
   document.getElementById('cal-stat-free').innerText = freeSlotsCount;
-  document.getElementById('cal-stat-occ-text').innerText = `${occPercent}%`;
-  document.getElementById('cal-stat-occ-bar').style.width = `${occPercent}%`;
+  document.getElementById('cal-stat-occ-text').innerText = occPercent + '%';
+  document.getElementById('cal-stat-occ-bar').style.width = occPercent + '%';
 
-  const searchQuery = (document.getElementById('cal-day-search')?.value || '').toLowerCase().trim();
+  const searchInput = document.getElementById('cal-day-search');
+  const searchQuery = (searchInput && searchInput.value ? searchInput.value : '').toLowerCase().trim();
 
   if (calendarViewMode === 'cards') {
-    const merged = mergeBlocks(dayAptsRaw).filter(item => {
+    const merged = mergeBlocks(dayAptsRaw).filter(function(item) {
       if (!searchQuery) return true;
-      return (item.profiles?.full_name || '').toLowerCase().includes(searchQuery) ||
-             (item.service || '').toLowerCase().includes(searchQuery) ||
-             (item.time || '').toLowerCase().includes(searchQuery);
+      const cName = (item.profiles && item.profiles.full_name ? item.profiles.full_name : '').toLowerCase();
+      const sName = (item.service ? item.service : '').toLowerCase();
+      const tName = (item.time ? item.time : '').toLowerCase();
+      if (cName.includes(searchQuery)) return true;
+      if (sName.includes(searchQuery)) return true;
+      return tName.includes(searchQuery);
     });
 
     if (!merged.length) {
-      container.innerHTML = `
-        <div class="h-full min-h-[280px] flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-zinc-800/60 rounded-3xl bg-zinc-950/40">
-          <div class="w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-2xl mb-3">📅</div>
-          <p class="text-sm font-black uppercase tracking-widest text-zinc-200">Agenda Livre em ${selectedCalendarDateStr}</p>
-          <p class="text-xs text-zinc-500 mt-1 max-w-xs">Não há clientes agendados para esta data ou filtro. Aproveite para encaixar um cliente ou alternar para a grade de horários.</p>
-          <div class="flex gap-2.5 mt-5">
-            <button onclick="openManualModalForSelectedDate()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-wider transition-all">✨ Agendar Cliente</button>
-            <button onclick="setCalendarViewMode('timeline')" class="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-black text-[10px] uppercase tracking-wider transition-all">🕒 Ver Horários Livres</button>
-          </div>
-        </div>
-      `;
+      container.innerHTML = '<div class="h-full min-h-[280px] flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-zinc-800/60 rounded-3xl bg-zinc-950/40">'
+        + '<div class="w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-2xl mb-3">📅</div>'
+        + '<p class="text-sm font-black uppercase tracking-widest text-zinc-200">Agenda Livre em ' + selectedCalendarDateStr + '</p>'
+        + '<p class="text-xs text-zinc-500 mt-1 max-w-xs">Não há clientes agendados para esta data ou filtro. Aproveite para encaixar um cliente ou alternar para a grade de horários.</p>'
+        + '<div class="flex gap-2.5 mt-5">'
+        + '<button onclick="openManualModalForSelectedDate()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-wider transition-all">✨ Agendar Cliente</button>'
+        + '<button onclick="setCalendarViewMode(\'timeline\')" class="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-black text-[10px] uppercase tracking-wider transition-all">🕒 Ver Horários Livres</button>'
+        + '</div></div>';
       return;
     }
 
-    let html = `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-start">`;
-    merged.forEach(item => { html += generateCardHtml(item); });
-    html += `</div>`;
+    let html = '<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-start">';
+    merged.forEach(function(item) { html += generateCardHtml(item); });
+    html += '</div>';
     container.innerHTML = html;
     return;
   }
 
-  let timelineHtml = `<div class="space-y-2.5">`;
+  let timelineHtml = '<div class="space-y-2.5">';
   for (let t = openMin; t <= closeMin - 30; t += 30) {
-    const slotStr = `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+    const slotStr = minutesToTime(t);
     const isBreak = (bStartMin >= 0 && bEndMin > bStartMin && t >= bStartMin && t < bEndMin);
-    const matchingApt = occupiedIntervals.find(i => t >= i.start && t < i.end);
+    const matchingApt = occupiedIntervals.find(function(i) { return t >= i.start && t < i.end; });
 
     if (searchQuery) {
       if (!matchingApt) continue;
-      const cName = (matchingApt.data.profiles?.full_name || '').toLowerCase();
-      const sName = (matchingApt.data.service || '').toLowerCase();
+      const cName = (matchingApt.data.profiles && matchingApt.data.profiles.full_name ? matchingApt.data.profiles.full_name : '').toLowerCase();
+      const sName = (matchingApt.data.service ? matchingApt.data.service : '').toLowerCase();
       if (!cName.includes(searchQuery) && !sName.includes(searchQuery) && !slotStr.includes(searchQuery)) continue;
     }
 
@@ -1120,96 +1201,110 @@ function renderSelectedDaySchedule() {
       const a = matchingApt.data;
       const isContinuation = t > matchingApt.start;
       if (matchingApt.type === 'block') {
-        timelineHtml += `
-          <div class="flex items-center justify-between p-3.5 rounded-2xl bg-red-950/20 border border-red-900/40 border-l-4 border-l-red-500">
-            <div class="flex items-center gap-4">
-              <span class="text-xs font-black text-red-400 bg-red-500/10 px-3 py-1.5 rounded-xl border border-red-500/20">${slotStr}</span>
-              <div>
-                <p class="text-xs font-black text-zinc-200 uppercase tracking-wider">${a.service || '🚫 Horário Bloqueado'}</p>
-                <p class="text-[10px] text-zinc-500 font-semibold">Indisponível para agendamento</p>
-              </div>
-            </div>
-            <button onclick="deleteAppointment('${a.id}', true)" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-red-600 text-zinc-300 hover:text-white text-[9px] font-black uppercase tracking-wider border border-zinc-800 transition-all">Liberar</button>
-          </div>
-        `;
+        const blockTitle = a.service ? a.service : '🚫 Horário Bloqueado';
+        timelineHtml += '<div class="flex items-center justify-between p-3.5 rounded-2xl bg-red-950/20 border border-red-900/40 border-l-4 border-l-red-500">'
+          + '<div class="flex items-center gap-4">'
+          + '<span class="text-xs font-black text-red-400 bg-red-500/10 px-3 py-1.5 rounded-xl border border-red-500/20">' + slotStr + '</span>'
+          + '<div><p class="text-xs font-black text-zinc-200 uppercase tracking-wider">' + blockTitle + '</p>'
+          + '<p class="text-[10px] text-zinc-500 font-semibold">Indisponível para agendamento</p></div></div>'
+          + '<button onclick="deleteAppointment(\'' + a.id + '\', true)" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-red-600 text-zinc-300 hover:text-white text-[9px] font-black uppercase tracking-wider border border-zinc-800 transition-all">Liberar</button>'
+          + '</div>';
       } else {
-        const clientName = a.profiles?.full_name || 'Cliente';
-        const cleanPhone = (a.profiles?.phone || '').replace(/\D/g, '');
-        const whatsLink = cleanPhone ? `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(`Olá ${clientName}, confirmando seu horário na RB Barbearia dia ${selectedCalendarDateStr} às ${a.time}!`)}` : '';
+        const clientName = a.profiles && a.profiles.full_name ? a.profiles.full_name : 'Cliente';
+        const rawPhone = a.profiles && a.profiles.phone ? a.profiles.phone : '';
+        const cleanPhone = rawPhone.replace(/\D/g, '');
+        const msg = 'Olá ' + clientName + ', confirmando seu horário na RB Barbearia dia ' + selectedCalendarDateStr + ' às ' + a.time + '!';
+        const whatsLink = cleanPhone ? ('https://wa.me/55' + cleanPhone + '?text=' + encodeURIComponent(msg)) : '';
         const sTheme = getServiceTheme(a.service);
+        const priceFormatted = parseFloat(a.price ? a.price : 0).toFixed(2).replace('.', ',');
+        const servTitle = a.service ? a.service : '';
+        const statusTag = isContinuation
+          ? '<span class="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">Em andamento (início ' + a.time + ')</span>'
+          : '<span class="text-[10px] font-black text-emerald-400">R$ ' + priceFormatted + '</span>';
 
-        timelineHtml += `
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-zinc-900/90 border border-zinc-800 border-l-4 ${sTheme.borderL} hover:border-zinc-700 transition-all">
-            <div class="flex items-center gap-4 min-w-0">
-              <span class="text-xs font-black text-white bg-zinc-950 px-3 py-2 rounded-xl border border-zinc-800 shrink-0">${slotStr}</span>
-              <div class="min-w-0">
-                <div class="flex items-center gap-2">
-                  <p class="text-sm font-black text-white truncate">${clientName}</p>
-                  ${isContinuation ? `<span class="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">Em andamento (início ${a.time})</span>` : `<span class="text-[10px] font-black text-emerald-400">R$ ${parseFloat(a.price || 0).toFixed(2).replace('.', ',')}</span>`}
-                </div>
-                <p class="text-[10px] ${sTheme.text} font-bold uppercase tracking-widest mt-0.5 truncate">${a.service || ''}</p>
-              </div>
-            </div>
-            ${!isContinuation ? `
-              <div class="flex items-center gap-2 shrink-0">
-                ${whatsLink ? `<a href="${whatsLink}" target="_blank" class="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider transition-all">WhatsApp</a>` : ''}
-                <button onclick='openDetailsModal(${JSON.stringify(a).replace(/'/g,"&apos;")})' class="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[9px] font-black uppercase tracking-wider transition-all">Detalhes</button>
-                <button onclick="deleteAppointment('${a.id}', false)" class="px-3 py-1.5 rounded-xl bg-zinc-950 hover:bg-red-600 text-zinc-400 hover:text-white border border-zinc-800 text-[9px] font-black uppercase tracking-wider transition-all">Cancelar</button>
-              </div>
-            ` : ''}
-          </div>
-        `;
+        let actionsHtml = '';
+        if (!isContinuation) {
+          const whatsBtn = whatsLink
+            ? '<a href="' + whatsLink + '" target="_blank" class="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider transition-all">WhatsApp</a>'
+            : '';
+          const itemJson = JSON.stringify(a).replace(/'/g, "&apos;");
+          actionsHtml = '<div class="flex items-center gap-2 shrink-0">'
+            + whatsBtn
+            + '<button onclick=\'openDetailsModal(' + itemJson + ')\' class="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[9px] font-black uppercase tracking-wider transition-all">Detalhes</button>'
+            + '<button onclick="deleteAppointment(\'' + a.id + '\', false)" class="px-3 py-1.5 rounded-xl bg-zinc-950 hover:bg-red-600 text-zinc-400 hover:text-white border border-zinc-800 text-[9px] font-black uppercase tracking-wider transition-all">Cancelar</button>'
+            + '</div>';
+        }
+
+        timelineHtml += '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-zinc-900/90 border border-zinc-800 border-l-4 ' + sTheme.borderL + ' hover:border-zinc-700 transition-all">'
+          + '<div class="flex items-center gap-4 min-w-0">'
+          + '<span class="text-xs font-black text-white bg-zinc-950 px-3 py-2 rounded-xl border border-zinc-800 shrink-0">' + slotStr + '</span>'
+          + '<div class="min-w-0"><div class="flex items-center gap-2"><p class="text-sm font-black text-white truncate">' + clientName + '</p>' + statusTag + '</div>'
+          + '<p class="text-[10px] ' + sTheme.text + ' font-bold uppercase tracking-widest mt-0.5 truncate">' + servTitle + '</p></div></div>'
+          + actionsHtml
+          + '</div>';
       }
     } else if (isBreak) {
-      timelineHtml += `
-        <div class="flex items-center justify-between p-3 rounded-2xl bg-zinc-950/60 border border-zinc-800/50 opacity-60">
-          <div class="flex items-center gap-4">
-            <span class="text-xs font-bold text-zinc-500 bg-zinc-900 px-3 py-1.5 rounded-xl">${slotStr}</span>
-            <span class="text-[10px] font-black uppercase tracking-widest text-zinc-500">☕ Intervalo de Descanso</span>
-          </div>
-          <span class="text-[9px] text-zinc-600 font-bold uppercase">Pausa</span>
-        </div>
-      `;
+      timelineHtml += '<div class="flex items-center justify-between p-3 rounded-2xl bg-zinc-950/60 border border-zinc-800/50 opacity-60">'
+        + '<div class="flex items-center gap-4"><span class="text-xs font-bold text-zinc-500 bg-zinc-900 px-3 py-1.5 rounded-xl">' + slotStr + '</span>'
+        + '<span class="text-[10px] font-black uppercase tracking-widest text-zinc-500">☕ Intervalo de Descanso</span></div>'
+        + '<span class="text-[9px] text-zinc-600 font-bold uppercase">Pausa</span></div>';
     } else {
-      timelineHtml += `
-        <div class="flex items-center justify-between p-3 rounded-2xl bg-zinc-950/40 border border-zinc-800/50 hover:border-emerald-500/40 hover:bg-zinc-900/40 transition-all group">
-          <div class="flex items-center gap-4">
-            <span class="text-xs font-bold text-zinc-400 group-hover:text-white bg-zinc-900 px-3 py-1.5 rounded-xl border border-zinc-800">${slotStr}</span>
-            <span class="text-xs font-semibold text-zinc-500 group-hover:text-zinc-300">Horário Livre</span>
-          </div>
-          <button onclick="openManualModalForSelectedDate('${slotStr}')" class="px-3 py-1.5 rounded-xl bg-emerald-500/10 group-hover:bg-emerald-500 text-emerald-400 group-hover:text-zinc-950 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider transition-all">+ Encaixar Cliente</button>
-        </div>
-      `;
+      timelineHtml += '<div class="flex items-center justify-between p-3 rounded-2xl bg-zinc-950/40 border border-zinc-800/50 hover:border-emerald-500/40 hover:bg-zinc-900/40 transition-all group">'
+        + '<div class="flex items-center gap-4"><span class="text-xs font-bold text-zinc-400 group-hover:text-white bg-zinc-900 px-3 py-1.5 rounded-xl border border-zinc-800">' + slotStr + '</span>'
+        + '<span class="text-xs font-semibold text-zinc-500 group-hover:text-zinc-300">Horário Livre</span></div>'
+        + '<button onclick="openManualModalForSelectedDate(\'' + slotStr + '\')" class="px-3 py-1.5 rounded-xl bg-emerald-500/10 group-hover:bg-emerald-500 text-emerald-400 group-hover:text-zinc-950 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider transition-all">+ Encaixar Cliente</button>'
+        + '</div>';
     }
   }
-  timelineHtml += `</div>`;
+  timelineHtml += '</div>';
   container.innerHTML = timelineHtml;
 }
 
-function openManualModalForSelectedDate(slotStr = null) { prefillTimeSlot = slotStr; openManualModal(brDateToIso(selectedCalendarDateStr)); }
-function openBlockModalForSelectedDate() { openBlockModal(brDateToIso(selectedCalendarDateStr)); }
+function openManualModalForSelectedDate(slotStr) {
+  prefillTimeSlot = slotStr ? slotStr : null;
+  openManualModal(brDateToIso(selectedCalendarDateStr));
+}
+
+function openBlockModalForSelectedDate() {
+  openBlockModal(brDateToIso(selectedCalendarDateStr));
+}
 
 function copySelectedDateSummary() {
   const appointments = allAppointments
-    .filter(a => a.date === selectedCalendarDateStr && a.calendar_event_id !== 'blocked_time' && !(a.service || '').startsWith('🚫'))
-    .sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
-  const revenue = appointments.reduce((sum, a) => sum + parseFloat(a.price || 0), 0);
-  let text = `RB BARBEARIA — AGENDA ${selectedCalendarDateStr}\n\nAtendimentos: ${appointments.length}\nPrevisão: R$ ${revenue.toFixed(2).replace('.', ',')}\n\n`;
-  if (!appointments.length) text += `Nenhum agendamento registrado para esta data.`;
-  else appointments.forEach(a => { text += `${a.time || '--:--'} — ${a.profiles?.full_name || 'Cliente'} — ${a.service || 'Serviço'} — R$ ${parseFloat(a.price || 0).toFixed(2).replace('.', ',')}\n`; });
-  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => alert(`Resumo do dia ${selectedCalendarDateStr} copiado!`));
-  else alert(text);
+    .filter(function(a) { return a.date === selectedCalendarDateStr && !isBlockItem(a); })
+    .sort(function(a, b) { return timeToMinutes(a.time) - timeToMinutes(b.time); });
+  const revenue = appointments.reduce(function(sum, a) { return sum + parseFloat(a.price ? a.price : 0); }, 0);
+  let text = 'RB BARBEARIA — AGENDA ' + selectedCalendarDateStr + '\n\nAtendimentos: ' + appointments.length + '\nPrevisão: R$ ' + revenue.toFixed(2).replace('.', ',') + '\n\n';
+  if (!appointments.length) {
+    text += 'Nenhum agendamento registrado para esta data.';
+  } else {
+    appointments.forEach(function(a) {
+      const t = a.time ? a.time : '--:--';
+      const c = a.profiles && a.profiles.full_name ? a.profiles.full_name : 'Cliente';
+      const s = a.service ? a.service : 'Serviço';
+      const p = parseFloat(a.price ? a.price : 0).toFixed(2).replace('.', ',');
+      text += t + ' — ' + c + ' — ' + s + ' — R$ ' + p + '\n';
+    });
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() { alert('Resumo do dia ' + selectedCalendarDateStr + ' copiado!'); });
+  } else {
+    alert(text);
+  }
 }
 
 function updateClientsDatalist() {
   const dl = document.getElementById('existing-clients-datalist');
   if (!dl) return;
-  dl.innerHTML = allClientsList.map(c => `<option value="${c.name}">${c.phone || ''}</option>`).join('');
+  dl.innerHTML = allClientsList.map(function(c) {
+    const ph = c.phone ? c.phone : '';
+    return '<option value="' + c.name + '">' + ph + '</option>';
+  }).join('');
 }
 
 function checkClientAutoFill(typedName) {
-  const cleanName = (typedName || '').trim().toLowerCase();
-  const match = allClientsList.find(c => c.name.toLowerCase() === cleanName);
+  const cleanName = (typedName ? typedName : '').trim().toLowerCase();
+  const match = allClientsList.find(function(c) { return c.name.toLowerCase() === cleanName; });
   if (match && match.phone) {
     const phoneInput = document.getElementById('manual-phone');
     phoneInput.value = match.phone;
@@ -1217,15 +1312,14 @@ function checkClientAutoFill(typedName) {
   }
 }
 
-function openManualModal(customIsoDate = null) {
+function openManualModal(customIsoDate) {
   updateClientsDatalist();
   document.getElementById('manual-name').value = '';
   document.getElementById('manual-phone').value = '';
-  const now = new Date();
-  const todayIso = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const todayIso = formatIsoDate(new Date());
   const dateInput = document.getElementById('manual-date');
   dateInput.min = todayIso;
-  dateInput.value = customIsoDate || todayIso;
+  dateInput.value = customIsoDate ? customIsoDate : todayIso;
 
   manualSelectedTime = null;
   if (prefillTimeSlot) {
@@ -1233,7 +1327,7 @@ function openManualModal(customIsoDate = null) {
     fetchManualTimes();
   } else {
     document.getElementById('manual-service').value = '';
-    document.getElementById('manual-time-grid').innerHTML = `<div class="col-span-4 text-center py-4 bg-zinc-950 border border-zinc-800 rounded-xl"><span class="text-xs text-zinc-600">Selecione o serviço para ver horários</span></div>`;
+    document.getElementById('manual-time-grid').innerHTML = '<div class="col-span-4 text-center py-4 bg-zinc-950 border border-zinc-800 rounded-xl"><span class="text-xs text-zinc-600">Selecione o serviço para ver horários</span></div>';
     updateManualBtn();
   }
   document.getElementById('modal-manual-booking').classList.remove('hidden');
@@ -1250,7 +1344,7 @@ async function fetchManualTimes() {
   const service = document.getElementById('manual-service').value;
   const dateVal = document.getElementById('manual-date').value;
   const grid = document.getElementById('manual-time-grid');
-  if (!service || !dateVal || !sb) return;
+  if (!service ? true : (!dateVal ? true : !sb)) return;
 
   const sData = servicesMap[service];
   manualSelectedDuration = sData.duration;
@@ -1258,69 +1352,78 @@ async function fetchManualTimes() {
   manualSelectedTime = null;
   updateManualBtn();
 
-  grid.innerHTML = `<div class="col-span-4 text-center py-4"><div class="w-4 h-4 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto"></div></div>`;
+  grid.innerHTML = '<div class="col-span-4 text-center py-4"><div class="w-4 h-4 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto"></div></div>';
 
-  const [y, m, d] = dateVal.split('-');
-  const targetDate = `${d}/${m}/${y}`;
-  const targetDateNoZero = `${parseInt(d, 10)}/${parseInt(m, 10)}/${y}`;
-  const { data: booked } = await sb.from('appointments').select('service, time, calendar_event_id').in('date', [targetDate, targetDateNoZero]);
+  const parts = dateVal.split('-');
+  const y = parts[0];
+  const m = parts[1];
+  const d = parts[2];
+  const targetDate = d + '/' + m + '/' + y;
+  const targetDateNoZero = parseInt(d, 10) + '/' + parseInt(m, 10) + '/' + y;
+  const res = await sb.from('appointments').select('service, time, calendar_event_id').in('date', [targetDate, targetDateNoZero]);
+  const booked = res.data;
   
   let occupiedIntervals = [];
   if (booked) {
-    booked.forEach(b => {
-      if (b.calendar_event_id === 'cancelled_by_barber' || b.calendar_event_id === 'cancelled_by_client') return;
+    booked.forEach(function(b) {
+      if (isCancelledItem(b)) return;
       const startMin = timeToMinutes(b.time);
-      let dur = 30;
-      if (b.service && (b.service.includes('Corte e Barba') || b.service.includes('Combo'))) dur = 60;
-      else if (b.service && b.service.includes('Progressiva')) dur = 120;
-      else if (b.service && b.service.includes('Sobrancelha')) dur = 20;
+      const dur = getServiceDuration(b.service);
       occupiedIntervals.push({ start: startMin, end: startMin + dur });
     });
   }
 
-  const openTime = document.getElementById('set-open').value || '09:00';
-  const closeTime = document.getElementById('set-close').value || '20:30';
-  const breakStart = document.getElementById('set-break-start').value || '';
-  const breakEnd = document.getElementById('set-break-end').value || '';
+  const openEl = document.getElementById('set-open');
+  const closeEl = document.getElementById('set-close');
+  const openTime = openEl && openEl.value ? openEl.value : '09:00';
+  const closeTime = closeEl && closeEl.value ? closeEl.value : '20:30';
+  const breakStart = document.getElementById('set-break-start').value;
+  const breakEnd = document.getElementById('set-break-end').value;
 
   if (breakStart && breakEnd) {
-    const bs = timeToMinutes(breakStart), be = timeToMinutes(breakEnd);
+    const bs = timeToMinutes(breakStart);
+    const be = timeToMinutes(breakEnd);
     if (be > bs) occupiedIntervals.push({ start: bs, end: be });
   }
 
-  const startMin = timeToMinutes(openTime), endMin = timeToMinutes(closeTime);
+  const startMin = timeToMinutes(openTime);
+  const endMin = timeToMinutes(closeTime);
   const slots = [];
   for (let t = startMin; t <= endMin - manualSelectedDuration; t += 30) {
-    slots.push(`${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`);
+    slots.push(minutesToTime(t));
   }
 
   const now = new Date();
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const todayStr = formatIsoDate(now);
   const isToday = dateVal === todayStr;
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
   let html = '';
-  slots.forEach(slot => {
-    const slotStart = timeToMinutes(slot), slotEnd = slotStart + manualSelectedDuration;
-    const isOccupied = occupiedIntervals.some(i => slotStart < i.end && slotEnd > i.start);
+  slots.forEach(function(slot) {
+    const slotStart = timeToMinutes(slot);
+    const slotEnd = slotStart + manualSelectedDuration;
+    const isOccupied = occupiedIntervals.some(function(i) { return slotStart < i.end && slotEnd > i.start; });
     const isPassed = isToday && slotStart <= currentMinutes;
 
-    if (isOccupied || isPassed) {
-      html += `<div class="py-2.5 rounded-xl border border-white/5 bg-[#0e0e0e] text-center opacity-30 cursor-not-allowed"><span class="text-zinc-600 font-medium text-[10px] line-through">${slot}</span></div>`;
+    if (isOccupied ? true : isPassed) {
+      html += '<div class="py-2.5 rounded-xl border border-white/5 bg-[#0e0e0e] text-center opacity-30 cursor-not-allowed"><span class="text-zinc-600 font-medium text-[10px] line-through">' + slot + '</span></div>';
     } else {
       const isPreselected = prefillTimeSlot === slot;
       if (isPreselected) manualSelectedTime = slot;
-      html += `<button type="button" class="manual-time-option available py-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-center text-zinc-300 font-bold text-[10px] ${isPreselected ? 'selected' : ''}" data-time="${slot}" onclick="selectManualTime('${slot}', this)">${slot}</button>`;
+      const selCls = isPreselected ? 'selected' : '';
+      html += '<button type="button" class="manual-time-option available py-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-center text-zinc-300 font-bold text-[10px] ' + selCls + '" data-time="' + slot + '" onclick="selectManualTime(\'' + slot + '\', this)">' + slot + '</button>';
     }
   });
 
-  if (!slots.length) html = `<div class="col-span-4 text-center py-4 bg-zinc-950 border border-zinc-800 rounded-xl"><p class="text-[10px] text-zinc-500">Sem horários para o serviço neste dia.</p></div>`;
+  if (!slots.length) {
+    html = '<div class="col-span-4 text-center py-4 bg-zinc-950 border border-zinc-800 rounded-xl"><p class="text-[10px] text-zinc-500">Sem horários para o serviço neste dia.</p></div>';
+  }
   grid.innerHTML = html;
   updateManualBtn();
 }
 
 function selectManualTime(value, element) {
-  document.querySelectorAll('.manual-time-option').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('.manual-time-option').forEach(function(el) { el.classList.remove('selected'); });
   element.classList.add('selected');
   manualSelectedTime = value;
   updateManualBtn();
@@ -1347,33 +1450,35 @@ async function saveManualBooking() {
   const dateVal = document.getElementById('manual-date').value;
 
   if (!name) return alert('Por favor, informe o nome do cliente.');
-  if (!service || !manualSelectedTime) return alert('Verifique os campos de serviço, data e horário.');
+  if (!service ? true : !manualSelectedTime) return alert('Verifique os campos de serviço, data e horário.');
 
   const btn = document.getElementById('btn-save-manual');
-  btn.disabled = true; btn.innerText = 'Salvando...';
+  btn.disabled = true;
+  btn.innerText = 'Salvando...';
 
   let finalUserId = generateUUID();
   if (cleanPhone.length >= 10) {
-    const { data: existingProfile } = await sb.from('profiles').select('id').eq('phone', cleanPhone).maybeSingle();
-    if (existingProfile) finalUserId = existingProfile.id;
+    const resProf = await sb.from('profiles').select('id').eq('phone', cleanPhone).maybeSingle();
+    if (resProf.data) finalUserId = resProf.data.id;
     else await sb.from('profiles').insert([{ id: finalUserId, full_name: name, phone: cleanPhone }]);
   } else {
     await sb.from('profiles').insert([{ id: finalUserId, full_name: name, phone: null }]);
   }
 
-  const [y, m, d] = dateVal.split('-');
-  const { error } = await sb.from('appointments').insert([{
+  const parts = dateVal.split('-');
+  const resIns = await sb.from('appointments').insert([{
     user_id: finalUserId,
     service: service,
     price: manualSelectedPrice,
-    date: `${d}/${m}/${y}`,
+    date: parts[2] + '/' + parts[1] + '/' + parts[0],
     time: manualSelectedTime,
     calendar_event_id: 'internal_system'
   }]);
 
-  if (error) {
-    alert('Erro ao agendar: ' + error.message);
-    btn.disabled = false; btn.innerText = 'Confirmar Agendamento';
+  if (resIns.error) {
+    alert('Erro ao agendar: ' + resIns.error.message);
+    btn.disabled = false;
+    btn.innerText = 'Confirmar Agendamento';
     return;
   }
 
@@ -1382,11 +1487,13 @@ async function saveManualBooking() {
   fetchHistoryData();
 }
 
-function openBlockModal(customIsoDate = null) {
-  const now = new Date();
-  const todayIso = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+function openBlockModal(customIsoDate) {
+  const todayIso = formatIsoDate(new Date());
   const input = document.getElementById('block-date');
-  if (input) { input.min = todayIso; input.value = customIsoDate || todayIso; }
+  if (input) {
+    input.min = todayIso;
+    input.value = customIsoDate ? customIsoDate : todayIso;
+  }
   document.getElementById('modal-block').classList.remove('hidden');
   document.getElementById('modal-block').classList.add('flex');
 }
@@ -1404,73 +1511,89 @@ async function confirmBlock() {
 
   if (!dateVal) return alert('Selecione uma data.');
   const now = new Date();
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-  const startMin = timeToMinutes(start), endMin = timeToMinutes(end);
+  const todayStr = formatIsoDate(now);
+  const startMin = timeToMinutes(start);
+  const endMin = timeToMinutes(end);
 
   if (dateVal < todayStr) return alert('Data no passado.');
   if (dateVal === todayStr && startMin <= now.getHours() * 60 + now.getMinutes()) return alert('Horário passado.');
   if (startMin >= endMin) return alert('O fim precisa ser maior que o início.');
 
-  const [y,m,d] = dateVal.split('-');
-  const formattedDate = `${d}/${m}/${y}`, formattedDateNoZero = `${parseInt(d,10)}/${parseInt(m,10)}/${y}`;
+  const parts = dateVal.split('-');
+  const formattedDate = parts[2] + '/' + parts[1] + '/' + parts[0];
+  const formattedDateNoZero = parseInt(parts[2], 10) + '/' + parseInt(parts[1], 10) + '/' + parts[0];
   const btn = document.getElementById('btn-confirm-block');
-  btn.disabled = true; btn.innerText = 'Processando...';
+  btn.disabled = true;
+  btn.innerText = 'Processando...';
 
-  const { data: existingApts, error: searchError } = await sb.from('appointments').select('*, profiles(full_name)')
+  const resSearch = await sb.from('appointments').select('*, profiles(full_name)')
     .in('date', [formattedDate, formattedDateNoZero])
-    .neq('calendar_event_id', 'cancelled_by_barber').neq('calendar_event_id', 'cancelled_by_client').neq('calendar_event_id', 'blocked_time');
+    .neq('calendar_event_id', 'cancelled_by_barber')
+    .neq('calendar_event_id', 'cancelled_by_client')
+    .neq('calendar_event_id', 'blocked_time');
 
-  if (searchError) { alert('Erro: ' + searchError.message); btn.disabled = false; btn.innerText = 'Confirmar Bloqueio'; return; }
+  if (resSearch.error) {
+    alert('Erro: ' + resSearch.error.message);
+    btn.disabled = false;
+    btn.innerText = 'Confirmar Bloqueio';
+    return;
+  }
 
   let conflictClient = null;
+  const existingApts = resSearch.data;
   if (existingApts && existingApts.length) {
-    for (const apt of existingApts) {
+    for (let i = 0; i < existingApts.length; i++) {
+      const apt = existingApts[i];
       const aptStart = timeToMinutes(apt.time);
-      let dur = 30;
-      if (apt.service && (apt.service.includes('Corte e Barba') || apt.service.includes('Completo'))) dur = 60;
-      else if (apt.service && apt.service.includes('Progressiva')) dur = 120;
-      else if (apt.service && apt.service.includes('Sobrancelha')) dur = 20;
+      const dur = getServiceDuration(apt.service);
       if (aptStart < endMin && aptStart + dur > startMin) {
-        conflictClient = { name: apt.profiles?.full_name || 'Cliente', time: apt.time };
+        const cName = apt.profiles && apt.profiles.full_name ? apt.profiles.full_name : 'Cliente';
+        conflictClient = { name: cName, time: apt.time };
         break;
       }
     }
   }
 
   if (conflictClient) {
-    alert(`Conflito: "${conflictClient.name}" às ${conflictClient.time}.`);
-    btn.disabled = false; btn.innerText = 'Confirmar Bloqueio'; return;
+    alert('Conflito: "' + conflictClient.name + '" às ' + conflictClient.time + '.');
+    btn.disabled = false;
+    btn.innerText = 'Confirmar Bloqueio';
+    return;
   }
 
   let targetUserId = null;
-  const { data: dummyProfile } = await sb.from('profiles').select('id').limit(1);
-  if (dummyProfile?.length) targetUserId = dummyProfile[0].id;
-  else {
-    const { data: dummyApt } = await sb.from('appointments').select('user_id').not('user_id', 'is', null).limit(1);
-    if (dummyApt?.length) targetUserId = dummyApt[0].user_id;
+  const resDummyProf = await sb.from('profiles').select('id').limit(1);
+  if (resDummyProf.data && resDummyProf.data.length) {
+    targetUserId = resDummyProf.data[0].id;
+  } else {
+    const resDummyApt = await sb.from('appointments').select('user_id').not('user_id', 'is', null).limit(1);
+    if (resDummyApt.data && resDummyApt.data.length) targetUserId = resDummyApt.data[0].user_id;
   }
 
   if (!targetUserId) {
     alert('Exige pelo menos um perfil cadastrado para vincular.');
-    btn.disabled = false; btn.innerText = 'Confirmar Bloqueio'; return;
+    btn.disabled = false;
+    btn.innerText = 'Confirmar Bloqueio';
+    return;
   }
 
   const inserts = [];
   for (let t = startMin; t < endMin; t += 30) {
     inserts.push({
       user_id: targetUserId,
-      service: `🚫 Bloqueado`,
+      service: '🚫 Bloqueado',
       price: 0,
       date: formattedDate,
-      time: `${String(Math.floor(t / 60)).padStart(2,'0')}:${String(t % 60).padStart(2,'0')}`,
+      time: minutesToTime(t),
       calendar_event_id: 'blocked_time'
     });
   }
 
-  const { error: insertError } = await sb.from('appointments').insert(inserts);
-  if (insertError) alert('Erro ao bloquear: ' + insertError.message);
+  const resIns = await sb.from('appointments').insert(inserts);
+  if (resIns.error) alert('Erro ao bloquear: ' + resIns.error.message);
   else { closeBlockModal(); loadAgendaData(); }
-  btn.disabled = false; btn.innerText = 'Confirmar Bloqueio';
+  btn.disabled = false;
+  btn.innerText = 'Confirmar Bloqueio';
 }
 
 async function deleteAppointment(idsStr, isBlocked) {
@@ -1478,30 +1601,32 @@ async function deleteAppointment(idsStr, isBlocked) {
   if (!confirm(isBlocked ? 'Liberar horário?' : 'Cancelar agendamento?')) return;
   if (isBlocked) await sb.from('appointments').delete().in('id', idsStr.split(','));
   else await sb.from('appointments').update({ calendar_event_id: 'cancelled_by_barber', created_at: new Date().toISOString() }).eq('id', idsStr);
-  loadAgendaData(); fetchHistoryData();
+  loadAgendaData();
+  fetchHistoryData();
 }
 
 async function loadSettings() {
   if (!sb) return;
-  const { data } = await sb.from('settings').select('*').eq('id', 1).maybeSingle();
+  const res = await sb.from('settings').select('*').eq('id', 1).maybeSingle();
+  const data = res.data;
   if (data) {
-    document.getElementById('set-open').value = data.open_time || '09:00';
-    document.getElementById('set-close').value = data.close_time || '20:30';
-    document.getElementById('set-break-start').value = data.break_start || '';
-    document.getElementById('set-break-end').value = data.break_end || '';
+    document.getElementById('set-open').value = data.open_time ? data.open_time : '09:00';
+    document.getElementById('set-close').value = data.close_time ? data.close_time : '20:30';
+    document.getElementById('set-break-start').value = data.break_start ? data.break_start : '';
+    document.getElementById('set-break-end').value = data.break_end ? data.break_end : '';
   }
 }
 
 async function saveSettings() {
   if (!sb) return;
-  const { error } = await sb.from('settings').upsert({
+  const res = await sb.from('settings').upsert({
     id: 1,
     open_time: document.getElementById('set-open').value,
     close_time: document.getElementById('set-close').value,
     break_start: document.getElementById('set-break-start').value,
     break_end: document.getElementById('set-break-end').value
   });
-  if (error) alert('Erro: ' + error.message);
+  if (res.error) alert('Erro: ' + res.error.message);
   else { alert('Configurações salvas!'); loadAgendaData(); }
 }
 
@@ -1509,39 +1634,43 @@ function formatDateForDisplay(isoString) {
   if (!isoString) return '-';
   const d = new Date(isoString);
   if (isNaN(d.getTime())) return '-';
-  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} às ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  return formatBrDate(d) + ' às ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
 }
 
 function parseBrDateToObj(dateStr) {
   if (!dateStr) return new Date();
   if (dateStr.includes('-')) {
     const parts = dateStr.split('-');
-    return new Date(parseInt(parts[0],10), parseInt(parts[1],10)-1, parseInt(parts[2],10));
+    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
   }
   const p = dateStr.split('/');
-  if (p.length === 3) return new Date(parseInt(p[2],10), parseInt(p[1],10)-1, parseInt(p[0],10));
+  if (p.length === 3) return new Date(parseInt(p[2], 10), parseInt(p[1], 10) - 1, parseInt(p[0], 10));
   return new Date();
 }
 
 async function fetchHistoryData() {
   if (!sb) return;
   try {
-    const { data, error } = await sb.from('appointments').select(`*, profiles(full_name, phone)`).order('created_at', { ascending:false });
-    if (error) throw error;
-    allHistoryData = data || [];
-    allHistoryData.forEach(a => {
+    const res = await sb.from('appointments').select('*, profiles(full_name, phone)').order('created_at', { ascending: false });
+    if (res.error) throw res.error;
+    allHistoryData = res.data ? res.data : [];
+    allHistoryData.forEach(function(a) {
       if (a.date && a.date.includes('/')) {
         const p = a.date.split('/');
-        if (p.length === 3) a.date = `${String(p[0]).padStart(2,'0')}/${String(p[1]).padStart(2,'0')}/${p[2]}`;
+        if (p.length === 3) a.date = pad2(p[0]) + '/' + pad2(p[1]) + '/' + p[2];
       }
     });
-    renderHistoryTable(); calculateDashboard(); renderClientsTable();
-  } catch (err) { console.error('Falha ao buscar dados:', err); }
+    renderHistoryTable();
+    calculateDashboard();
+    renderClientsTable();
+  } catch (err) {
+    console.error('Falha ao buscar dados:', err);
+  }
 }
 
 function setHistoryFilter(filter) {
   currentHistoryFilter = filter;
-  ['hoje','7dias','tudo'].forEach(b => {
+  ['hoje','7dias','tudo'].forEach(function(b) {
     const el = document.getElementById('filter-' + b);
     if (!el) return;
     el.className = b === filter
@@ -1556,105 +1685,127 @@ function renderHistoryTable() {
   if (!tbody) return;
   let filtered = allHistoryData;
   const now = new Date();
-  const todayStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+  const todayStr = formatBrDate(now);
 
   if (currentHistoryFilter === 'hoje') {
-    filtered = allHistoryData.filter(a => {
+    filtered = allHistoryData.filter(function(a) {
       const modD = new Date(a.created_at);
-      const modStr = `${String(modD.getDate()).padStart(2,'0')}/${String(modD.getMonth()+1).padStart(2,'0')}/${modD.getFullYear()}`;
-      return (modStr === todayStr || a.date === todayStr);
+      const modStr = formatBrDate(modD);
+      return modStr === todayStr ? true : a.date === todayStr;
     });
   } else if (currentHistoryFilter === '7dias') {
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    filtered = allHistoryData.filter(a => new Date(a.created_at) >= sevenDaysAgo);
+    filtered = allHistoryData.filter(function(a) { return new Date(a.created_at) >= sevenDaysAgo; });
   }
 
   if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-zinc-500 font-bold uppercase tracking-widest text-[10px]">Nenhum registro encontrado.</td></tr>`;
+    tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-zinc-500 font-bold uppercase tracking-widest text-[10px]">Nenhum registro encontrado.</td></tr>';
     return;
   }
 
   let html = '';
-  filtered.forEach(a => {
-    const isBlock = a.calendar_event_id === 'blocked_time' || (a.service && a.service.startsWith('🚫'));
-    const clientName = a.profiles?.full_name || (isBlock ? 'Bloqueio' : 'Cliente Não Id.');
-    let statusBadge = `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider">Confirmado</span>`;
+  filtered.forEach(function(a) {
+    const isBlock = isBlockItem(a);
+    const clientName = a.profiles && a.profiles.full_name ? a.profiles.full_name : (isBlock ? 'Bloqueio' : 'Cliente Não Id.');
+    let statusBadge = '<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider">Confirmado</span>';
 
-    if (a.calendar_event_id === 'cancelled_by_barber') statusBadge = `<span class="bg-red-500/10 text-red-500 border border-red-500/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase">Cancelado RB</span>`;
-    else if (a.calendar_event_id === 'cancelled_by_client') statusBadge = `<span class="bg-orange-500/10 text-orange-500 border border-orange-500/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase">Cancelado Cli</span>`;
-    else if (isBlock) statusBadge = `<span class="bg-zinc-800 text-zinc-400 border border-zinc-700 px-2.5 py-1 rounded-md text-[9px] font-black uppercase">Bloqueado</span>`;
+    if (a.calendar_event_id === 'cancelled_by_barber') statusBadge = '<span class="bg-red-500/10 text-red-500 border border-red-500/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase">Cancelado RB</span>';
+    else if (a.calendar_event_id === 'cancelled_by_client') statusBadge = '<span class="bg-orange-500/10 text-orange-500 border border-orange-500/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase">Cancelado Cli</span>';
+    else if (isBlock) statusBadge = '<span class="bg-zinc-800 text-zinc-400 border border-zinc-700 px-2.5 py-1 rounded-md text-[9px] font-black uppercase">Bloqueado</span>';
 
-    html += `
-      <tr class="hover:bg-zinc-800/40 transition-colors cursor-pointer group border-l-2 border-transparent hover:border-orange-500" onclick='openDetailsModal(${JSON.stringify(a).replace(/'/g,"&apos;")})'>
-        <td class="px-5 py-4 text-zinc-500 font-medium">${formatDateForDisplay(a.created_at)}</td>
-        <td class="px-5 py-4 font-black text-white">${a.date || '-'} <span class="text-zinc-500 font-medium ml-1">às ${a.time || '-'}</span></td>
-        <td class="px-5 py-4 text-zinc-300 font-bold">${clientName}</td>
-        <td class="px-5 py-4 text-zinc-400 font-medium">${a.service || ''}</td>
-        <td class="px-5 py-4 text-emerald-400 font-black">R$ ${parseFloat(a.price || 0).toFixed(2).replace('.',',')}</td>
-        <td class="px-5 py-4">${statusBadge}</td>
-      </tr>`;
+    const itemJson = JSON.stringify(a).replace(/'/g, "&apos;");
+    const dText = a.date ? a.date : '-';
+    const tText = a.time ? a.time : '-';
+    const sText = a.service ? a.service : '';
+    const pText = parseFloat(a.price ? a.price : 0).toFixed(2).replace('.', ',');
+
+    html += '<tr class="hover:bg-zinc-800/40 transition-colors cursor-pointer group border-l-2 border-transparent hover:border-orange-500" onclick=\'openDetailsModal(' + itemJson + ')\'>'
+      + '<td class="px-5 py-4 text-zinc-500 font-medium">' + formatDateForDisplay(a.created_at) + '</td>'
+      + '<td class="px-5 py-4 font-black text-white">' + dText + ' <span class="text-zinc-500 font-medium ml-1">às ' + tText + '</span></td>'
+      + '<td class="px-5 py-4 text-zinc-300 font-bold">' + clientName + '</td>'
+      + '<td class="px-5 py-4 text-zinc-400 font-medium">' + sText + '</td>'
+      + '<td class="px-5 py-4 text-emerald-400 font-black">R$ ' + pText + '</td>'
+      + '<td class="px-5 py-4">' + statusBadge + '</td>'
+      + '</tr>';
   });
   tbody.innerHTML = html;
 }
 
 function openDetailsModal(item) {
-  const isBlock = item.calendar_event_id === 'blocked_time' || (item.service && item.service.startsWith('🚫'));
-  const clientName = item.profiles?.full_name || (isBlock ? 'Barbearia' : 'Cliente');
-  const cleanPhone = (item.profiles?.phone || '').replace(/\D/g,'');
-  const whatsLink = cleanPhone ? `https://wa.me/55${cleanPhone}` : '';
+  const isBlock = isBlockItem(item);
+  const clientName = item.profiles && item.profiles.full_name ? item.profiles.full_name : (isBlock ? 'Barbearia' : 'Cliente');
+  const rawPhone = item.profiles && item.profiles.phone ? item.profiles.phone : '';
+  const cleanPhone = rawPhone.replace(/\D/g, '');
+  const whatsLink = cleanPhone ? ('https://wa.me/55' + cleanPhone) : '';
 
-  document.getElementById('detail-img-container').innerHTML = `<img src="${getServiceImage(item.service)}" class="w-full h-full object-cover">`;
-  document.getElementById('detail-service').innerText = item.service || 'Serviço';
+  document.getElementById('detail-img-container').innerHTML = '<img src="' + getServiceImage(item.service) + '" class="w-full h-full object-cover">';
+  document.getElementById('detail-service').innerText = item.service ? item.service : 'Serviço';
   document.getElementById('detail-client').innerText = clientName;
-  document.getElementById('detail-date').innerText = `${item.date || '-'} às ${item.time || '-'}`;
+  const dText = item.date ? item.date : '-';
+  const tText = item.time ? item.time : '-';
+  document.getElementById('detail-date').innerText = dText + ' às ' + tText;
   document.getElementById('detail-modified').innerText = formatDateForDisplay(item.created_at);
 
-  let statusMsg = `<span class="text-emerald-400 font-bold">Confirmado</span>`;
-  if (item.calendar_event_id === 'cancelled_by_barber') statusMsg = `<span class="text-red-500 font-bold">Cancelado pela Barbearia</span>`;
-  else if (item.calendar_event_id === 'cancelled_by_client') statusMsg = `<span class="text-orange-500 font-bold">Cancelado pelo Cliente</span>`;
-  else if (isBlock) statusMsg = `<span class="text-zinc-400 font-bold">Bloqueado</span>`;
+  let statusMsg = '<span class="text-emerald-400 font-bold">Confirmado</span>';
+  if (item.calendar_event_id === 'cancelled_by_barber') statusMsg = '<span class="text-red-500 font-bold">Cancelado pela Barbearia</span>';
+  else if (item.calendar_event_id === 'cancelled_by_client') statusMsg = '<span class="text-orange-500 font-bold">Cancelado pelo Cliente</span>';
+  else if (isBlock) statusMsg = '<span class="text-zinc-400 font-bold">Bloqueado</span>';
 
   document.getElementById('detail-status').innerHTML = statusMsg;
   const container = document.getElementById('detail-whatsapp-container');
   if (whatsLink && !isBlock) {
-    container.innerHTML = `<a href="${whatsLink}" target="_blank" class="flex items-center justify-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 border border-emerald-500/20 px-4 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all mt-3 w-full">WhatsApp</a>`;
-  } else { container.innerHTML = ''; }
+    container.innerHTML = '<a href="' + whatsLink + '" target="_blank" class="flex items-center justify-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 border border-emerald-500/20 px-4 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all mt-3 w-full">WhatsApp</a>';
+  } else {
+    container.innerHTML = '';
+  }
   document.getElementById('modal-details').classList.remove('hidden');
 }
 
-function closeDetailsModal() { document.getElementById('modal-details').classList.add('hidden'); }
+function closeDetailsModal() {
+  document.getElementById('modal-details').classList.add('hidden');
+}
 
 function renderClientsTable() {
   const clientMap = {};
   const twelveMonthsAgo = new Date();
   twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
 
-  allHistoryData.forEach(apt => {
-    if (apt.calendar_event_id === 'blocked_time' || (apt.service && apt.service.startsWith('🚫'))) return;
-    if (!apt.profiles || !apt.user_id) return;
-    const userId = apt.user_id, aptDate = parseBrDateToObj(apt.date);
-    if (!clientMap[userId]) clientMap[userId] = { id: userId, name: apt.profiles.full_name || 'Desconhecido', phone: apt.profiles.phone || '', lastVisit: aptDate, totalSpent: 0, visits: 0 };
+  allHistoryData.forEach(function(apt) {
+    if (isBlockItem(apt)) return;
+    if (!apt.profiles ? true : !apt.user_id) return;
+    const userId = apt.user_id;
+    const aptDate = parseBrDateToObj(apt.date);
+    if (!clientMap[userId]) {
+      const fName = apt.profiles.full_name ? apt.profiles.full_name : 'Desconhecido';
+      const fPhone = apt.profiles.phone ? apt.profiles.phone : '';
+      clientMap[userId] = { id: userId, name: fName, phone: fPhone, lastVisit: aptDate, totalSpent: 0, visits: 0 };
+    }
     if (aptDate > clientMap[userId].lastVisit) clientMap[userId].lastVisit = aptDate;
-    if (apt.calendar_event_id !== 'cancelled_by_barber' && apt.calendar_event_id !== 'cancelled_by_client') {
-      clientMap[userId].totalSpent += parseFloat(apt.price || 0);
+    if (!isCancelledItem(apt)) {
+      clientMap[userId].totalSpent += parseFloat(apt.price ? apt.price : 0);
       clientMap[userId].visits++;
     }
   });
 
-  allClientsList = Object.values(clientMap).filter(c => c.lastVisit >= twelveMonthsAgo).sort((a,b) => a.name.localeCompare(b.name));
+  allClientsList = Object.values(clientMap)
+    .filter(function(c) { return c.lastVisit >= twelveMonthsAgo; })
+    .sort(function(a, b) { return a.name.localeCompare(b.name); });
   populateClientsUI(allClientsList);
 }
 
 function filterClients() {
   const query = document.getElementById('search-client').value.toLowerCase();
-  populateClientsUI(allClientsList.filter(c => c.name.toLowerCase().includes(query) || (c.phone && c.phone.includes(query))));
+  populateClientsUI(allClientsList.filter(function(c) {
+    if (c.name.toLowerCase().includes(query)) return true;
+    return c.phone ? c.phone.includes(query) : false;
+  }));
 }
 
 function populateClientsUI(clients) {
   const tbody = document.getElementById('clients-table-body');
   if (!tbody) return;
   if (!clients.length) {
-    tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-zinc-500 font-bold uppercase tracking-widest text-[10px]">Nenhum cliente encontrado.</td></tr>`;
+    tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-zinc-500 font-bold uppercase tracking-widest text-[10px]">Nenhum cliente encontrado.</td></tr>';
     return;
   }
 
@@ -1662,89 +1813,94 @@ function populateClientsUI(clients) {
   const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   let html = '';
 
-  clients.forEach(c => {
-    const cleanPhone = (c.phone || '').replace(/\D/g,'');
-    const dateStr = `${String(c.lastVisit.getDate()).padStart(2,'0')}/${String(c.lastVisit.getMonth()+1).padStart(2,'0')}/${c.lastVisit.getFullYear()}`;
+  clients.forEach(function(c) {
+    const cleanPhone = (c.phone ? c.phone : '').replace(/\D/g, '');
+    const dateStr = formatBrDate(c.lastVisit);
     const visitMidnight = new Date(c.lastVisit.getFullYear(), c.lastVisit.getMonth(), c.lastVisit.getDate()).getTime();
     const daysSince = Math.round((todayMidnight - visitMidnight) / 86400000);
+    const firstName = c.name.split(' ')[0];
 
     let returnBadge = '';
-    let customMsg = `Olá ${c.name.split(' ')[0]}, tudo certo? Passando para falar da RB Barbearia!`;
+    let customMsg = 'Olá ' + firstName + ', tudo certo? Passando para falar da RB Barbearia!';
 
     if (daysSince < 0) {
-      returnBadge = `<span class="bg-sky-500/10 text-sky-400 border border-sky-500/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase">📅 Agendado</span>`;
+      returnBadge = '<span class="bg-sky-500/10 text-sky-400 border border-sky-500/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase">📅 Agendado</span>';
     } else if (daysSince <= 20) {
-      returnBadge = `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase">🟢 Em dia (${daysSince}d)</span>`;
+      returnBadge = '<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase">🟢 Em dia (' + daysSince + 'd)</span>';
     } else if (daysSince <= 35) {
-      returnBadge = `<span class="bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase">🟡 Hora de voltar (${daysSince}d)</span>`;
-      customMsg = `Fala ${c.name.split(' ')[0]}, tudo tranquilo? Já faz uns ${daysSince} dias do teu último corte aqui na RB Barbearia. Bora garantir teu horário pra essa semana?`;
+      returnBadge = '<span class="bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase">🟡 Hora de voltar (' + daysSince + 'd)</span>';
+      customMsg = 'Fala ' + firstName + ', tudo tranquilo? Já faz uns ' + daysSince + ' dias do teu último corte aqui na RB Barbearia. Bora garantir teu horário pra essa semana?';
     } else {
-      returnBadge = `<span class="bg-red-500/10 text-red-400 border border-red-500/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase">🔴 Sumido (${daysSince}d)</span>`;
-      customMsg = `Fala ${c.name.split(' ')[0]}, sumiu irmão! Faz ${daysSince} dias que não aparece aqui na RB Barbearia. Bora dar um talento no visual essa semana?`;
+      returnBadge = '<span class="bg-red-500/10 text-red-400 border border-red-500/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase">🔴 Sumido (' + daysSince + 'd)</span>';
+      customMsg = 'Fala ' + firstName + ', sumiu irmão! Faz ' + daysSince + ' dias que não aparece aqui na RB Barbearia. Bora dar um talento no visual essa semana?';
     }
 
-    const whatsLink = cleanPhone ? `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(customMsg)}` : '#';
+    const whatsLink = cleanPhone ? ('https://wa.me/55' + cleanPhone + '?text=' + encodeURIComponent(customMsg)) : '#';
     const whatsBtn = cleanPhone
-      ? `<a href="${whatsLink}" target="_blank" class="inline-flex items-center justify-center gap-1.5 text-emerald-400 hover:text-zinc-950 text-[9px] uppercase font-black tracking-widest bg-emerald-500/10 hover:bg-emerald-500 px-3 py-1.5 rounded-lg transition-all border border-emerald-500/20">Chamar WhatsApp</a>`
-      : `<span class="text-zinc-600 text-[9px] uppercase font-bold">Sem contato</span>`;
+      ? '<a href="' + whatsLink + '" target="_blank" class="inline-flex items-center justify-center gap-1.5 text-emerald-400 hover:text-zinc-950 text-[9px] uppercase font-black tracking-widest bg-emerald-500/10 hover:bg-emerald-500 px-3 py-1.5 rounded-lg transition-all border border-emerald-500/20">Chamar WhatsApp</a>'
+      : '<span class="text-zinc-600 text-[9px] uppercase font-bold">Sem contato</span>';
 
-    html += `
-      <tr class="hover:bg-zinc-800/40 transition-colors border-l-2 border-transparent hover:border-orange-500">
-        <td class="px-5 py-4 font-black text-white capitalize">${c.name.toLowerCase()}</td>
-        <td class="px-5 py-4 text-zinc-400 font-medium">${c.phone || '-'}</td>
-        <td class="px-5 py-4 text-zinc-300 font-medium">${dateStr}</td>
-        <td class="px-5 py-4">${returnBadge}</td>
-        <td class="px-5 py-4 text-emerald-400 font-black">R$ ${c.totalSpent.toFixed(2).replace('.',',')}</td>
-        <td class="px-5 py-4 text-zinc-300 font-bold">${c.visits} <span class="text-[9px] text-zinc-500 font-medium">visitas</span></td>
-        <td class="px-5 py-4 text-right">${whatsBtn}</td>
-      </tr>`;
+    const phText = c.phone ? c.phone : '-';
+    const spentText = c.totalSpent.toFixed(2).replace('.', ',');
+
+    html += '<tr class="hover:bg-zinc-800/40 transition-colors border-l-2 border-transparent hover:border-orange-500">'
+      + '<td class="px-5 py-4 font-black text-white capitalize">' + c.name.toLowerCase() + '</td>'
+      + '<td class="px-5 py-4 text-zinc-400 font-medium">' + phText + '</td>'
+      + '<td class="px-5 py-4 text-zinc-300 font-medium">' + dateStr + '</td>'
+      + '<td class="px-5 py-4">' + returnBadge + '</td>'
+      + '<td class="px-5 py-4 text-emerald-400 font-black">R$ ' + spentText + '</td>'
+      + '<td class="px-5 py-4 text-zinc-300 font-bold">' + c.visits + ' <span class="text-[9px] text-zinc-500 font-medium">visitas</span></td>'
+      + '<td class="px-5 py-4 text-right">' + whatsBtn + '</td>'
+      + '</tr>';
   });
   tbody.innerHTML = html;
 }
 
 function setDashFilter(filter) {
   dashFilter = filter;
-  ['hoje','7dias','mes','ano','custom'].forEach(b => {
+  ['hoje','7dias','mes','ano','custom'].forEach(function(b) {
     const el = document.getElementById('d-filter-' + b);
     if (!el) return;
     if (b === filter) { el.classList.remove('text-zinc-400', 'hover:text-white'); el.classList.add('text-white', 'bg-zinc-700/50'); }
     else { el.classList.remove('text-white', 'bg-zinc-700/50'); el.classList.add('text-zinc-400', 'hover:text-white'); }
   });
   const custom = document.getElementById('custom-date-filters');
-  if (filter === 'custom') custom?.classList.remove('hidden');
-  else { custom?.classList.add('hidden'); calculateDashboard(); }
+  if (filter === 'custom') {
+    if (custom) custom.classList.remove('hidden');
+  } else {
+    if (custom) custom.classList.add('hidden');
+    calculateDashboard();
+  }
 }
 
-function applyCustomDashFilter() { calculateDashboard(); }
+function applyCustomDashFilter() {
+  calculateDashboard();
+}
 
 function showCancellationsModal() {
   const container = document.getElementById('cancellations-list');
-  if (!window.currentPeriodCancellations || window.currentPeriodCancellations.length === 0) {
-    container.innerHTML = `<p class="text-center text-zinc-500 text-xs py-8 font-bold uppercase tracking-widest">Nenhum cancelamento no período selecionado</p>`;
+  if (!window.currentPeriodCancellations ? true : window.currentPeriodCancellations.length === 0) {
+    container.innerHTML = '<p class="text-center text-zinc-500 text-xs py-8 font-bold uppercase tracking-widest">Nenhum cancelamento no período selecionado</p>';
   } else {
-    const sorted = window.currentPeriodCancellations.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    container.innerHTML = sorted.map(item => {
-      const clientName = item.profiles?.full_name || 'Cliente Não Id.';
+    const sorted = window.currentPeriodCancellations.sort(function(a, b) { return new Date(b.created_at) - new Date(a.created_at); });
+    container.innerHTML = sorted.map(function(item) {
+      const clientName = item.profiles && item.profiles.full_name ? item.profiles.full_name : 'Cliente Não Id.';
       const isBarber = item.calendar_event_id === 'cancelled_by_barber';
       const badge = isBarber 
-        ? `<span class="bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[8px] uppercase font-black tracking-wider">Cancelado por você</span>`
-        : `<span class="bg-orange-500/10 text-orange-500 border border-orange-500/20 px-2 py-0.5 rounded text-[8px] uppercase font-black tracking-wider">Cancelado pelo cliente</span>`;
-      return `
-        <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden">
-          <div class="absolute left-0 top-0 bottom-0 w-1 ${isBarber ? 'bg-red-500' : 'bg-orange-500'}"></div>
-          <div class="flex justify-between items-start pl-2">
-            <div>
-              <p class="font-bold text-white text-sm truncate">${clientName}</p>
-              <p class="text-zinc-500 text-[10px] mt-0.5 font-bold uppercase">${item.service}</p>
-            </div>
-            ${badge}
-          </div>
-          <div class="flex justify-between items-center pt-2 mt-1 border-t border-zinc-800/50 pl-2">
-            <span class="text-xs text-zinc-400 font-medium">${item.date} às ${item.time}</span>
-            <span class="text-emerald-400 font-black text-xs">R$ ${parseFloat(item.price || 0).toFixed(2).replace('.',',')}</span>
-          </div>
-        </div>
-      `;
+        ? '<span class="bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[8px] uppercase font-black tracking-wider">Cancelado por você</span>'
+        : '<span class="bg-orange-500/10 text-orange-500 border border-orange-500/20 px-2 py-0.5 rounded text-[8px] uppercase font-black tracking-wider">Cancelado pelo cliente</span>';
+      const barCls = isBarber ? 'bg-red-500' : 'bg-orange-500';
+      const pText = parseFloat(item.price ? item.price : 0).toFixed(2).replace('.', ',');
+      return '<div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden">'
+        + '<div class="absolute left-0 top-0 bottom-0 w-1 ' + barCls + '"></div>'
+        + '<div class="flex justify-between items-start pl-2"><div>'
+        + '<p class="font-bold text-white text-sm truncate">' + clientName + '</p>'
+        + '<p class="text-zinc-500 text-[10px] mt-0.5 font-bold uppercase">' + item.service + '</p>'
+        + '</div>' + badge + '</div>'
+        + '<div class="flex justify-between items-center pt-2 mt-1 border-t border-zinc-800/50 pl-2">'
+        + '<span class="text-xs text-zinc-400 font-medium">' + item.date + ' às ' + item.time + '</span>'
+        + '<span class="text-emerald-400 font-black text-xs">R$ ' + pText + '</span>'
+        + '</div></div>';
     }).join('');
   }
   document.getElementById('modal-cancellations').classList.remove('hidden');
@@ -1759,55 +1915,79 @@ function closeCancellationsModal() {
 function calculateDashboard() {
   try {
     const now = new Date();
-    now.setHours(23,59,59,999);
-    let startD, endD, chartTitle = '';
+    now.setHours(23, 59, 59, 999);
+    let startD;
+    let endD;
+    let chartTitle = '';
 
-    if (dashFilter === 'hoje') { startD = new Date(now); startD.setHours(0,0,0,0); endD = now; chartTitle = 'Receita: Hoje (Por Hora)'; }
-    else if (dashFilter === '7dias') { startD = new Date(now); startD.setDate(now.getDate() - 6); startD.setHours(0,0,0,0); endD = now; chartTitle = 'Receita: Últimos 7 Dias'; }
-    else if (dashFilter === 'mes') { startD = new Date(now.getFullYear(), now.getMonth(), 1); endD = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23,59,59); chartTitle = 'Receita: Este Mês (Por Dia)'; }
-    else if (dashFilter === 'ano') { startD = new Date(now.getFullYear(),0,1); endD = new Date(now.getFullYear(), 11, 31, 23,59,59); chartTitle = 'Receita: Este Ano (Por Mês)'; }
-    else {
-      const s = document.getElementById('dash-start')?.value, e = document.getElementById('dash-end')?.value;
-      if (!s || !e) return;
-      startD = new Date(s + 'T00:00:00'); endD = new Date(e + 'T23:59:59'); chartTitle = 'Receita: Período Personalizado';
+    if (dashFilter === 'hoje') {
+      startD = new Date(now); startD.setHours(0, 0, 0, 0); endD = now; chartTitle = 'Receita: Hoje (Por Hora)';
+    } else if (dashFilter === '7dias') {
+      startD = new Date(now); startD.setDate(now.getDate() - 6); startD.setHours(0, 0, 0, 0); endD = now; chartTitle = 'Receita: Últimos 7 Dias';
+    } else if (dashFilter === 'mes') {
+      startD = new Date(now.getFullYear(), now.getMonth(), 1); endD = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59); chartTitle = 'Receita: Este Mês (Por Dia)';
+    } else if (dashFilter === 'ano') {
+      startD = new Date(now.getFullYear(), 0, 1); endD = new Date(now.getFullYear(), 11, 31, 23, 59, 59); chartTitle = 'Receita: Este Ano (Por Mês)';
+    } else {
+      const sEl = document.getElementById('dash-start');
+      const eEl = document.getElementById('dash-end');
+      const s = sEl ? sEl.value : '';
+      const e = eEl ? eEl.value : '';
+      if (!s ? true : !e) return;
+      startD = new Date(s + 'T00:00:00');
+      endD = new Date(e + 'T23:59:59');
+      chartTitle = 'Receita: Período Personalizado';
     }
 
     const titleEl = document.getElementById('chart-title');
     if (titleEl) titleEl.innerText = chartTitle;
 
     window.currentPeriodCancellations = [];
-    let revPeriodo = 0, cutsPeriodo = 0, canceladosPeriodo = 0, aptsValidosTotal = 0, aptsFuturos = 0, revFutura = 0; 
-    const serviceCounter = {}, clientCounter = {};
-    let chartLabels = [], chartMap = {};
+    let revPeriodo = 0;
+    let cutsPeriodo = 0;
+    let canceladosPeriodo = 0;
+    let aptsValidosTotal = 0;
+    let aptsFuturos = 0;
+    let revFutura = 0;
+    const serviceCounter = {};
+    const clientCounter = {};
+    let chartLabels = [];
+    let chartMap = {};
     const diffDays = Math.ceil((endD - startD) / (1000 * 60 * 60 * 24));
 
     if (dashFilter === 'hoje') {
-      for (let h=8; h<=21; h++) { const hs = String(h).padStart(2,'0') + ':00'; chartMap[hs] = 0; chartLabels.push(hs); }
+      for (let h = 8; h <= 21; h++) {
+        const hs = pad2(h) + ':00';
+        chartMap[hs] = 0;
+        chartLabels.push(hs);
+      }
     } else if (diffDays <= 31) {
-      for (let d = new Date(startD); d <= endD; d.setDate(d.getDate()+1)) {
-        const label = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
-        chartMap[label] = 0; chartLabels.push(label);
+      for (let d = new Date(startD); d <= endD; d.setDate(d.getDate() + 1)) {
+        const label = pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1);
+        chartMap[label] = 0;
+        chartLabels.push(label);
       }
     } else {
       const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-      for (let m=startD.getMonth(); m<=endD.getMonth() + (endD.getFullYear()-startD.getFullYear())*12; m++) {
-        const ano = startD.getFullYear() + Math.floor(m/12);
-        const mName = `${meses[m%12]}/${String(ano).slice(-2)}`;
-        chartMap[mName] = 0; chartLabels.push(mName);
+      for (let m = startD.getMonth(); m <= endD.getMonth() + (endD.getFullYear() - startD.getFullYear()) * 12; m++) {
+        const ano = startD.getFullYear() + Math.floor(m / 12);
+        const mName = meses[m % 12] + '/' + String(ano).slice(-2);
+        chartMap[mName] = 0;
+        chartLabels.push(mName);
       }
     }
 
-    allHistoryData.forEach(a => {
+    allHistoryData.forEach(function(a) {
       const aptDate = parseBrDateToObj(a.date);
-      const isCancelled = a.calendar_event_id === 'cancelled_by_barber' || a.calendar_event_id === 'cancelled_by_client';
-      const isBlock = a.calendar_event_id === 'blocked_time' || (a.service && a.service.startsWith('🚫'));
-      const price = parseFloat(a.price || 0);
+      const isCancelled = isCancelledItem(a);
+      const isBlock = isBlockItem(a);
+      const price = parseFloat(a.price ? a.price : 0);
 
       if (!isCancelled && !isBlock) {
         const aptTime = timeToMinutes(a.time);
         const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const isPastDate = aptDate < todayDate;
-        const isTodayPassed = aptDate.toDateString() === todayDate.toDateString() && aptTime <= now.getHours()*60 + now.getMinutes();
+        const isTodayPassed = aptDate.toDateString() === todayDate.toDateString() && aptTime <= now.getHours() * 60 + now.getMinutes();
         if (!isPastDate && !isTodayPassed) { aptsFuturos++; revFutura += price; }
       }
 
@@ -1818,25 +1998,27 @@ function calculateDashboard() {
           const aptTime = timeToMinutes(a.time);
           const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
           const isPastDate = aptDate < todayDate;
-          const isTodayPassed = aptDate.toDateString() === todayDate.toDateString() && aptTime <= now.getHours()*60 + now.getMinutes();
+          const isTodayPassed = aptDate.toDateString() === todayDate.toDateString() && aptTime <= now.getHours() * 60 + now.getMinutes();
 
-          if (isPastDate || isTodayPassed) {
-            revPeriodo += price; cutsPeriodo++;
-            if (a.service) serviceCounter[a.service] = (serviceCounter[a.service] || 0) + 1;
-            if (a.profiles?.full_name) {
+          if (isPastDate ? true : isTodayPassed) {
+            revPeriodo += price;
+            cutsPeriodo++;
+            if (a.service) serviceCounter[a.service] = (serviceCounter[a.service] ? serviceCounter[a.service] : 0) + 1;
+            if (a.profiles && a.profiles.full_name) {
               const name = a.profiles.full_name;
-              if (!clientCounter[name]) clientCounter[name] = { count:0, rev:0 };
-              clientCounter[name].count++; clientCounter[name].rev += price;
+              if (!clientCounter[name]) clientCounter[name] = { count: 0, rev: 0 };
+              clientCounter[name].count++;
+              clientCounter[name].rev += price;
             }
             if (dashFilter === 'hoje' && a.time) {
               const h = a.time.split(':')[0] + ':00';
               if (chartMap[h] !== undefined) chartMap[h] += price;
             } else if (diffDays <= 31) {
-              const label = `${String(aptDate.getDate()).padStart(2,'0')}/${String(aptDate.getMonth()+1).padStart(2,'0')}`;
+              const label = pad2(aptDate.getDate()) + '/' + pad2(aptDate.getMonth() + 1);
               if (chartMap[label] !== undefined) chartMap[label] += price;
             } else {
               const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-              const label = `${meses[aptDate.getMonth()]}/${String(aptDate.getFullYear()).slice(-2)}`;
+              const label = meses[aptDate.getMonth()] + '/' + String(aptDate.getFullYear()).slice(-2);
               if (chartMap[label] !== undefined) chartMap[label] += price;
             }
           }
@@ -1845,67 +2027,119 @@ function calculateDashboard() {
     });
 
     const periodLabels = { hoje: 'Hoje', '7dias': '7 Dias', mes: 'Este Mês', ano: 'Este Ano', custom: 'Período' };
-    document.getElementById('dash-wallet-period').innerText = periodLabels[dashFilter] || 'Período';
-    document.getElementById('dash-wallet-saldo').innerText = `R$ ${revPeriodo.toFixed(2).replace('.',',')}`;
-    document.getElementById('dash-fat-periodo').innerText = `R$ ${revPeriodo.toFixed(2).replace('.',',')}`;
-    document.getElementById('dash-cortes-periodo').innerText = `${cutsPeriodo} atendimentos concluídos`;
+    document.getElementById('dash-wallet-period').innerText = periodLabels[dashFilter] ? periodLabels[dashFilter] : 'Período';
+    document.getElementById('dash-wallet-saldo').innerText = 'R$ ' + revPeriodo.toFixed(2).replace('.', ',');
+    document.getElementById('dash-fat-periodo').innerText = 'R$ ' + revPeriodo.toFixed(2).replace('.', ',');
+    document.getElementById('dash-cortes-periodo').innerText = cutsPeriodo + ' atendimentos concluídos';
     const ticket = cutsPeriodo > 0 ? revPeriodo / cutsPeriodo : 0;
-    document.getElementById('dash-ticket-medio').innerText = `R$ ${ticket.toFixed(2).replace('.',',')}`;
+    document.getElementById('dash-ticket-medio').innerText = 'R$ ' + ticket.toFixed(2).replace('.', ',');
     document.getElementById('dash-agendamentos-futuros').innerText = aptsFuturos;
-    document.getElementById('dash-fat-futuro').innerText = `Projeção global: R$ ${revFutura.toFixed(2).replace('.',',')}`;
+    document.getElementById('dash-fat-futuro').innerText = 'Projeção global: R$ ' + revFutura.toFixed(2).replace('.', ',');
     const txCanc = aptsValidosTotal > 0 ? ((canceladosPeriodo / aptsValidosTotal) * 100).toFixed(1) : 0;
-    document.getElementById('dash-tx-cancelamento').innerText = `${txCanc}%`;
-    document.getElementById('dash-num-cancelados').innerText = `${canceladosPeriodo} perdidos no período`;
+    document.getElementById('dash-tx-cancelamento').innerText = txCanc + '%';
+    document.getElementById('dash-num-cancelados').innerText = canceladosPeriodo + ' perdidos no período';
 
     const medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
-    const topServ = Object.keys(serviceCounter).map(k => ({ name:k, count:serviceCounter[k] })).sort((a,b) => b.count-a.count).slice(0,5);
+    const topServ = Object.keys(serviceCounter)
+      .map(function(k) { return { name: k, count: serviceCounter[k] }; })
+      .sort(function(a, b) { return b.count - a.count; })
+      .slice(0, 5);
     document.getElementById('dash-top-services').innerHTML = topServ.length === 0
-      ? `<p class="text-zinc-600 text-[10px] uppercase font-bold tracking-widest text-center">Sem dados</p>`
-      : topServ.map((s,i) => `
-          <div class="flex items-center justify-between p-3 bg-zinc-800/30 border border-zinc-800 rounded-xl">
-            <div class="flex items-center gap-2 min-w-0"><span>${medals[i]}</span><span class="text-zinc-100 text-[10px] font-black uppercase truncate">${s.name}</span></div>
-            <span class="text-emerald-400 font-black text-[10px] bg-emerald-500/10 px-2 py-1 rounded">${s.count}x</span>
-          </div>`).join('');
+      ? '<p class="text-zinc-600 text-[10px] uppercase font-bold tracking-widest text-center">Sem dados</p>'
+      : topServ.map(function(s, i) {
+          return '<div class="flex items-center justify-between p-3 bg-zinc-800/30 border border-zinc-800 rounded-xl">'
+            + '<div class="flex items-center gap-2 min-w-0"><span>' + medals[i] + '</span><span class="text-zinc-100 text-[10px] font-black uppercase truncate">' + s.name + '</span></div>'
+            + '<span class="text-emerald-400 font-black text-[10px] bg-emerald-500/10 px-2 py-1 rounded">' + s.count + 'x</span></div>';
+        }).join('');
 
-    const topCli = Object.keys(clientCounter).map(k => ({ name:k, rev:clientCounter[k].rev, count:clientCounter[k].count })).sort((a,b) => b.rev-a.rev).slice(0,5);
+    const topCli = Object.keys(clientCounter)
+      .map(function(k) { return { name: k, rev: clientCounter[k].rev, count: clientCounter[k].count }; })
+      .sort(function(a, b) { return b.rev - a.rev; })
+      .slice(0, 5);
     document.getElementById('dash-top-clients').innerHTML = topCli.length === 0
-      ? `<p class="text-zinc-600 text-[10px] uppercase font-bold tracking-widest text-center">Sem dados</p>`
-      : topCli.map((c,i) => `
-          <div class="flex items-center justify-between p-3 bg-zinc-800/30 border border-zinc-800 rounded-xl">
-            <div class="flex items-center gap-2 min-w-0"><span>${medals[i]}</span>
-              <div class="flex flex-col min-w-0"><span class="text-zinc-100 text-[10px] font-black uppercase truncate">${c.name}</span><span class="text-[8px] text-zinc-500 font-bold uppercase">${c.count} visitas</span></div>
-            </div>
-            <span class="text-emerald-400 font-black text-[10px] bg-emerald-500/10 px-2 py-1 rounded">R$ ${c.rev.toFixed(2).replace('.',',')}</span>
-          </div>`).join('');
+      ? '<p class="text-zinc-600 text-[10px] uppercase font-bold tracking-widest text-center">Sem dados</p>'
+      : topCli.map(function(c, i) {
+          return '<div class="flex items-center justify-between p-3 bg-zinc-800/30 border border-zinc-800 rounded-xl">'
+            + '<div class="flex items-center gap-2 min-w-0"><span>' + medals[i] + '</span>'
+            + '<div class="flex flex-col min-w-0"><span class="text-zinc-100 text-[10px] font-black uppercase truncate">' + c.name + '</span><span class="text-[8px] text-zinc-500 font-bold uppercase">' + c.count + ' visitas</span></div></div>'
+            + '<span class="text-emerald-400 font-black text-[10px] bg-emerald-500/10 px-2 py-1 rounded">R$ ' + c.rev.toFixed(2).replace('.', ',') + '</span></div>';
+        }).join('');
 
     if (!window.Chart) return;
-    const chartData = chartLabels.map(l => chartMap[l] || 0);
+    const chartData = chartLabels.map(function(l) { return chartMap[l] ? chartMap[l] : 0; });
     if (revenueChartInstance) revenueChartInstance.destroy();
     const canvas = document.getElementById('revenueChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const gradient = ctx.createLinearGradient(0,0,0,300);
-    gradient.addColorStop(0, 'rgba(249,115,22,.4)'); gradient.addColorStop(1, 'rgba(249,115,22,0)');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(249,115,22,.4)');
+    gradient.addColorStop(1, 'rgba(249,115,22,0)');
 
     revenueChartInstance = new Chart(ctx, {
-      type:'line',
-      data: { labels:chartLabels, datasets:[{ label:'Faturamento', data:chartData, borderColor:'#f97316', backgroundColor:gradient, borderWidth:3, pointBackgroundColor:'#fff', pointBorderColor:'#f97316', pointBorderWidth:2, pointRadius:3, pointHoverRadius:6, fill:true, tension:.4 }] },
-      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false }, tooltip:{ backgroundColor:'rgba(24,24,27,.95)', titleColor:'#a1a1aa', bodyColor:'#fff', padding:12, borderColor:'#3f3f46', borderWidth:1, callbacks:{ label:context => ' R$ ' + context.parsed.y.toFixed(2).replace('.',',') } } }, scales:{ y:{ beginAtZero:true, grid:{ color:'#27272a', drawBorder:false }, ticks:{ color:'#a1a1aa', font:{ size:9, weight:'bold' } } }, x:{ grid:{ display:false }, ticks:{ color:'#a1a1aa', font:{ size:9, weight:'bold' } } } } }
+      type: 'line',
+      data: {
+        labels: chartLabels,
+        datasets: [{
+          label: 'Faturamento',
+          data: chartData,
+          borderColor: '#f97316',
+          backgroundColor: gradient,
+          borderWidth: 3,
+          pointBackgroundColor: '#fff',
+          pointBorderColor: '#f97316',
+          pointBorderWidth: 2,
+          pointRadius: 3,
+          pointHoverRadius: 6,
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(24,24,27,.95)',
+            titleColor: '#a1a1aa',
+            bodyColor: '#fff',
+            padding: 12,
+            borderColor: '#3f3f46',
+            borderWidth: 1,
+            callbacks: {
+              label: function(context) { return ' R$ ' + context.parsed.y.toFixed(2).replace('.', ','); }
+            }
+          }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: '#27272a', drawBorder: false }, ticks: { color: '#a1a1aa', font: { size: 9, weight: 'bold' } } },
+          x: { grid: { display: false }, ticks: { color: '#a1a1aa', font: { size: 9, weight: 'bold' } } }
+        }
+      }
     });
-  } catch(err) { console.error('Erro no Dashboard:', err); }
+  } catch (err) {
+    console.error('Erro no Dashboard:', err);
+  }
 }
 
 function mergeBlocks(dayApts) {
-  let merged = [], currentBlock = null;
-  dayApts.forEach(item => {
-    const isBlock = item.calendar_event_id === 'blocked_time' || (item.service && item.service.startsWith('🚫'));
+  let merged = [];
+  let currentBlock = null;
+  dayApts.forEach(function(item) {
+    const isBlock = isBlockItem(item);
     if (isBlock) {
-      if (!currentBlock) currentBlock = { ...item, type:'block', end_time:item.time, block_ids:[item.id] };
-      else if (add30Mins(currentBlock.end_time) === item.time && currentBlock.service === item.service) { currentBlock.end_time = item.time; currentBlock.block_ids.push(item.id); }
-      else { merged.push(currentBlock); currentBlock = { ...item, type:'block', end_time:item.time, block_ids:[item.id] }; }
+      if (!currentBlock) {
+        currentBlock = Object.assign({}, item, { type: 'block', end_time: item.time, block_ids: [item.id] });
+      } else if (add30Mins(currentBlock.end_time) === item.time && currentBlock.service === item.service) {
+        currentBlock.end_time = item.time;
+        currentBlock.block_ids.push(item.id);
+      } else {
+        merged.push(currentBlock);
+        currentBlock = Object.assign({}, item, { type: 'block', end_time: item.time, block_ids: [item.id] });
+      }
     } else {
       if (currentBlock) { merged.push(currentBlock); currentBlock = null; }
-      merged.push({ ...item, type:'apt' });
+      merged.push(Object.assign({}, item, { type: 'apt' }));
     }
   });
   if (currentBlock) merged.push(currentBlock);
@@ -1914,72 +2148,87 @@ function mergeBlocks(dayApts) {
 
 function generateCardHtml(item) {
   const isBlock = item.type === 'block';
-  const clientName = item.profiles?.full_name || (isBlock ? 'Barbearia' : 'Cliente Não Id.');
-  const cleanPhone = (item.profiles?.phone || '').replace(/\D/g,'');
-  const whatsLink = cleanPhone ? `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(`Olá ${clientName}, confirmando seu horário de ${item.service || 'atendimento'} na RB Barbearia dia ${item.date \vert{}\vert{} ''} às ${item.time || ''}!`)}` : '#';
+  const clientName = item.profiles && item.profiles.full_name ? item.profiles.full_name : (isBlock ? 'Barbearia' : 'Cliente Não Id.');
+  const rawPhone = item.profiles && item.profiles.phone ? item.profiles.phone : '';
+  const cleanPhone = rawPhone.replace(/\D/g, '');
+  const servLabel = item.service ? item.service : 'atendimento';
+  const dateLabel = item.date ? item.date : '';
+  const timeLabel = item.time ? item.time : '';
+  const msg = 'Olá ' + clientName + ', confirmando seu horário de ' + servLabel + ' na RB Barbearia dia ' + dateLabel + ' às ' + timeLabel + '!';
+  const whatsLink = cleanPhone ? ('https://wa.me/55' + cleanPhone + '?text=' + encodeURIComponent(msg)) : '#';
 
   if (isBlock) {
-    const idsStr = (item.block_ids || [item.id]).join(',');
-    const timeDisplay = item.time === item.end_time ? `Às ${item.time}` : `Das ${item.time} até ${add30Mins(item.end_time)}`;
-    return `
-      <div class="agenda-card bg-red-950/25 border border-red-900/40 border-l-4 border-l-red-600 rounded-2xl p-4 relative shrink-0 shadow-md backdrop-blur-sm w-full" data-search="bloqueio ${(item.service || '').toLowerCase()} ${timeDisplay.toLowerCase()}">
-        <div class="flex items-center justify-between mb-2.5">
-          <span class="text-[8px] font-black text-red-400 bg-red-500/10 px-2 py-1 rounded uppercase tracking-widest border border-red-500/20">🚫 Bloqueio</span>
-          <button onclick="deleteAppointment('${idsStr}', true)" class="text-zinc-500 hover:text-red-400 text-[9px] font-black uppercase tracking-wider">Liberar</button>
-        </div>
-        <p class="font-black text-zinc-100 text-sm">${timeDisplay}</p>
-        <p class="text-[10px] text-zinc-400 mt-1.5 truncate uppercase font-bold tracking-wide">${(item.service || '').replace('🚫 ','')}</p>
-      </div>`;
+    const idsArr = item.block_ids ? item.block_ids : [item.id];
+    const idsStr = idsArr.join(',');
+    const timeDisplay = item.time === item.end_time ? ('Às ' + item.time) : ('Das ' + item.time + ' até ' + add30Mins(item.end_time));
+    const blockServ = (item.service ? item.service : '').replace('🚫 ', '');
+    const searchData = ('bloqueio ' + blockServ + ' ' + timeDisplay).toLowerCase();
+    return '<div class="agenda-card bg-red-950/25 border border-red-900/40 border-l-4 border-l-red-600 rounded-2xl p-4 relative shrink-0 shadow-md backdrop-blur-sm w-full" data-search="' + searchData + '">'
+      + '<div class="flex items-center justify-between mb-2.5">'
+      + '<span class="text-[8px] font-black text-red-400 bg-red-500/10 px-2 py-1 rounded uppercase tracking-widest border border-red-500/20">🚫 Bloqueio</span>'
+      + '<button onclick="deleteAppointment(\'' + idsStr + '\', true)" class="text-zinc-500 hover:text-red-400 text-[9px] font-black uppercase tracking-wider">Liberar</button>'
+      + '</div>'
+      + '<p class="font-black text-zinc-100 text-sm">' + timeDisplay + '</p>'
+      + '<p class="text-[10px] text-zinc-400 mt-1.5 truncate uppercase font-bold tracking-wide">' + blockServ + '</p>'
+      + '</div>';
   }
 
   const sTheme = getServiceTheme(item.service);
-  return `
-    <div class="agenda-card card-bg-image rounded-2xl flex flex-col shrink-0 transition-all transform hover:-translate-y-1 shadow-lg group w-full border border-zinc-800 ${sTheme.borderHover} relative overflow-hidden" data-search="${(clientName + ' ' + (item.service || '') + ' ' + (item.time || '')).toLowerCase()}" style="background-image:url('${sTheme.img}')">
-      <div class="absolute inset-0 bg-zinc-950/55 backdrop-blur-sm group-hover:bg-zinc-950/35 transition-all"></div>
-      <div class="absolute left-0 top-0 bottom-0 w-1.5 ${sTheme.borderL} z-20"></div>
-      <div class="relative z-10 p-4 w-full drop-shadow-md">
-        <div class="flex items-center justify-between mb-3">
-          <span class="text-[11px] font-black text-white bg-zinc-900/90 px-2.5 py-1 rounded-lg border border-zinc-700/50 shadow-sm">${item.time || '-'}</span>
-          <span class="text-[11px] font-black text-emerald-400 bg-zinc-900/90 px-2.5 py-1 rounded-lg border border-emerald-500/30 shadow-sm">R$ ${parseFloat(item.price || 0).toFixed(2).replace('.',',')}</span>
-        </div>
-        <p class="font-black text-white text-[15px] leading-tight truncate tracking-wide drop-shadow-lg">${clientName}</p>
-        <p class="text-[10px] ${sTheme.text} truncate mt-1.5 font-bold uppercase tracking-widest drop-shadow-md">${item.service || '-'}</p>
-        <div class="pt-3.5 mt-3.5 border-t border-zinc-500/30 flex items-center justify-between">
-          ${cleanPhone ? `<a href="${whatsLink}" target="_blank" class="text-emerald-400 hover:text-zinc-950 text-[9px] uppercase tracking-widest font-black flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500 px-3 py-1.5 rounded-lg border border-emerald-500/20 transition-all backdrop-blur-sm">WhatsApp</a>` : `<span class="text-zinc-300 font-bold text-[9px] uppercase tracking-widest drop-shadow-md">Sem contato</span>`}
-          <button onclick="deleteAppointment('${item.id}', false)" class="text-zinc-300 hover:text-white text-[9px] uppercase font-black tracking-widest bg-zinc-900/80 hover:bg-red-600 px-3 py-1.5 rounded-lg border border-zinc-700/50 transition-all backdrop-blur-sm">Cancelar</button>
-        </div>
-      </div>
-    </div>`;
+  const searchStr = (clientName + ' ' + servLabel + ' ' + timeLabel).toLowerCase();
+  const priceStr = parseFloat(item.price ? item.price : 0).toFixed(2).replace('.', ',');
+  const whatsHtml = cleanPhone
+    ? '<a href="' + whatsLink + '" target="_blank" class="text-emerald-400 hover:text-zinc-950 text-[9px] uppercase tracking-widest font-black flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500 px-3 py-1.5 rounded-lg border border-emerald-500/20 transition-all backdrop-blur-sm">WhatsApp</a>'
+    : '<span class="text-zinc-300 font-bold text-[9px] uppercase tracking-widest drop-shadow-md">Sem contato</span>';
+
+  return '<div class="agenda-card card-bg-image rounded-2xl flex flex-col shrink-0 transition-all transform hover:-translate-y-1 shadow-lg group w-full border border-zinc-800 ' + sTheme.borderHover + ' relative overflow-hidden" data-search="' + searchStr + '" style="background-image:url(\'' + sTheme.img + '\')">'
+    + '<div class="absolute inset-0 bg-zinc-950/55 backdrop-blur-sm group-hover:bg-zinc-950/35 transition-all"></div>'
+    + '<div class="absolute left-0 top-0 bottom-0 w-1.5 ' + sTheme.borderL + ' z-20"></div>'
+    + '<div class="relative z-10 p-4 w-full drop-shadow-md">'
+    + '<div class="flex items-center justify-between mb-3">'
+    + '<span class="text-[11px] font-black text-white bg-zinc-900/90 px-2.5 py-1 rounded-lg border border-zinc-700/50 shadow-sm">' + (timeLabel ? timeLabel : '-') + '</span>'
+    + '<span class="text-[11px] font-black text-emerald-400 bg-zinc-900/90 px-2.5 py-1 rounded-lg border border-emerald-500/30 shadow-sm">R$ ' + priceStr + '</span>'
+    + '</div>'
+    + '<p class="font-black text-white text-[15px] leading-tight truncate tracking-wide drop-shadow-lg">' + clientName + '</p>'
+    + '<p class="text-[10px] ' + sTheme.text + ' truncate mt-1.5 font-bold uppercase tracking-widest drop-shadow-md">' + (item.service ? item.service : '-') + '</p>'
+    + '<div class="pt-3.5 mt-3.5 border-t border-zinc-500/30 flex items-center justify-between">'
+    + whatsHtml
+    + '<button onclick="deleteAppointment(\'' + item.id + '\', false)" class="text-zinc-300 hover:text-white text-[9px] uppercase font-black tracking-widest bg-zinc-900/80 hover:bg-red-600 px-3 py-1.5 rounded-lg border border-zinc-700/50 transition-all backdrop-blur-sm">Cancelar</button>'
+    + '</div></div></div>';
 }
 
-async function loadAgendaData(silent = false) {
+async function loadAgendaData(silent) {
   if (!sb) return;
   try {
-    const { data: apts, error } = await sb.from('appointments').select(`id, service, date, time, price, calendar_event_id, user_id, profiles(full_name, phone)`).neq('calendar_event_id', 'cancelled_by_barber').neq('calendar_event_id', 'cancelled_by_client');
-    if (error) return;
-    allAppointments = apts || [];
-    allAppointments.forEach(a => {
+    const res = await sb.from('appointments').select('id, service, date, time, price, calendar_event_id, user_id, profiles(full_name, phone)').neq('calendar_event_id', 'cancelled_by_barber').neq('calendar_event_id', 'cancelled_by_client');
+    if (res.error) return;
+    allAppointments = res.data ? res.data : [];
+    allAppointments.forEach(function(a) {
       if (a.date && a.date.includes('/')) {
         const p = a.date.split('/');
-        if (p.length === 3) a.date = `${String(p[0]).padStart(2,'0')}/${String(p[1]).padStart(2,'0')}/${p[2]}`;
+        if (p.length === 3) a.date = pad2(p[0]) + '/' + pad2(p[1]) + '/' + p[2];
       }
     });
     renderBoards();
-  } catch (err) { console.error('Erro no loadAgendaData:', err); }
+  } catch (err) {
+    console.error('Erro no loadAgendaData:', err);
+  }
 }
 
 function renderBoards() {
   const dailyContainer = document.getElementById('daily-view-container');
-  const now = new Date();
-  const todayStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+  const todayStr = formatBrDate(new Date());
 
-  const todayAptsRaw = allAppointments.filter(a => a.date === todayStr).sort((a,b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+  const todayAptsRaw = allAppointments
+    .filter(function(a) { return a.date === todayStr; })
+    .sort(function(a, b) { return timeToMinutes(a.time) - timeToMinutes(b.time); });
   todayAppointmentsCache = todayAptsRaw;
   
-  let todayCuts = 0, todayRevenue = 0;
-  todayAptsRaw.forEach(a => {
-    if (a.calendar_event_id !== 'blocked_time' && a.service && !a.service.startsWith('🚫')) {
-      todayCuts++; todayRevenue += parseFloat(a.price || 0);
+  let todayCuts = 0;
+  let todayRevenue = 0;
+  todayAptsRaw.forEach(function(a) {
+    if (!isBlockItem(a)) {
+      todayCuts++;
+      todayRevenue += parseFloat(a.price ? a.price : 0);
     }
   });
 
@@ -1988,8 +2237,8 @@ function renderBoards() {
   const mergedToday = mergeBlocks(todayAptsRaw);
   if (dailyContainer) {
     dailyContainer.innerHTML = !mergedToday.length
-      ? `<div class="col-span-full flex flex-col items-center justify-center py-20 text-zinc-600 border-2 border-dashed border-zinc-800/50 rounded-3xl bg-zinc-900/20"><span class="text-3xl mb-3">✂️</span><span class="text-xs font-black uppercase tracking-widest">Agenda Livre</span><span class="text-[9px] mt-2 text-zinc-700 uppercase font-bold">Nenhum atendimento programado para hoje</span></div>`
-      : mergedToday.map(item => generateCardHtml(item)).join('');
+      ? '<div class="col-span-full flex flex-col items-center justify-center py-20 text-zinc-600 border-2 border-dashed border-zinc-800/50 rounded-3xl bg-zinc-900/20"><span class="text-3xl mb-3">✂️</span><span class="text-xs font-black uppercase tracking-widest">Agenda Livre</span><span class="text-[9px] mt-2 text-zinc-700 uppercase font-bold">Nenhum atendimento programado para hoje</span></div>'
+      : mergedToday.map(function(item) { return generateCardHtml(item); }).join('');
   }
 
   renderCalendarSection();
@@ -1997,31 +2246,35 @@ function renderBoards() {
 }
 
 function formatNextWhenLabel(dateStr, todayStr) {
-  if (!dateStr || dateStr === todayStr) return '';
-  const d = parseBrDateToObj(dateStr), t = parseBrDateToObj(todayStr);
+  if (!dateStr ? true : dateStr === todayStr) return '';
+  const d = parseBrDateToObj(dateStr);
+  const t = parseBrDateToObj(todayStr);
   const diffDays = Math.round((d.getTime() - t.getTime()) / 86400000);
   const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
   const shortDate = dateStr.includes('/') ? dateStr.slice(0, 5) : dateStr;
-  if (diffDays === 1) return `Amanhã · ${shortDate}`;
-  return `${diasSemana[d.getDay()] || ''} · ${shortDate}`.trim();
+  if (diffDays === 1) return 'Amanhã · ' + shortDate;
+  const diaNome = diasSemana[d.getDay()] ? diasSemana[d.getDay()] : '';
+  return (diaNome + ' · ' + shortDate).trim();
 }
 
 function updateTodaySmartStats(appointments, total, revenue) {
   const now = new Date();
-  const todayStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+  const todayStr = formatBrDate(now);
   const currentMins = now.getHours() * 60 + now.getMinutes();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
   const pool = (allAppointments && allAppointments.length) ? allAppointments : appointments;
-  const upcoming = pool.filter(a => {
-    if (a.calendar_event_id === 'blocked_time' || (a.service && a.service.startsWith('🚫'))) return false;
+  const upcoming = pool.filter(function(a) {
+    if (isBlockItem(a)) return false;
     const d = parseBrDateToObj(a.date);
     const day = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
     if (day > todayStart) return true;
     if (day === todayStart) return timeToMinutes(a.time) >= currentMins;
     return false;
-  }).sort((a, b) => (parseBrDateToObj(a.date).getTime() + timeToMinutes(a.time) * 60000) - (parseBrDateToObj(b.date).getTime() + timeToMinutes(b.time) * 60000));
-  const next = upcoming[0] || null;
+  }).sort(function(a, b) {
+    return (parseBrDateToObj(a.date).getTime() + timeToMinutes(a.time) * 60000) - (parseBrDateToObj(b.date).getTime() + timeToMinutes(b.time) * 60000);
+  });
+  const next = upcoming[0] ? upcoming[0] : null;
 
   const nextTime = document.getElementById('today-next-time');
   const nextWhen = document.getElementById('today-next-when');
@@ -2029,9 +2282,9 @@ function updateTodaySmartStats(appointments, total, revenue) {
   const nextService = document.getElementById('today-next-service');
   if (nextTime && nextClient) {
     if (next) {
-      nextTime.innerText = next.time || '--:--';
-      nextClient.innerText = next.profiles?.full_name || 'Cliente';
-      if (nextService) nextService.innerText = next.service || '';
+      nextTime.innerText = next.time ? next.time : '--:--';
+      nextClient.innerText = next.profiles && next.profiles.full_name ? next.profiles.full_name : 'Cliente';
+      if (nextService) nextService.innerText = next.service ? next.service : '';
       if (nextWhen) {
         const whenLabel = formatNextWhenLabel(next.date, todayStr);
         nextWhen.innerText = whenLabel;
@@ -2046,74 +2299,101 @@ function updateTodaySmartStats(appointments, total, revenue) {
   }
 
   document.getElementById('today-total-count').innerText = total;
-  document.getElementById('today-revenue').innerText = `R$ ${revenue.toFixed(2).replace('.',',')}`;
+  document.getElementById('today-revenue').innerText = 'R$ ' + revenue.toFixed(2).replace('.', ',');
 
   let completedRevenue = 0;
-  appointments.forEach(a => {
-    if (a.calendar_event_id === 'blocked_time' || (a.service && a.service.startsWith('🚫'))) return;
-    if (timeToMinutes(a.time) < currentMins) completedRevenue += parseFloat(a.price || 0);
+  appointments.forEach(function(a) {
+    if (isBlockItem(a)) return;
+    if (timeToMinutes(a.time) < currentMins) completedRevenue += parseFloat(a.price ? a.price : 0);
   });
-  document.getElementById('today-completed').innerText = `R$ ${completedRevenue.toFixed(2).replace('.',',')} realizados hoje`;
+  document.getElementById('today-completed').innerText = 'R$ ' + completedRevenue.toFixed(2).replace('.', ',') + ' realizados hoje';
 
-  const valid = appointments.filter(a => a.calendar_event_id !== 'blocked_time' && !(a.service || '').startsWith('🚫'));
+  const valid = appointments.filter(function(a) { return !isBlockItem(a); });
   let occupiedMinutes = 0;
-  valid.forEach(a => {
-    let duration = 30;
-    const service = (a.service || '').toLowerCase();
-    if (service.includes('corte e barba') || service.includes('combo') || service.includes('completo')) duration = 60;
-    else if (service.includes('progressiva')) duration = 120;
-    else if (service.includes('sobrancelha')) duration = 20;
-    occupiedMinutes += duration;
+  valid.forEach(function(a) {
+    occupiedMinutes += getServiceDuration(a.service);
   });
 
   const occupancy = Math.min(100, Math.round((occupiedMinutes / (11 * 60)) * 100));
-  document.getElementById('today-occupancy').innerText = `${occupancy}%`;
-  document.getElementById('today-occupancy-bar').style.width = `${occupancy}%`;
+  document.getElementById('today-occupancy').innerText = occupancy + '%';
+  document.getElementById('today-occupancy-bar').style.width = occupancy + '%';
 }
 
 function filterAgendaCards() {
-  const input = document.getElementById('agenda-search'); if (!input) return;
+  const input = document.getElementById('agenda-search');
+  if (!input) return;
   const query = input.value.toLowerCase().trim();
   const cards = document.querySelectorAll('#daily-view-container .agenda-card');
   let visible = 0;
-  cards.forEach(card => {
-    const show = !query || (card.dataset.search || '').includes(query);
-    card.style.display = show ? '' : 'none'; if (show) visible++;
+  cards.forEach(function(card) {
+    const sData = card.dataset.search ? card.dataset.search : '';
+    const show = !query ? true : sData.includes(query);
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
   });
   const counter = document.getElementById('agenda-result-count');
   if (counter) {
-    if (query) { counter.classList.remove('hidden'); counter.innerText = `${visible} resultado${visible === 1 ? '' : 's'}`; }
-    else counter.classList.add('hidden');
+    if (query) {
+      counter.classList.remove('hidden');
+      counter.innerText = visible + ' resultado' + (visible === 1 ? '' : 's');
+    } else {
+      counter.classList.add('hidden');
+    }
   }
 }
 
 function exportHistoryCSV() {
   if (!allHistoryData.length) return alert('Não há dados para exportar.');
   const rows = [['Data Registro', 'Data Agendada', 'Horário', 'Cliente', 'Telefone', 'Serviço', 'Valor', 'Status']];
-  allHistoryData.forEach(a => {
-    const isBlock = a.calendar_event_id === 'blocked_time' || (a.service || '').startsWith('🚫');
+  allHistoryData.forEach(function(a) {
+    const isBlock = isBlockItem(a);
     let status = 'Confirmado';
     if (a.calendar_event_id === 'cancelled_by_barber') status = 'Cancelado RB';
     else if (a.calendar_event_id === 'cancelled_by_client') status = 'Cancelado Cliente';
     else if (isBlock) status = 'Bloqueado';
-    rows.push([ formatDateForDisplay(a.created_at), a.date || '', a.time || '', a.profiles?.full_name || '', a.profiles?.phone || '', a.service || '', parseFloat(a.price || 0).toFixed(2).replace('.',','), status ]);
+    rows.push([
+      formatDateForDisplay(a.created_at),
+      a.date ? a.date : '',
+      a.time ? a.time : '',
+      a.profiles && a.profiles.full_name ? a.profiles.full_name : '',
+      a.profiles && a.profiles.phone ? a.profiles.phone : '',
+      a.service ? a.service : '',
+      parseFloat(a.price ? a.price : 0).toFixed(2).replace('.', ','),
+      status
+    ]);
   });
-  const csv = rows.map(row => row.map(value => `"${String(value).replace(/"/g,'""')}"`).join(';')).join('\n');
-  const blob = new Blob(['\ufeff' + csv], { type:'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob), link = document.createElement('a');
-  link.href = url; link.download = `RB-Barbearia-${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
+  const csv = rows.map(function(row) {
+    return row.map(function(value) { return '"' + String(value).replace(/"/g, '""') + '"'; }).join(';');
+  }).join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'RB-Barbearia-' + new Date().toISOString().slice(0, 10) + '.csv';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 
 function copyDaySummary() {
   const now = new Date();
-  const date = now.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
-  const appointments = todayAppointmentsCache.filter(a => a.calendar_event_id !== 'blocked_time' && !(a.service || '').startsWith('🚫'));
-  const revenue = appointments.reduce((sum,a) => sum + parseFloat(a.price || 0), 0);
-  let text = `RB BARBEARIA — RESUMO DO DIA\n${date}\n\nAtendimentos: ${appointments.length}\nFaturamento previsto: R$ ${revenue.toFixed(2).replace('.',',')}\n\n`;
-  appointments.forEach(a => { text += `${a.time || '--:--'} — ${a.profiles?.full_name || 'Cliente'} — ${a.service || 'Serviço'} — R$ ${parseFloat(a.price || 0).toFixed(2).replace('.',',')}\n`; });
-  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => alert('Resumo copiado!')).catch(() => alert('Não foi possível copiar automaticamente.'));
-  else alert(text);
+  const date = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const appointments = todayAppointmentsCache.filter(function(a) { return !isBlockItem(a); });
+  const revenue = appointments.reduce(function(sum, a) { return sum + parseFloat(a.price ? a.price : 0); }, 0);
+  let text = 'RB BARBEARIA — RESUMO DO DIA\n' + date + '\n\nAtendimentos: ' + appointments.length + '\nFaturamento previsto: R$ ' + revenue.toFixed(2).replace('.', ',') + '\n\n';
+  appointments.forEach(function(a) {
+    const t = a.time ? a.time : '--:--';
+    const c = a.profiles && a.profiles.full_name ? a.profiles.full_name : 'Cliente';
+    const s = a.service ? a.service : 'Serviço';
+    const p = parseFloat(a.price ? a.price : 0).toFixed(2).replace('.', ',');
+    text += t + ' — ' + c + ' — ' + s + ' — R$ ' + p + '\n';
+  });
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() { alert('Resumo copiado!'); }).catch(function() { alert('Não foi possível copiar automaticamente.'); });
+  } else {
+    alert(text);
+  }
 }
 </script>
 </body>
