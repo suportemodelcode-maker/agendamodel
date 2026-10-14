@@ -37,27 +37,37 @@
     .manual-time-option.selected { border-color: #10b981; background: rgba(16, 185, 129, 0.1); color: #fff; }
     .manual-time-option.available:hover { border-color: #3f3f46; }
 
-    /* MENU LATERAL ANIMADO (EXPANSÍVEL AO PASSAR O MOUSE) */
+    /* MENU LATERAL FIXO E EXPANSÍVEL SEM EMPURRAR A TELA */
     @media (min-width: 768px) {
       .sidebar-expandable {
-        width: 78px;
-        transition: width 0.32s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.32s ease, background-color 0.3s ease;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: 78px !important;
+        transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, background-color 0.25s ease;
       }
       .sidebar-expandable:hover {
-        width: 256px;
-        box-shadow: 24px 0 60px rgba(0, 0, 0, 0.85);
-        background-color: rgba(9, 9, 11, 0.98);
+        width: 260px !important;
+        box-shadow: 28px 0 70px rgba(0, 0, 0, 0.9) !important;
+        background-color: rgba(9, 9, 11, 0.98) !important;
       }
       .sidebar-label {
         opacity: 0;
-        transform: translateX(-10px);
-        transition: opacity 0.22s ease, transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        max-width: 0;
+        overflow: hidden;
+        transform: translateX(-8px);
+        transition: opacity 0.2s ease, transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.28s ease;
         white-space: nowrap;
         pointer-events: none;
       }
       .sidebar-expandable:hover .sidebar-label {
         opacity: 1;
+        max-width: 180px;
         transform: translateX(0);
+      }
+      .main-content-offset {
+        padding-left: 78px !important;
       }
       .mobile-only { display: none !important; }
     }
@@ -249,15 +259,15 @@
 <!-- PAINEL PRINCIPAL -->
 <div id="main-panel" class="hidden w-full h-full flex flex-col md:flex-row overflow-hidden relative">
   
-  <!-- SIDEBAR EXPANSÍVEL COM ANIMAÇÃO AO PASSAR O MOUSE -->
-  <aside class="sidebar-expandable fixed md:relative bottom-0 left-0 w-full h-[75px] md:h-full bg-zinc-950 border-t md:border-t-0 md:border-r border-zinc-800/90 flex flex-row md:flex-col items-center md:items-stretch justify-around md:justify-between py-2 md:py-5 px-2 md:px-3 shrink-0 z-40 overflow-hidden">
+  <!-- SIDEBAR EXPANSÍVEL COM LARGURA TRAVADA NO DESKTOP -->
+  <aside class="sidebar-expandable fixed bottom-0 left-0 w-full md:w-[78px] h-[75px] md:h-full bg-zinc-950/95 backdrop-blur-xl border-t md:border-t-0 md:border-r border-zinc-800/90 flex flex-row md:flex-col items-center md:items-stretch justify-around md:justify-between py-2 md:py-5 px-2 md:px-3 shrink-0 z-40 overflow-hidden">
     
     <!-- TOPO: LOGO + NOME -->
-    <div class="hidden md:flex items-center gap-3.5 px-1.5 mb-4 shrink-0">
+    <div class="hidden md:flex items-center px-1 mb-4 shrink-0">
       <div class="w-11 h-11 rounded-2xl overflow-hidden border border-orange-500/30 bg-zinc-950 shadow-[0_0_25px_rgba(249,115,22,.25)] shrink-0">
         <img src="./icone.png" alt="RB Barbearia" class="w-full h-full object-cover">
       </div>
-      <div class="sidebar-label flex flex-col min-w-0">
+      <div class="sidebar-label flex flex-col min-w-0 ml-3.5">
         <span class="text-xs font-black text-white uppercase tracking-wider leading-none">RB Barbearia</span>
         <span class="text-[9px] font-bold text-orange-500 uppercase tracking-widest mt-1">Painel Pro</span>
       </div>
@@ -265,46 +275,46 @@
     
     <!-- NAVEGAÇÃO PRINCIPAL -->
     <nav class="flex flex-row md:flex-col gap-1 md:gap-2 w-full flex-1 justify-around md:justify-start items-center md:items-stretch">
-      <button onclick="switchTab('hoje')" id="nav-btn-hoje" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 gap-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
+      <button onclick="switchTab('hoje')" id="nav-btn-hoje" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-hoje" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-        <div class="sidebar-label text-left">
+        <div class="sidebar-label text-left ml-3.5">
           <p class="text-xs font-extrabold leading-none">Agenda de Hoje</p>
           <p class="text-[9px] text-zinc-500 font-semibold mt-0.5">Visão operacional</p>
         </div>
       </button>
 
-      <button onclick="switchTab('kanban')" id="nav-btn-kanban" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 gap-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
+      <button onclick="switchTab('kanban')" id="nav-btn-kanban" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-kanban" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        <div class="sidebar-label text-left">
+        <div class="sidebar-label text-left ml-3.5">
           <p class="text-xs font-extrabold leading-none">Calendário & Agenda</p>
           <p class="text-[9px] text-zinc-500 font-semibold mt-0.5">Consulta por data</p>
         </div>
       </button>
 
-      <button onclick="switchTab('historico')" id="nav-btn-historico" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 gap-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
+      <button onclick="switchTab('historico')" id="nav-btn-historico" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-historico" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-        <div class="sidebar-label text-left">
+        <div class="sidebar-label text-left ml-3.5">
           <p class="text-xs font-extrabold leading-none">Histórico Geral</p>
           <p class="text-[9px] text-zinc-500 font-semibold mt-0.5">Todos os registros</p>
         </div>
       </button>
 
-      <button onclick="switchTab('clientes')" id="nav-btn-clientes" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 gap-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
+      <button onclick="switchTab('clientes')" id="nav-btn-clientes" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-clientes" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-        <div class="sidebar-label text-left">
+        <div class="sidebar-label text-left ml-3.5">
           <p class="text-xs font-extrabold leading-none">Clientes</p>
           <p class="text-[9px] text-zinc-500 font-semibold mt-0.5">Carteira & Fidelidade</p>
         </div>
       </button>
 
-      <button onclick="switchTab('financeiro')" id="nav-btn-financeiro" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 gap-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
+      <button onclick="switchTab('financeiro')" id="nav-btn-financeiro" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-financeiro" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <div class="sidebar-label text-left">
+        <div class="sidebar-label text-left ml-3.5">
           <p class="text-xs font-extrabold leading-none">Inteligência & BI</p>
           <p class="text-[9px] text-zinc-500 font-semibold mt-0.5">Financeiro & Métricas</p>
         </div>
@@ -313,10 +323,10 @@
 
     <!-- RODAPÉ DA SIDEBAR: CONFIGURAÇÕES -->
     <div class="md:pt-3 md:border-t md:border-zinc-800/80 shrink-0">
-      <button onclick="switchTab('config')" id="nav-btn-config" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 gap-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group shrink-0">
+      <button onclick="switchTab('config')" id="nav-btn-config" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group shrink-0">
         <div id="nav-ind-config" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 001.065-2.572c1.756-.426 1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543-.826-3.31-2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        <div class="sidebar-label text-left">
+        <div class="sidebar-label text-left ml-3.5">
           <p class="text-xs font-extrabold leading-none">Configurações</p>
           <p class="text-[9px] text-zinc-500 font-semibold mt-0.5">Horários & Expediente</p>
         </div>
@@ -324,8 +334,8 @@
     </div>
   </aside>
 
-  <!-- CONTEÚDO PRINCIPAL -->
-  <div class="flex-1 flex flex-col h-full bg-zinc-950 overflow-hidden relative pb-[75px] md:pb-0">
+  <!-- CONTEÚDO PRINCIPAL COM RECUO FIXO DE 78PX NO DESKTOP -->
+  <div class="main-content-offset flex-1 flex flex-col h-full w-full bg-zinc-950 overflow-hidden relative pb-[75px] md:pb-0">
     <header class="h-[72px] flex items-center justify-between px-4 md:px-8 border-b border-zinc-800/80 bg-zinc-950/85 backdrop-blur-xl shrink-0 z-20">
       <div class="flex flex-col min-w-0">
         <h1 class="text-lg md:text-xl font-black text-white tracking-wide truncate">Painel RB Barbearia</h1>
@@ -406,7 +416,7 @@
       <div id="daily-view-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 items-start"></div>
     </main>
 
-    <!-- ABA CALENDÁRIO & AGENDA (SUBSTITUI O ANTIGO KANBAN) -->
+    <!-- ABA CALENDÁRIO & AGENDA -->
     <main id="tab-kanban" class="hidden flex-1 flex-col min-h-0 p-4 md:p-8 overflow-y-auto lg:overflow-hidden custom-scroll relative z-0">
       <div class="flex flex-col lg:flex-row gap-6 h-full min-h-0">
         
@@ -791,7 +801,7 @@ const initNow = new Date();
 let calCurrentYear = initNow.getFullYear();
 let calCurrentMonth = initNow.getMonth();
 let selectedCalendarDateStr = `${String(initNow.getDate()).padStart(2, '0')}/${String(initNow.getMonth() + 1).padStart(2, '0')}/${initNow.getFullYear()}`;
-let calendarViewMode = 'cards'; // 'cards' ou 'timeline'
+let calendarViewMode = 'cards';
 let prefillTimeSlot = null;
 
 // Variáveis Agendamento Manual
@@ -1008,7 +1018,6 @@ function renderCalendarGrid() {
   const now = new Date();
   const todayStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
 
-  // Contabiliza agendamentos por dia para exibir indicadores no calendário
   const countsMap = {};
   const blocksMap = {};
   allAppointments.forEach(a => {
@@ -1060,9 +1069,7 @@ function renderSelectedDaySchedule() {
 
   const dObj = parseBrDateToObj(selectedCalendarDateStr);
   const now = new Date();
-  const todayStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
 
-  // Atualiza cabeçalhos da data selecionada
   const fullTitle = document.getElementById('selected-day-full-title');
   if (fullTitle) {
     fullTitle.innerText = dObj.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -1088,12 +1095,10 @@ function renderSelectedDaySchedule() {
   const summaryBadge = document.getElementById('cal-summary-badge');
   if (summaryBadge) summaryBadge.innerText = relLabel;
 
-  // Filtra agendamentos da data selecionada
   const dayAptsRaw = allAppointments
     .filter(a => a.date === selectedCalendarDateStr)
     .sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
 
-  // Calcula métricas da data selecionada
   let dayCuts = 0;
   let dayRev = 0;
   let occupiedIntervals = [];
@@ -1146,7 +1151,6 @@ function renderSelectedDaySchedule() {
 
   const searchQuery = (document.getElementById('cal-day-search')?.value || '').toLowerCase().trim();
 
-  // MODO 1: VISUALIZAÇÃO EM CARDS
   if (calendarViewMode === 'cards') {
     const merged = mergeBlocks(dayAptsRaw).filter(item => {
       if (!searchQuery) return true;
@@ -1182,13 +1186,10 @@ function renderSelectedDaySchedule() {
     return;
   }
 
-  // MODO 2: GRADE DE HORÁRIOS (TIMELINE INTERATIVA DE 30 EM 30 MIN)
   let timelineHtml = `<div class="space-y-2.5">`;
   for (let t = openMin; t <= closeMin - 30; t += 30) {
     const slotStr = `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
     const isBreak = (bStartMin >= 0 && bEndMin > bStartMin && t >= bStartMin && t < bEndMin);
-
-    // Verifica se há agendamento ou bloqueio cobrindo este horário
     const matchingApt = occupiedIntervals.find(i => t >= i.start && t < i.end);
 
     if (searchQuery) {
