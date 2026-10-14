@@ -724,10 +724,12 @@
 </div>
 
 <script>
+// SENHA FIXA LOCAL (DESVINCULADA DO SUPABASE)
 const ADMIN_PASSWORD = "rb";
+
 const SUPABASE_URL = 'https://cifrmupwumffzrcqwfjv.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_AcMuSuUE6DK5gGQ9eStmMw_muIgJsG6';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 let realtimeSubscription = null;
 let allHistoryData = [];
@@ -785,8 +787,10 @@ function maskAdminPhone(input) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  Chart.defaults.color = '#71717a';
-  Chart.defaults.font.family = "'Inter', sans-serif";
+  if (window.Chart) {
+    Chart.defaults.color = '#71717a';
+    Chart.defaults.font.family = "'Inter', sans-serif";
+  }
   updateHeaderDate();
   if (localStorage.getItem('rb_admin_logged') === 'true') { processLogin(); }
 });
@@ -798,9 +802,13 @@ function updateHeaderDate() {
 
 function checkAdmin(e) {
   if (e) e.preventDefault();
-  if (document.getElementById('admin-pass').value === ADMIN_PASSWORD) {
-    localStorage.setItem('rb_admin_logged', 'true'); processLogin();
-  } else alert('Senha incorreta.');
+  const typedPass = (document.getElementById('admin-pass').value || '').trim().toLowerCase();
+  if (typedPass === ADMIN_PASSWORD) {
+    localStorage.setItem('rb_admin_logged', 'true');
+    processLogin();
+  } else {
+    alert('Senha incorreta.');
+  }
 }
 
 function processLogin() {
@@ -809,12 +817,14 @@ function processLogin() {
   const sound = document.getElementById('notification-sound');
   if (sound) { sound.play().catch(() => {}); sound.pause(); }
   switchTab('hoje');
-  loadSettings();
-  loadAgendaData();
-  fetchHistoryData();
-  subscribeToRealtime();
-  if (pollTimer) clearInterval(pollTimer);
-  pollTimer = setInterval(() => { loadAgendaData(true); }, 4000);
+  if (sb) {
+    loadSettings();
+    loadAgendaData();
+    fetchHistoryData();
+    subscribeToRealtime();
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(() => { loadAgendaData(true); }, 4000);
+  }
 }
 
 function logoutAdmin() { localStorage.removeItem('rb_admin_logged'); if (pollTimer) clearInterval(pollTimer); window.location.reload(); }
@@ -845,7 +855,7 @@ function switchTab(tab) {
 }
 
 function subscribeToRealtime() {
-  if (realtimeSubscription) return;
+  if (realtimeSubscription || !sb) return;
   realtimeSubscription = sb.channel('public:admin_sync')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
       loadAgendaData();
