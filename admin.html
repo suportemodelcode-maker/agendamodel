@@ -9,10 +9,11 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; background: #09090b; color: #fafafa; overscroll-behavior-y: none; }
+    .mono-font { font-family: 'JetBrains Mono', monospace; }
     ::selection { background: rgba(249,115,22,.35); color: white; }
     .custom-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
     .custom-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -63,12 +64,10 @@
       }
       .sidebar-expandable:hover .sidebar-label {
         opacity: 1;
-        max-width: 180px;
+        max-width: 185px;
         transform: translateX(0);
       }
-      .main-content-offset {
-        padding-left: 78px !important;
-      }
+      .main-content-offset { padding-left: 78px !important; }
       .mobile-only { display: none !important; }
     }
 
@@ -78,32 +77,29 @@
       .sidebar-label { display: none !important; }
     }
 
-    /* ESTILOS DO CALENDÁRIO INTERATIVO */
-    .cal-day {
-      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-      position: relative;
+    /* CALENDÁRIO INTERATIVO */
+    .cal-day { transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1); position: relative; }
+    .cal-day:hover:not(.cal-day-empty) { border-color: rgba(249, 115, 22, 0.5); background: rgba(39, 39, 42, 0.75); transform: translateY(-1px); }
+    .cal-day.selected { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important; color: #09090b !important; font-weight: 900 !important; border-color: #fb923c !important; box-shadow: 0 8px 25px rgba(249, 115, 22, 0.35); }
+    .cal-day.selected .cal-badge { background: #09090b !important; color: #f97316 !important; border-color: transparent !important; }
+    .cal-day.today:not(.selected) { border-color: #f97316; color: #fb923c; }
+
+    /* UNIVERSO ORBITAL 3D & CONSTELAÇÃO */
+    .orbital-bg {
+      background: radial-gradient(circle at 50% 48%, rgba(14, 165, 233, 0.09) 0%, rgba(249, 115, 22, 0.04) 28%, rgba(4, 7, 15, 0.98) 70%), #04070f;
     }
-    .cal-day:hover:not(.cal-day-empty) {
-      border-color: rgba(249, 115, 22, 0.5);
-      background: rgba(39, 39, 42, 0.75);
-      transform: translateY(-1px);
+    .hud-box {
+      background: rgba(8, 15, 28, 0.78);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
-    .cal-day.selected {
-      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
-      color: #09090b !important;
-      font-weight: 900 !important;
-      border-color: #fb923c !important;
-      box-shadow: 0 8px 25px rgba(249, 115, 22, 0.35);
-    }
-    .cal-day.selected .cal-badge {
-      background: #09090b !important;
-      color: #f97316 !important;
-      border-color: transparent !important;
-    }
-    .cal-day.today:not(.selected) {
-      border-color: #f97316;
-      color: #fb923c;
-    }
+    .constellation-node, .constellation-card { transition: all 0.22s ease; }
+    .constellation-node.active-node { border-color: #38bdf8 !important; box-shadow: 0 0 25px rgba(56, 189, 248, 0.35); transform: translateY(-2px); }
+    .constellation-card.active-card { border-color: #38bdf8 !important; box-shadow: 0 0 28px rgba(56, 189, 248, 0.25); background: rgba(12, 24, 44, 0.9) !important; }
+    @keyframes dashFlow { to { stroke-dashoffset: -28; } }
+    .flow-cable-animated { stroke-dasharray: 8 6; animation: dashFlow 0.9s linear infinite; }
   </style>
 </head>
 
@@ -199,7 +195,6 @@
       <h3 class="font-black text-white text-lg flex items-center gap-2 tracking-wide"><span class="text-emerald-500">✨</span> Agendar Cliente</h3>
       <button onclick="closeManualModal()" class="text-zinc-400 hover:text-white bg-zinc-800 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
     </div>
-    
     <div class="overflow-y-auto custom-scroll flex-1 pt-4 pb-2 space-y-4">
       <div>
         <label class="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5">Nome do Cliente</label>
@@ -233,7 +228,6 @@
         </div>
       </div>
     </div>
-
     <div class="pt-4 border-t border-zinc-800 shrink-0">
       <button id="btn-save-manual" disabled onclick="saveManualBooking()" class="w-full py-4 bg-zinc-800 text-zinc-500 cursor-not-allowed font-black uppercase tracking-widest rounded-xl transition-all">
         Selecione Horário
@@ -247,9 +241,7 @@
   <div class="bg-zinc-900 border border-zinc-700/60 rounded-[28px] p-6 w-full max-w-md shadow-2xl relative flex flex-col max-h-[85vh]">
     <button onclick="closeCancellationsModal()" class="absolute top-4 right-4 text-zinc-400 hover:text-white bg-zinc-800 w-8 h-8 rounded-full flex items-center justify-center transition-colors">✕</button>
     <div class="border-b border-zinc-800 pb-4 mb-4 shrink-0 pr-8">
-      <h3 class="font-black text-white text-lg flex items-center gap-2">
-        <span class="text-red-500">📉</span> Lista de Cancelamentos
-      </h3>
+      <h3 class="font-black text-white text-lg flex items-center gap-2"><span class="text-red-500">📉</span> Lista de Cancelamentos</h3>
       <p class="text-[10px] text-zinc-500 uppercase tracking-widest mt-1 font-bold">No período selecionado</p>
     </div>
     <div id="cancellations-list" class="overflow-y-auto custom-scroll flex-1 space-y-3 pr-2"></div>
@@ -262,7 +254,6 @@
   <!-- SIDEBAR EXPANSÍVEL COM LARGURA TRAVADA NO DESKTOP -->
   <aside class="sidebar-expandable fixed bottom-0 left-0 w-full md:w-[78px] h-[75px] md:h-full bg-zinc-950/95 backdrop-blur-xl border-t md:border-t-0 md:border-r border-zinc-800/90 flex flex-row md:flex-col items-center md:items-stretch justify-around md:justify-between py-2 md:py-5 px-2 md:px-3 shrink-0 z-40 overflow-hidden">
     
-    <!-- TOPO: LOGO + NOME -->
     <div class="hidden md:flex items-center px-1 mb-4 shrink-0">
       <div class="w-11 h-11 rounded-2xl overflow-hidden border border-orange-500/30 bg-zinc-950 shadow-[0_0_25px_rgba(249,115,22,.25)] shrink-0">
         <img src="./icone.png" alt="RB Barbearia" class="w-full h-full object-cover">
@@ -273,9 +264,8 @@
       </div>
     </div>
     
-    <!-- NAVEGAÇÃO PRINCIPAL -->
     <nav class="flex flex-row md:flex-col gap-1 md:gap-2 w-full flex-1 justify-around md:justify-start items-center md:items-stretch">
-      <button onclick="switchTab('hoje')" id="nav-btn-hoje" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
+      <button onclick="switchTab('hoje')" id="nav-btn-hoje" class="nav-btn w-11 h-11 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-hoje" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
         <div class="sidebar-label text-left ml-3.5">
@@ -284,7 +274,7 @@
         </div>
       </button>
 
-      <button onclick="switchTab('kanban')" id="nav-btn-kanban" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
+      <button onclick="switchTab('kanban')" id="nav-btn-kanban" class="nav-btn w-11 h-11 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-kanban" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         <div class="sidebar-label text-left ml-3.5">
@@ -293,7 +283,19 @@
         </div>
       </button>
 
-      <button onclick="switchTab('historico')" id="nav-btn-historico" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
+      <button onclick="switchTab('orbita')" id="nav-btn-orbita" class="nav-btn w-11 h-11 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
+        <div id="nav-ind-orbita" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-sky-400 rounded-r-full"></div>
+        <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke-width="2"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(-25 12 12)" stroke-width="1.8"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(35 12 12)" stroke-width="1.4" stroke-dasharray="3 3"/></svg>
+        <div class="sidebar-label text-left ml-3.5">
+          <div class="flex items-center gap-1.5">
+            <p class="text-xs font-extrabold leading-none text-sky-300">Órbita RB</p>
+            <span class="text-[7px] font-black uppercase px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-400/30">3D</span>
+          </div>
+          <p class="text-[9px] text-zinc-500 font-semibold mt-0.5">Universo conectado</p>
+        </div>
+      </button>
+
+      <button onclick="switchTab('historico')" id="nav-btn-historico" class="nav-btn w-11 h-11 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-historico" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
         <div class="sidebar-label text-left ml-3.5">
@@ -302,7 +304,7 @@
         </div>
       </button>
 
-      <button onclick="switchTab('clientes')" id="nav-btn-clientes" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
+      <button onclick="switchTab('clientes')" id="nav-btn-clientes" class="nav-btn w-11 h-11 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-clientes" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
         <div class="sidebar-label text-left ml-3.5">
@@ -311,7 +313,7 @@
         </div>
       </button>
 
-      <button onclick="switchTab('financeiro')" id="nav-btn-financeiro" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
+      <button onclick="switchTab('financeiro')" id="nav-btn-financeiro" class="nav-btn w-11 h-11 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-financeiro" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         <div class="sidebar-label text-left ml-3.5">
@@ -321,9 +323,8 @@
       </button>
     </nav>
 
-    <!-- RODAPÉ DA SIDEBAR: CONFIGURAÇÕES -->
     <div class="md:pt-3 md:border-t md:border-zinc-800/80 shrink-0">
-      <button onclick="switchTab('config')" id="nav-btn-config" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group shrink-0">
+      <button onclick="switchTab('config')" id="nav-btn-config" class="nav-btn w-11 h-11 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group shrink-0">
         <div id="nav-ind-config" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 001.065-2.572c1.756-.426 1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543-.826-3.31-2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         <div class="sidebar-label text-left ml-3.5">
@@ -334,7 +335,7 @@
     </div>
   </aside>
 
-  <!-- CONTEÚDO PRINCIPAL COM RECUO FIXO DE 78PX NO DESKTOP -->
+  <!-- CONTEÚDO PRINCIPAL -->
   <div class="main-content-offset flex-1 flex flex-col h-full w-full bg-zinc-950 overflow-hidden relative pb-[75px] md:pb-0">
     <header class="h-[72px] flex items-center justify-between px-4 md:px-8 border-b border-zinc-800/80 bg-zinc-950/85 backdrop-blur-xl shrink-0 z-20">
       <div class="flex flex-col min-w-0">
@@ -343,6 +344,10 @@
       </div>
 
       <div class="flex items-center gap-2 md:gap-4">
+        <button onclick="switchTab('orbita')" class="hidden lg:flex items-center gap-2 px-3.5 py-2 bg-sky-950/40 border border-sky-500/30 text-sky-300 rounded-xl text-xs hover:bg-sky-900/50 transition-all font-black uppercase tracking-wider">
+          <span>🪐</span> Órbita 3D
+        </button>
+
         <button onclick="openManualModal()" class="hidden md:flex items-center gap-2 px-4 py-2 bg-emerald-950/40 border border-emerald-800/60 text-emerald-400 rounded-xl text-xs hover:bg-emerald-900/40 hover:text-emerald-300 transition-all font-black uppercase tracking-wider">
           <span>✨</span> Novo Agendamento
         </button>
@@ -420,10 +425,7 @@
     <main id="tab-kanban" class="hidden flex-1 flex-col min-h-0 p-4 md:p-8 overflow-y-auto lg:overflow-hidden custom-scroll relative z-0">
       <div class="flex flex-col lg:flex-row gap-6 h-full min-h-0">
         
-        <!-- COLUNA ESQUERDA: CALENDÁRIO INTERATIVO + RESUMO DA DATA -->
         <div class="w-full lg:w-[360px] xl:w-[390px] shrink-0 flex flex-col gap-4 lg:overflow-y-auto custom-scroll pr-0 lg:pr-1">
-          
-          <!-- CARD DO CALENDÁRIO -->
           <div class="bg-zinc-900/75 border border-zinc-800/90 rounded-3xl p-5 shadow-2xl backdrop-blur-xl">
             <div class="flex items-center justify-between mb-4">
               <div>
@@ -431,19 +433,16 @@
                 <h3 id="cal-month-title" class="text-base font-black text-white capitalize mt-0.5">Outubro 2026</h3>
               </div>
               <div class="flex items-center gap-1.5">
-                <button onclick="changeCalendarMonth(-1)" class="w-8 h-8 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-orange-500/50 text-zinc-300 hover:text-white flex items-center justify-center transition-all" title="Mês anterior">
+                <button onclick="changeCalendarMonth(-1)" class="w-8 h-8 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-orange-500/50 text-zinc-300 hover:text-white flex items-center justify-center transition-all">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                 </button>
-                <button onclick="selectCalendarToday()" class="px-2.5 h-8 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:bg-orange-500 hover:text-zinc-950 text-[9px] font-black uppercase tracking-wider transition-all">
-                  Hoje
-                </button>
-                <button onclick="changeCalendarMonth(1)" class="w-8 h-8 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-orange-500/50 text-zinc-300 hover:text-white flex items-center justify-center transition-all" title="Próximo mês">
+                <button onclick="selectCalendarToday()" class="px-2.5 h-8 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:bg-orange-500 hover:text-zinc-950 text-[9px] font-black uppercase tracking-wider transition-all">Hoje</button>
+                <button onclick="changeCalendarMonth(1)" class="w-8 h-8 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-orange-500/50 text-zinc-300 hover:text-white flex items-center justify-center transition-all">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>
               </div>
             </div>
 
-            <!-- CABEÇALHO DOS DIAS DA SEMANA -->
             <div class="grid grid-cols-7 gap-1.5 text-center mb-2">
               <span class="text-[9px] font-black uppercase text-zinc-600 py-1">Dom</span>
               <span class="text-[9px] font-black uppercase text-zinc-400 py-1">Seg</span>
@@ -454,17 +453,14 @@
               <span class="text-[9px] font-black uppercase text-orange-400 py-1">Sáb</span>
             </div>
 
-            <!-- GRADE DE DIAS DO MÊS -->
             <div id="calendar-days-grid" class="grid grid-cols-7 gap-1.5"></div>
 
-            <!-- LEGENDA RÁPIDA -->
             <div class="flex items-center justify-between pt-4 mt-4 border-t border-zinc-800/80 text-[9px] text-zinc-500 font-bold uppercase tracking-wider">
               <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Com agendamentos</span>
               <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500"></span> Dia selecionado</span>
             </div>
           </div>
 
-          <!-- RESUMO DO DIA SELECIONADO -->
           <div class="premium-card rounded-3xl p-5 space-y-4">
             <div class="flex items-center justify-between border-b border-zinc-800/80 pb-3">
               <div>
@@ -499,7 +495,6 @@
               </div>
             </div>
 
-            <!-- AÇÕES DIRETA NA DATA SELECIONADA -->
             <div class="grid grid-cols-2 gap-2.5 pt-1">
               <button onclick="openManualModalForSelectedDate()" class="py-3 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 border border-emerald-500/30 font-black text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5">
                 <span>✨</span> Agendar Data
@@ -509,16 +504,12 @@
               </button>
             </div>
           </div>
-
         </div>
 
-        <!-- COLUNA DIREITA: AGENDA DETALHADA DA DATA CLICADA -->
         <div class="flex-1 flex flex-col min-h-[420px] lg:min-h-0 bg-zinc-900/40 border border-zinc-800/90 rounded-3xl overflow-hidden shadow-2xl">
-          
-          <!-- TOPO DA AGENDA DO DIA SELECIONADO -->
           <div class="p-4 md:p-6 border-b border-zinc-800/80 bg-zinc-950/60 flex flex-col xl:flex-row xl:items-center justify-between gap-4 shrink-0">
             <div class="flex items-center gap-3">
-              <button onclick="stepSelectedDate(-1)" class="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-orange-500/40 flex items-center justify-center text-zinc-400 hover:text-white transition-all shrink-0" title="Dia anterior">
+              <button onclick="stepSelectedDate(-1)" class="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-orange-500/40 flex items-center justify-center text-zinc-400 hover:text-white transition-all shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
               </button>
               <div>
@@ -528,12 +519,11 @@
                 </div>
                 <h2 id="selected-day-full-title" class="text-base md:text-lg font-black text-white capitalize mt-0.5">Quarta-feira, 14 de Outubro</h2>
               </div>
-              <button onclick="stepSelectedDate(1)" class="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-orange-500/40 flex items-center justify-center text-zinc-400 hover:text-white transition-all shrink-0" title="Próximo dia">
+              <button onclick="stepSelectedDate(1)" class="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-orange-500/40 flex items-center justify-center text-zinc-400 hover:text-white transition-all shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
               </button>
             </div>
 
-            <!-- CONTROLES: BUSCA + ALTERNADOR (CARDS / GRADE DE HORÁRIOS) -->
             <div class="flex flex-wrap items-center gap-2.5">
               <div class="flex items-center bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-1.5 flex-1 sm:flex-initial">
                 <svg class="w-3.5 h-3.5 text-zinc-500 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -541,26 +531,140 @@
               </div>
 
               <div class="flex items-center bg-zinc-900 border border-zinc-800 p-1 rounded-xl">
-                <button onclick="setCalendarViewMode('cards')" id="btn-mode-cards" class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-orange-500 text-zinc-950 transition-all">
-                  🗂️ Cards
-                </button>
-                <button onclick="setCalendarViewMode('timeline')" id="btn-mode-timeline" class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all">
-                  🕒 Horários
-                </button>
+                <button onclick="setCalendarViewMode('cards')" id="btn-mode-cards" class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-orange-500 text-zinc-950 transition-all">🗂️ Cards</button>
+                <button onclick="setCalendarViewMode('timeline')" id="btn-mode-timeline" class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all">🕒 Horários</button>
               </div>
 
-              <button onclick="copySelectedDateSummary()" class="px-3 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-xl text-[9px] uppercase font-black tracking-wider text-zinc-300 hover:text-white transition-all" title="Copiar resumo desta data">
-                📋 Copiar
-              </button>
+              <button onclick="copySelectedDateSummary()" class="px-3 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-xl text-[9px] uppercase font-black tracking-wider text-zinc-300 hover:text-white transition-all">📋 Copiar</button>
             </div>
           </div>
 
-          <!-- LISTA DE AGENDAMENTOS / GRADE DE HORÁRIOS DA DATA -->
           <div id="selected-day-schedule-container" class="flex-1 overflow-y-auto custom-scroll p-4 md:p-6"></div>
-
         </div>
 
       </div>
+    </main>
+
+    <!-- ABA ÓRBITA RB (3D + CONSTELAÇÃO) -->
+    <main id="tab-orbita" class="hidden flex-1 flex-col min-h-0 orbital-bg relative overflow-hidden z-0">
+      <div class="relative z-20 flex flex-wrap items-center justify-between gap-4 px-5 md:px-8 pt-5 pb-3 pointer-events-none">
+        <div class="pointer-events-auto">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
+            <p class="text-[9px] text-sky-400/90 uppercase font-black tracking-[.32em] mono-font">Seu universo operacional</p>
+          </div>
+          <h2 id="orbital-main-heading" class="text-2xl md:text-3xl font-black text-white tracking-tight mt-0.5">Barbearia conectada.</h2>
+        </div>
+
+        <div class="pointer-events-auto flex items-center gap-1.5 hud-box p-1.5 rounded-full">
+          <button onclick="switchOrbitalMode('orbit')" id="btn-orb-mode-orbit" class="px-4 py-2 rounded-full text-[11px] font-black tracking-wider uppercase flex items-center gap-2 bg-sky-500/20 text-sky-300 border border-sky-400/40 shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all">
+            <span>🪐</span> Órbita 3D
+          </button>
+          <button onclick="switchOrbitalMode('constellation')" id="btn-orb-mode-constellation" class="px-4 py-2 rounded-full text-[11px] font-black tracking-wider uppercase flex items-center gap-2 text-zinc-400 hover:text-white border border-transparent transition-all">
+            <span>🕸️</span> Constelação & Fluxos
+          </button>
+        </div>
+
+        <div class="pointer-events-auto hud-box rounded-2xl px-4 py-2.5 flex items-center gap-5">
+          <div>
+            <p id="orb-hud-nodes" class="text-base md:text-lg font-black text-white mono-font leading-none">0</p>
+            <p class="text-[9px] text-zinc-400 font-semibold mt-1">nós ativos</p>
+          </div>
+          <div class="h-6 w-px bg-sky-500/20"></div>
+          <div>
+            <p id="orb-hud-links" class="text-base md:text-lg font-black text-sky-300 mono-font leading-none">0</p>
+            <p class="text-[9px] text-zinc-400 font-semibold mt-1">ligações</p>
+          </div>
+          <div class="h-6 w-px bg-sky-500/20"></div>
+          <div>
+            <p id="orb-hud-today-future" class="text-base md:text-lg font-black text-orange-400 mono-font leading-none">0 / 0</p>
+            <p class="text-[9px] text-zinc-400 font-semibold mt-1">hoje / futuros</p>
+          </div>
+          <div class="h-6 w-px bg-sky-500/20 hidden sm:block"></div>
+          <div class="hidden sm:block">
+            <p id="orb-hud-rev" class="text-base md:text-lg font-black text-emerald-400 mono-font leading-none">R$ 0</p>
+            <p class="text-[9px] text-zinc-400 font-semibold mt-1">receita total</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-VIEW 1: CANVAS 3D ORBITAL -->
+      <div id="orbital-3d-wrapper" class="flex-1 relative w-full h-full min-h-0 overflow-hidden">
+        <canvas id="orbital-canvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+
+        <div class="absolute bottom-5 left-5 z-20 flex flex-wrap items-center gap-2">
+          <button onclick="resetOrbitalCamera()" class="hud-box px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-sky-300 hover:text-white hover:border-sky-400/50 transition-all flex items-center gap-1.5">
+            <span>⌖</span> Centralizar Órbita
+          </button>
+          <button onclick="toggleOrbitalAutoRotate()" id="btn-orb-autorotate" class="hud-box px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-emerald-400 border-emerald-500/30 transition-all flex items-center gap-1.5">
+            <span>↻</span> Giro Automático: ON
+          </button>
+          <div class="hidden xl:flex items-center gap-3 hud-box px-3.5 py-2 rounded-xl text-[10px] font-bold text-zinc-300">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span> Corte</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-orange-400"></span> Barba</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span> Combo</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-teal-400"></span> Sobrancelha</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-pink-400"></span> Progressiva</span>
+          </div>
+        </div>
+
+        <div class="hidden md:block absolute bottom-5 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+          <p class="text-[10px] text-zinc-500 font-semibold tracking-wider uppercase mono-font bg-zinc-950/70 px-4 py-1.5 rounded-full border border-white/5">
+            Arraste para girar 3D &nbsp;·&nbsp; Role o mouse para zoom &nbsp;·&nbsp; Clique em um nó para abrir a Ficha
+          </p>
+        </div>
+      </div>
+
+      <!-- SUB-VIEW 2: CONSTELAÇÃO & FLUXOS -->
+      <div id="orbital-constellation-wrapper" class="hidden flex-1 overflow-y-auto custom-scroll px-5 md:px-8 pb-10 pt-2 relative">
+        <div id="constellation-stage" class="relative max-w-7xl mx-auto space-y-12 py-4">
+          <svg id="constellation-svg-layer" class="pointer-events-none absolute inset-0 w-full h-full z-10 overflow-visible"></svg>
+
+          <div class="relative z-20 hud-box rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3 w-full md:w-auto">
+              <span class="text-sky-400 text-sm">⚡</span>
+              <input id="constellation-search" oninput="renderConstellationView()" placeholder="Buscar cliente, serviço ou horário na constelação..." class="bg-transparent outline-none text-xs text-white placeholder:text-zinc-500 w-full md:w-80">
+            </div>
+            <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+              <button onclick="setConstellationFilter('all')" id="c-filt-all" class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30">Todos</button>
+              <button onclick="setConstellationFilter('today')" id="c-filt-today" class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white">Hoje</button>
+              <button onclick="setConstellationFilter('upcoming')" id="c-filt-upcoming" class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white">Futuros</button>
+            </div>
+          </div>
+
+          <div class="relative z-20">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-[10px] text-sky-400 uppercase font-black tracking-[.25em] mono-font">01 &nbsp; Núcleos de Serviço & Especialidades</p>
+              <span class="text-[9px] text-zinc-500 font-bold uppercase mono-font">Passe o mouse ou clique para rastrear conexões</span>
+            </div>
+            <div id="constellation-services-row" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5"></div>
+          </div>
+
+          <div class="relative z-20 pt-4">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-[10px] text-orange-400 uppercase font-black tracking-[.25em] mono-font">02 &nbsp; Atendimentos & Clientes Conectados</p>
+              <span id="constellation-cards-count" class="text-[9px] text-zinc-400 font-bold uppercase mono-font">0 conexões</span>
+            </div>
+            <div id="constellation-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GAVETA LATERAL DIREITA (FICHA TÉCNICA) -->
+      <aside id="orbital-inspector-drawer" class="hidden absolute top-0 right-0 bottom-0 w-full sm:w-[410px] z-30 hud-box border-l border-sky-400/25 flex-col justify-between overflow-hidden shadow-[-25px_0_60px_rgba(0,0,0,0.85)]">
+        <div class="p-6 border-b border-sky-500/15 flex items-start justify-between gap-3 bg-zinc-950/60">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span id="insp-badge" class="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-400/30 mono-font">NÓ ORBITAL</span>
+              <span id="insp-id" class="text-[9px] text-zinc-500 mono-font truncate">#RB-001</span>
+            </div>
+            <h3 id="insp-title" class="text-lg font-black text-white mt-2 leading-snug">FICHA: Carregando...</h3>
+          </div>
+          <button onclick="closeOrbitalInspector()" class="w-8 h-8 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center border border-white/10 shrink-0">✕</button>
+        </div>
+        <div id="insp-body" class="flex-1 overflow-y-auto custom-scroll p-6 space-y-5 text-xs"></div>
+        <div id="insp-footer" class="p-4 border-t border-sky-500/15 bg-zinc-950/80 flex items-center gap-2.5"></div>
+      </aside>
     </main>
 
     <!-- ABA HISTÓRICO -->
@@ -714,9 +818,7 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 w-full max-w-4xl">
         <div class="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-6 md:p-8 shadow-2xl">
-          <h3 class="text-sm font-black tracking-widest uppercase text-orange-500 mb-6 border-b border-zinc-800 pb-3">
-            Horário Operacional
-          </h3>
+          <h3 class="text-sm font-black tracking-widest uppercase text-orange-500 mb-6 border-b border-zinc-800 pb-3">Horário Operacional</h3>
           <div class="space-y-5">
             <div>
               <label class="text-[10px] text-zinc-400 uppercase font-black tracking-widest block mb-2">Abertura</label>
@@ -726,7 +828,6 @@
               <label class="text-[10px] text-zinc-400 uppercase font-black tracking-widest block mb-2">Fecho</label>
               <input type="time" id="set-close" class="w-full px-5 py-3.5 bg-zinc-950 border border-zinc-700 rounded-xl text-white outline-none focus:border-orange-500 font-bold">
             </div>
-            
             <div class="mt-6 border-t border-zinc-800 pt-5">
               <h4 class="text-[11px] font-black tracking-widest uppercase text-zinc-300 mb-4">Intervalo de Descanso</h4>
               <div class="grid grid-cols-2 gap-4">
@@ -740,7 +841,6 @@
                 </div>
               </div>
             </div>
-
             <button onclick="saveSettings()" class="w-full py-4 mt-4 bg-zinc-200 hover:bg-white text-zinc-900 font-black uppercase tracking-widest rounded-xl text-xs transition-all">
               Salvar Alterações
             </button>
@@ -748,19 +848,17 @@
         </div>
 
         <div class="premium-card rounded-3xl p-6 md:p-8">
-          <h3 class="text-sm font-black tracking-widest uppercase text-white mb-6 border-b border-zinc-800 pb-3">
-            Atalhos Rápidos
-          </h3>
+          <h3 class="text-sm font-black tracking-widest uppercase text-white mb-6 border-b border-zinc-800 pb-3">Atalhos Rápidos</h3>
           <div class="grid grid-cols-2 gap-3">
+            <button onclick="switchTab('orbita')" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-sky-500/40 text-left transition-all">
+              <span class="text-xl">🪐</span>
+              <p class="text-xs font-black text-white mt-3">Órbita RB 3D</p>
+              <p class="text-[9px] text-zinc-500 mt-1">Universo conectado</p>
+            </button>
             <button onclick="switchTab('kanban')" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-orange-500/40 text-left transition-all">
               <span class="text-xl">📅</span>
               <p class="text-xs font-black text-white mt-3">Calendário</p>
               <p class="text-[9px] text-zinc-500 mt-1">Consultar datas</p>
-            </button>
-            <button onclick="openBlockModal()" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-red-500/40 text-left transition-all">
-              <span class="text-xl">🚫</span>
-              <p class="text-xs font-black text-white mt-3">Bloquear horários</p>
-              <p class="text-[9px] text-zinc-500 mt-1">Fechar horário</p>
             </button>
             <button onclick="switchTab('clientes')" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-blue-500/40 text-left transition-all">
               <span class="text-xl">👤</span>
@@ -796,7 +894,6 @@ let allAppointments = [];
 let pollTimer = null;
 window.currentPeriodCancellations = [];
 
-// Estado do Calendário Interativo
 const initNow = new Date();
 let calCurrentYear = initNow.getFullYear();
 let calCurrentMonth = initNow.getMonth();
@@ -804,13 +901,12 @@ let selectedCalendarDateStr = `${String(initNow.getDate()).padStart(2, '0')}/${S
 let calendarViewMode = 'cards';
 let prefillTimeSlot = null;
 
-// Variáveis Agendamento Manual
 const servicesMap = {
-  'Corte Masculino': { price: 40, duration: 30 },
-  'Barba': { price: 30, duration: 30 },
-  'Corte e Barba': { price: 65, duration: 60 },
-  'Sobrancelha': { price: 15, duration: 20 },
-  'Progressiva feminina orgânica': { price: 180, duration: 120 }
+  'Corte Masculino': { price: 40, duration: 30, color: '#38bdf8', short: 'Corte' },
+  'Barba': { price: 30, duration: 30, color: '#fb923c', short: 'Barba' },
+  'Corte e Barba': { price: 65, duration: 60, color: '#c084fc', short: 'Corte + Barba' },
+  'Sobrancelha': { price: 15, duration: 20, color: '#2dd4bf', short: 'Sobrancelha' },
+  'Progressiva feminina orgânica': { price: 180, duration: 120, color: '#f472b6', short: 'Progressiva' }
 };
 let manualSelectedTime = null;
 let manualSelectedDuration = 30;
@@ -818,11 +914,11 @@ let manualSelectedPrice = 0;
 
 function getServiceTheme(serviceName) {
   const s = (serviceName || '').toLowerCase();
-  if (s.includes('corte e barba') || s.includes('combo') || s.includes('completo')) return { borderL: 'border-l-purple-500', borderHover: 'hover:border-purple-500/50', text: 'text-purple-300', img: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=300&auto=format&fit=crop&q=80' };
-  if (s.includes('progressiva')) return { borderL: 'border-l-pink-500', borderHover: 'hover:border-pink-500/50', text: 'text-pink-300', img: './progressiva.jpg' };
-  if (s.includes('barba')) return { borderL: 'border-l-orange-500', borderHover: 'hover:border-orange-500/50', text: 'text-orange-300', img: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300&auto=format&fit=crop&q=80' };
-  if (s.includes('sobrancelha')) return { borderL: 'border-l-teal-500', borderHover: 'hover:border-teal-500/50', text: 'text-teal-300', img: './sobrancelha.jpeg' };
-  return { borderL: 'border-l-blue-500', borderHover: 'hover:border-blue-500/50', text: 'text-blue-300', img: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=300&auto=format&fit=crop&q=80' };
+  if (s.includes('corte e barba') || s.includes('combo') || s.includes('completo')) return { borderL: 'border-l-purple-500', borderHover: 'hover:border-purple-500/50', text: 'text-purple-300', hex: '#c084fc', img: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=300&auto=format&fit=crop&q=80' };
+  if (s.includes('progressiva')) return { borderL: 'border-l-pink-500', borderHover: 'hover:border-pink-500/50', text: 'text-pink-300', hex: '#f472b6', img: './progressiva.jpg' };
+  if (s.includes('barba')) return { borderL: 'border-l-orange-500', borderHover: 'hover:border-orange-500/50', text: 'text-orange-300', hex: '#fb923c', img: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300&auto=format&fit=crop&q=80' };
+  if (s.includes('sobrancelha')) return { borderL: 'border-l-teal-500', borderHover: 'hover:border-teal-500/50', text: 'text-teal-300', hex: '#2dd4bf', img: './sobrancelha.jpeg' };
+  return { borderL: 'border-l-blue-500', borderHover: 'hover:border-blue-500/50', text: 'text-blue-300', hex: '#38bdf8', img: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=300&auto=format&fit=crop&q=80' };
 }
 
 function getServiceImage(serviceName) { return getServiceTheme(serviceName).img; }
@@ -846,6 +942,7 @@ document.addEventListener('DOMContentLoaded', () => {
   Chart.defaults.color = '#71717a';
   Chart.defaults.font.family = "'Inter', sans-serif";
   updateHeaderDate();
+  initOrbitalCanvasEvents();
   if (localStorage.getItem('rb_admin_logged') === 'true') { processLogin(); }
 });
 
@@ -869,6 +966,7 @@ function processLogin() {
   switchTab('hoje');
   loadSettings();
   loadAgendaData();
+  fetchHistoryData();
   subscribeToRealtime();
   if (pollTimer) clearInterval(pollTimer);
   pollTimer = setInterval(() => { loadAgendaData(true); }, 4000);
@@ -877,18 +975,15 @@ function processLogin() {
 function logoutAdmin() { localStorage.removeItem('rb_admin_logged'); if (pollTimer) clearInterval(pollTimer); window.location.reload(); }
 
 function switchTab(tab) {
-  ['tab-hoje','tab-kanban','tab-historico','tab-clientes','tab-financeiro','tab-config'].forEach(id => {
+  ['tab-hoje','tab-kanban','tab-orbita','tab-historico','tab-clientes','tab-financeiro','tab-config'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
   });
   
-  ['hoje','kanban','historico','clientes','financeiro','config'].forEach(id => {
+  ['hoje','kanban','orbita','historico','clientes','financeiro','config'].forEach(id => {
     const btn = document.getElementById('nav-btn-' + id);
     const ind = document.getElementById('nav-ind-' + id);
-    if (btn) {
-      btn.classList.remove('nav-active', 'text-white');
-      btn.classList.add('text-zinc-400');
-    }
+    if (btn) { btn.classList.remove('nav-active', 'text-white'); btn.classList.add('text-zinc-400'); }
     if (ind) ind.classList.add('hidden');
   });
 
@@ -896,20 +991,19 @@ function switchTab(tab) {
   if (activeTab) { activeTab.classList.remove('hidden'); activeTab.classList.add('flex'); }
   const activeBtn = document.getElementById('nav-btn-' + tab);
   const activeInd = document.getElementById('nav-ind-' + tab);
-  if (activeBtn) {
-    activeBtn.classList.add('nav-active', 'text-white');
-    activeBtn.classList.remove('text-zinc-400');
-  }
+  if (activeBtn) { activeBtn.classList.add('nav-active', 'text-white'); activeBtn.classList.remove('text-zinc-400'); }
   if (activeInd) activeInd.classList.remove('hidden');
 
   if (tab === 'kanban') renderCalendarSection();
+  if (tab === 'orbita') {
+    buildOrbitalUniverseData();
+    startOrbitalLoop();
+    if (orbitalCurrentMode === 'constellation') renderConstellationView();
+  } else {
+    stopOrbitalLoop();
+  }
   if (tab === 'historico' || tab === 'financeiro' || tab === 'clientes') fetchHistoryData();
   if (tab === 'financeiro') setTimeout(calculateDashboard, 100);
-}
-
-function playNotificationSound() {
-  const audio = document.getElementById('notification-sound');
-  if (audio) { audio.currentTime = 0; audio.play().catch(() => {}); }
 }
 
 function subscribeToRealtime() {
@@ -946,31 +1040,703 @@ function brDateToIso(brDateStr) {
   return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 }
 
-// ------------------------------------
-// CALENDÁRIO INTERATIVO & AGENDA DO DIA
-// ------------------------------------
+// ============================================================================
+// MOTOR 3D ORBITAL & CONSTELAÇÃO
+// ============================================================================
+let orbitalCurrentMode = 'orbit';
+let orbitalAnimFrame = null;
+let orbitalAutoRotate = true;
+let orbRotY = 0.4;
+let orbRotX = 0.58;
+let orbZoom = 1.0;
+let orbIsDragging = false;
+let orbDragStartX = 0, orbDragStartY = 0;
+let orbHoveredNode = null;
+let orbSelectedNode = null;
+let orbitalNodes = [];
+let orbitalprojectedHitList = [];
+let starfieldParticles = [];
+let constellationFilter = 'all';
+let activeConstellationService = null;
 
-function renderCalendarSection() {
-  renderCalendarGrid();
-  renderSelectedDaySchedule();
+function switchOrbitalMode(mode) {
+  orbitalCurrentMode = mode;
+  const w3d = document.getElementById('orbital-3d-wrapper');
+  const wConst = document.getElementById('orbital-constellation-wrapper');
+  const bOrbit = document.getElementById('btn-orb-mode-orbit');
+  const bConst = document.getElementById('btn-orb-mode-constellation');
+  const heading = document.getElementById('orbital-main-heading');
+
+  if (mode === 'orbit') {
+    w3d.classList.remove('hidden'); wConst.classList.add('hidden');
+    bOrbit.className = 'px-4 py-2 rounded-full text-[11px] font-black tracking-wider uppercase flex items-center gap-2 bg-sky-500/20 text-sky-300 border border-sky-400/40 shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all';
+    bConst.className = 'px-4 py-2 rounded-full text-[11px] font-black tracking-wider uppercase flex items-center gap-2 text-zinc-400 hover:text-white border border-transparent transition-all';
+    if (heading) heading.innerText = 'Barbearia conectada.';
+    startOrbitalLoop();
+  } else {
+    w3d.classList.add('hidden'); wConst.classList.remove('hidden');
+    bConst.className = 'px-4 py-2 rounded-full text-[11px] font-black tracking-wider uppercase flex items-center gap-2 bg-sky-500/20 text-sky-300 border border-sky-400/40 shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all';
+    bOrbit.className = 'px-4 py-2 rounded-full text-[11px] font-black tracking-wider uppercase flex items-center gap-2 text-zinc-400 hover:text-white border border-transparent transition-all';
+    if (heading) heading.innerText = 'Do agendamento à entrega.';
+    stopOrbitalLoop();
+    setTimeout(renderConstellationView, 40);
+  }
 }
+
+function resetOrbitalCamera() { orbRotY = 0.4; orbRotX = 0.58; orbZoom = 1.0; }
+
+function toggleOrbitalAutoRotate() {
+  orbitalAutoRotate = !orbitalAutoRotate;
+  const btn = document.getElementById('btn-orb-autorotate');
+  if (btn) {
+    btn.innerText = `↻ Giro Automático: ${orbitalAutoRotate ? 'ON' : 'OFF'}`;
+    btn.className = orbitalAutoRotate
+      ? 'hud-box px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-emerald-400 border-emerald-500/30 transition-all flex items-center gap-1.5'
+      : 'hud-box px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-zinc-400 transition-all flex items-center gap-1.5';
+  }
+}
+
+function buildOrbitalUniverseData() {
+  orbitalNodes = [];
+  if (!starfieldParticles.length) {
+    for (let i = 0; i < 110; i++) {
+      starfieldParticles.push({
+        x: (Math.random() - 0.5) * 1600,
+        y: (Math.random() - 0.5) * 900,
+        z: (Math.random() - 0.5) * 1200,
+        r: Math.random() * 1.4 + 0.4,
+        alpha: Math.random() * 0.55 + 0.15
+      });
+    }
+  }
+
+  const pool = (allHistoryData && allHistoryData.length) ? allHistoryData : allAppointments;
+  const validApts = pool.filter(a => a.calendar_event_id !== 'blocked_time' && !(a.service || '').startsWith('🚫') && a.calendar_event_id !== 'cancelled_by_barber' && a.calendar_event_id !== 'cancelled_by_client');
+
+  const now = new Date();
+  const todayStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+  let todayCount = 0, futureCount = 0, totalRev = 0;
+  validApts.forEach(a => {
+    totalRev += parseFloat(a.price || 0);
+    if (a.date === todayStr) todayCount++;
+    if (parseBrDateToObj(a.date).getTime() >= todayMidnight) futureCount++;
+  });
+
+  const serviceKeys = Object.keys(servicesMap);
+  const sectorCount = serviceKeys.length;
+
+  serviceKeys.forEach((sKey, idx) => {
+    const sMeta = servicesMap[sKey];
+    const startAngle = (idx / sectorCount) * Math.PI * 2;
+    const endAngle = ((idx + 1) / sectorCount) * Math.PI * 2;
+    const midAngle = (startAngle + endAngle) / 2;
+
+    const matchingApts = validApts.filter(a => (a.service || '').toLowerCase() === sKey.toLowerCase());
+    const sectorRevenue = matchingApts.reduce((acc, item) => acc + parseFloat(item.price || 0), 0);
+
+    const sectorNode = {
+      id: `sector-${idx}`,
+      kind: 'service_sector',
+      title: sKey,
+      shortLabel: sMeta.short,
+      color: sMeta.color,
+      x: Math.cos(midAngle) * 250,
+      y: -18,
+      z: Math.sin(midAngle) * 250,
+      radius: 8,
+      serviceName: sKey,
+      count: matchingApts.length,
+      revenue: sectorRevenue,
+      price: sMeta.price,
+      duration: sMeta.duration,
+      apts: matchingApts
+    };
+    orbitalNodes.push(sectorNode);
+
+    const cellTotal = Math.max(18, Math.min(44, 16 + matchingApts.length * 4));
+    for (let c = 0; c < cellTotal; c++) {
+      const ang = startAngle + 0.08 + Math.random() * (endAngle - startAngle - 0.16);
+      const rad = 115 + Math.random() * 78;
+      const linkedApt = matchingApts[c % Math.max(1, matchingApts.length)] || null;
+      orbitalNodes.push({
+        id: `cell-${idx}-${c}`,
+        kind: 'hex_cell',
+        title: linkedApt ? `${linkedApt.profiles?.full_name || 'Cliente'} — ${sMeta.short}` : `Célula ${sMeta.short}`,
+        color: sMeta.color,
+        x: Math.cos(ang) * rad,
+        y: (Math.random() - 0.5) * 8,
+        z: Math.sin(ang) * rad,
+        radius: 4.5,
+        serviceName: sKey,
+        apt: linkedApt,
+        parentSector: sectorNode
+      });
+    }
+  });
+
+  const displayApts = validApts.slice(0, 26);
+  displayApts.forEach((apt, i) => {
+    const ang = (i / Math.max(1, displayApts.length)) * Math.PI * 2 + 0.2;
+    const rad = 295 + (i % 2) * 22;
+    const theme = getServiceTheme(apt.service);
+    const isToday = apt.date === todayStr;
+
+    orbitalNodes.push({
+      id: `apt-${apt.id}`,
+      kind: 'appointment',
+      title: `${apt.profiles?.full_name || 'Cliente'} (${apt.date} às ${apt.time})`,
+      shortLabel: `${apt.time} · ${(apt.profiles?.full_name || 'Cliente').split(' ')[0]}`,
+      showCallout: i < 8 || isToday,
+      color: isToday ? '#10b981' : theme.hex,
+      x: Math.cos(ang) * rad,
+      y: (i % 3 - 1) * 14,
+      z: Math.sin(ang) * rad,
+      radius: isToday ? 7 : 5.5,
+      apt: apt
+    });
+  });
+
+  const topClients = (allClientsList || []).slice(0, 12);
+  topClients.forEach((cli, i) => {
+    const ang = (i / Math.max(1, topClients.length)) * Math.PI * 2 + 0.55;
+    const rad = 365;
+    orbitalNodes.push({
+      id: `cli-${cli.id}`,
+      kind: 'client',
+      title: `Cliente: ${cli.name}`,
+      shortLabel: `👤 ${cli.name.split(' ')[0]} (${cli.visits}x)`,
+      showCallout: i < 5,
+      color: '#38bdf8',
+      x: Math.cos(ang) * rad,
+      y: (i % 2 === 0 ? 18 : -18),
+      z: Math.sin(ang) * rad,
+      radius: 6,
+      client: cli
+    });
+  });
+
+  const elNodes = document.getElementById('orb-hud-nodes');
+  const elLinks = document.getElementById('orb-hud-links');
+  const elTF = document.getElementById('orb-hud-today-future');
+  const elRev = document.getElementById('orb-hud-rev');
+  if (elNodes) elNodes.innerText = orbitalNodes.length;
+  if (elLinks) elLinks.innerText = validApts.length * 2 + serviceKeys.length;
+  if (elTF) elTF.innerText = `${todayCount} / ${futureCount}`;
+  if (elRev) elRev.innerText = `R$ ${totalRev.toFixed(0)}`;
+}
+
+function project3D(x, y, z, cx, cy) {
+  const cosY = Math.cos(orbRotY), sinY = Math.sin(orbRotY);
+  const x1 = x * cosY - z * sinY;
+  const z1 = z * cosY + x * sinY;
+  const cosX = Math.cos(orbRotX), sinX = Math.sin(orbRotX);
+  const y2 = y * cosX - z1 * sinX;
+  const z2 = z1 * cosX + y * sinX;
+  const scale = (780 / Math.max(120, 920 + z2)) * orbZoom;
+  return { sx: cx + x1 * scale, sy: cy + y2 * scale, scale, depth: z2 };
+}
+
+function drawPolygonHex(ctx, x, y, r, fillStyle, strokeStyle) {
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const a = (Math.PI / 3) * i;
+    const px = x + r * Math.cos(a);
+    const py = y + r * Math.sin(a) * 0.72;
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+  if (fillStyle) { ctx.fillStyle = fillStyle; ctx.fill(); }
+  if (strokeStyle) { ctx.strokeStyle = strokeStyle; ctx.lineWidth = 1; ctx.stroke(); }
+}
+
+function renderOrbitalFrame() {
+  const canvas = document.getElementById('orbital-canvas');
+  if (!canvas) return;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  if (rect.width === 0 || rect.height === 0) return;
+
+  const dpr = window.devicePixelRatio || 1;
+  if (canvas.width !== Math.floor(rect.width * dpr) || canvas.height !== Math.floor(rect.height * dpr)) {
+    canvas.width = Math.floor(rect.width * dpr);
+    canvas.height = Math.floor(rect.height * dpr);
+  }
+
+  const ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.scale(dpr, dpr);
+
+  const W = rect.width, H = rect.height, cx = W * 0.5, cy = H * 0.52;
+  ctx.clearRect(0, 0, W, H);
+
+  if (orbitalAutoRotate && !orbIsDragging) orbRotY += 0.0022;
+
+  starfieldParticles.forEach(st => {
+    const p = project3D(st.x, st.y, st.z, cx, cy);
+    ctx.fillStyle = `rgba(148, 163, 184, ${st.alpha})`;
+    ctx.beginPath();
+    ctx.arc(p.sx, p.sy, st.r * p.scale, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  [110, 198, 250, 298, 365].forEach((rad, rIdx) => {
+    ctx.beginPath();
+    for (let s = 0; s <= 80; s++) {
+      const a = (s / 80) * Math.PI * 2;
+      const p = project3D(Math.cos(a) * rad, 0, Math.sin(a) * rad, cx, cy);
+      if (s === 0) ctx.moveTo(p.sx, p.sy); else ctx.lineTo(p.sx, p.sy);
+    }
+    ctx.strokeStyle = rIdx === 2 ? 'rgba(56, 189, 248, 0.24)' : 'rgba(148, 163, 184, 0.11)';
+    ctx.lineWidth = rIdx === 2 ? 1.4 : 1;
+    ctx.stroke();
+  });
+
+  orbitalNodes.forEach(node => {
+    if (node.kind === 'appointment' || node.kind === 'client' || node.kind === 'service_sector') {
+      const pNode = project3D(node.x, node.y, node.z, cx, cy);
+      const innerFactor = node.kind === 'service_sector' ? 0.65 : 0.68;
+      const pInner = project3D(node.x * innerFactor, 0, node.z * innerFactor, cx, cy);
+      const isHigh = (orbHoveredNode && orbHoveredNode.id === node.id) || (orbSelectedNode && orbSelectedNode.id === node.id);
+      ctx.beginPath();
+      ctx.moveTo(pInner.sx, pInner.sy);
+      ctx.lineTo(pNode.sx, pNode.sy);
+      ctx.strokeStyle = isHigh ? node.color : 'rgba(56, 189, 248, 0.14)';
+      ctx.lineWidth = isHigh ? 1.8 : 0.8;
+      ctx.stroke();
+    }
+  });
+
+  const coreCenter = project3D(0, 0, 0, cx, cy);
+  const coreRadius = 56 * orbZoom;
+  const coreGlow = ctx.createRadialGradient(coreCenter.sx, coreCenter.sy, 4, coreCenter.sx, coreCenter.sy, coreRadius * 2.1);
+  coreGlow.addColorStop(0, 'rgba(224, 242, 254, 0.95)');
+  coreGlow.addColorStop(0.28, 'rgba(56, 189, 248, 0.65)');
+  coreGlow.addColorStop(0.6, 'rgba(249, 115, 22, 0.18)');
+  coreGlow.addColorStop(1, 'rgba(56, 189, 248, 0)');
+
+  ctx.fillStyle = coreGlow;
+  ctx.beginPath();
+  ctx.arc(coreCenter.sx, coreCenter.sy, coreRadius * 2.1, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(186, 230, 253, 0.85)';
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.arc(coreCenter.sx, coreCenter.sy, coreRadius * 0.68, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = '#e0f2fe';
+  ctx.font = `900 ${Math.round(10 * orbZoom)}px 'JetBrains Mono', monospace`;
+  ctx.textAlign = 'center';
+  ctx.fillText('RB CORE', coreCenter.sx, coreCenter.sy + coreRadius + 16);
+
+  orbitalprojectedHitList = [];
+  const projectedNodes = orbitalNodes.map(n => ({ node: n, ...project3D(n.x, n.y, n.z, cx, cy) })).sort((a, b) => b.depth - a.depth);
+
+  projectedNodes.forEach(item => {
+    const { node, sx, sy, scale } = item;
+    const r = Math.max(2.5, node.radius * scale);
+    const isHovered = orbHoveredNode && orbHoveredNode.id === node.id;
+    const isSelected = orbSelectedNode && orbSelectedNode.id === node.id;
+
+    orbitalprojectedHitList.push({ node, sx, sy, r: Math.max(10, r + 5) });
+
+    if (node.kind === 'hex_cell') {
+      drawPolygonHex(ctx, sx, sy, r * (isHovered || isSelected ? 1.5 : 1.15), isHovered || isSelected ? node.color : `${node.color}55`, node.color);
+    } else {
+      if (isHovered || isSelected || node.kind === 'service_sector') {
+        ctx.beginPath(); ctx.arc(sx, sy, r * 2.1, 0, Math.PI * 2);
+        ctx.fillStyle = `${node.color}30`; ctx.fill();
+      }
+      ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2);
+      ctx.fillStyle = node.color; ctx.fill();
+      ctx.lineWidth = isHovered || isSelected ? 2.5 : 1.2;
+      ctx.strokeStyle = '#ffffff'; ctx.stroke();
+
+      if (node.kind === 'service_sector' || node.showCallout || isHovered || isSelected) {
+        const labelText = node.shortLabel || node.title;
+        ctx.font = `700 10px 'Inter', sans-serif`;
+        const boxW = ctx.measureText(labelText).width + 18, boxH = 22;
+        const bx = sx - boxW / 2, by = sy - r - boxH - 8;
+
+        ctx.fillStyle = isHovered || isSelected ? 'rgba(14, 165, 233, 0.92)' : 'rgba(9, 14, 26, 0.86)';
+        ctx.strokeStyle = isHovered || isSelected ? '#ffffff' : `${node.color}88`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(bx, by, boxW, boxH, 6);
+        ctx.fill(); ctx.stroke();
+
+        ctx.fillStyle = isHovered || isSelected ? '#04070f' : '#f8fafc';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(labelText, sx, by + boxH / 2);
+      }
+    }
+  });
+  ctx.restore();
+}
+
+function startOrbitalLoop() {
+  if (orbitalAnimFrame) cancelAnimationFrame(orbitalAnimFrame);
+  function loop() {
+    if (orbitalCurrentMode === 'orbit' && !document.getElementById('tab-orbita').classList.contains('hidden')) {
+      renderOrbitalFrame();
+      orbitalAnimFrame = requestAnimationFrame(loop);
+    }
+  }
+  orbitalAnimFrame = requestAnimationFrame(loop);
+}
+
+function stopOrbitalLoop() {
+  if (orbitalAnimFrame) { cancelAnimationFrame(orbitalAnimFrame); orbitalAnimFrame = null; }
+}
+
+function initOrbitalCanvasEvents() {
+  const canvas = document.getElementById('orbital-canvas');
+  if (!canvas) return;
+  let movedDuringDrag = false;
+
+  canvas.addEventListener('mousedown', e => {
+    orbIsDragging = true; movedDuringDrag = false;
+    orbDragStartX = e.clientX; orbDragStartY = e.clientY;
+  });
+  window.addEventListener('mouseup', () => { orbIsDragging = false; });
+
+  canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    if (orbIsDragging) {
+      const dx = e.clientX - orbDragStartX, dy = e.clientY - orbDragStartY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) movedDuringDrag = true;
+      orbRotY += dx * 0.0065;
+      orbRotX = Math.max(0.18, Math.min(1.25, orbRotX + dy * 0.005));
+      orbDragStartX = e.clientX; orbDragStartY = e.clientY;
+      return;
+    }
+    let found = null;
+    for (let i = orbitalprojectedHitList.length - 1; i >= 0; i--) {
+      const item = orbitalprojectedHitList[i];
+      if (Math.hypot(mx - item.sx, my - item.sy) <= item.r) { found = item.node; break; }
+    }
+    orbHoveredNode = found;
+    canvas.style.cursor = found ? 'pointer' : (orbIsDragging ? 'grabbing' : 'grab');
+  });
+
+  canvas.addEventListener('click', () => {
+    if (!movedDuringDrag && orbHoveredNode) {
+      orbSelectedNode = orbHoveredNode;
+      openOrbitalInspector(orbHoveredNode);
+    }
+  });
+
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    orbZoom = Math.max(0.55, Math.min(2.1, orbZoom * (e.deltaY < 0 ? 1.08 : 0.92)));
+  }, { passive: false });
+}
+
+function openOrbitalInspector(node) {
+  const drawer = document.getElementById('orbital-inspector-drawer');
+  const badge = document.getElementById('insp-badge');
+  const idEl = document.getElementById('insp-id');
+  const titleEl = document.getElementById('insp-title');
+  const bodyEl = document.getElementById('insp-body');
+  const footerEl = document.getElementById('insp-footer');
+  if (!drawer) return;
+  drawer.classList.remove('hidden'); drawer.classList.add('flex');
+
+  if (node.kind === 'hex_cell' && node.apt) node = { id: `apt-${node.apt.id}`, kind: 'appointment', color: node.color, apt: node.apt };
+  else if (node.kind === 'hex_cell' && node.parentSector) node = node.parentSector;
+
+  if (node.kind === 'service_sector') {
+    badge.innerText = 'NÚCLEO DE SERVIÇO';
+    idEl.innerText = `SETOR // ${node.shortLabel.toUpperCase()}`;
+    titleEl.innerText = `FICHA: ${node.title}`;
+    const recentList = (node.apts || []).slice(0, 6).map(a => `
+      <div onclick='openOrbitalInspector({kind:"appointment", apt:${JSON.stringify(a).replace(/'/g,"&apos;")}})' class="p-2.5 rounded-xl bg-zinc-900/90 border border-white/5 hover:border-sky-400/40 cursor-pointer flex items-center justify-between transition-all">
+        <div>
+          <p class="font-bold text-white text-xs">${a.profiles?.full_name || 'Cliente'}</p>
+          <p class="text-[10px] text-zinc-400 mono-font">${a.date} às ${a.time}</p>
+        </div>
+        <span class="text-[10px] font-black text-emerald-400 mono-font">R$ ${parseFloat(a.price || 0).toFixed(2).replace('.',',')}</span>
+      </div>
+    `).join('') || `<p class="text-zinc-500 text-xs">Nenhum atendimento registrado neste setor ainda.</p>`;
+
+    bodyEl.innerHTML = `
+      <div class="space-y-2.5 bg-zinc-950/70 p-4 rounded-2xl border border-white/5 mono-font text-[11px]">
+        <div class="flex justify-between"><span class="text-zinc-500">Origem</span><span class="text-sky-300 font-bold">rb_barbearia/servicos/${node.shortLabel.toLowerCase()}</span></div>
+        <div class="flex justify-between"><span class="text-zinc-500">Status</span><span class="text-emerald-400 font-bold">● Ativo no catálogo</span></div>
+        <div class="flex justify-between"><span class="text-zinc-500">Valor Tabela</span><span class="text-white font-bold">R$ ${node.price.toFixed(2).replace('.',',')}</span></div>
+        <div class="flex justify-between"><span class="text-zinc-500">Tempo Médio</span><span class="text-white font-bold">${node.duration} minutos</span></div>
+        <div class="flex justify-between"><span class="text-zinc-500">Atendimentos</span><span class="text-orange-400 font-bold">${node.count} realizados/agendados</span></div>
+        <div class="flex justify-between"><span class="text-zinc-500">Receita Acumulada</span><span class="text-emerald-400 font-bold">R$ ${node.revenue.toFixed(2).replace('.',',')}</span></div>
+      </div>
+      <div>
+        <p class="text-[10px] uppercase font-black tracking-widest text-sky-400 mono-font mb-2.5">Ligações de Entrada (Clientes neste serviço)</p>
+        <div class="space-y-2">${recentList}</div>
+      </div>
+    `;
+    footerEl.innerHTML = `<button onclick="openManualModal()" class="w-full py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-zinc-950 font-black uppercase tracking-widest text-[10px] transition-all">✨ Novo Agendamento neste Setor</button>`;
+  } else if (node.kind === 'appointment') {
+    const a = node.apt;
+    const cName = a.profiles?.full_name || 'Cliente';
+    const cleanPhone = (a.profiles?.phone || '').replace(/\D/g, '');
+    const whatsLink = cleanPhone ? `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(`Olá ${cName}, tudo certo para seu horário na RB Barbearia dia ${a.date} às ${a.time}?`)}` : '';
+
+    badge.innerText = 'AGENDAMENTO CONECTADO';
+    idEl.innerText = `#APT-${String(a.id).slice(0, 6).toUpperCase()}`;
+    titleEl.innerText = `FICHA: ${cName}`;
+
+    bodyEl.innerHTML = `
+      <div class="space-y-2.5 bg-zinc-950/70 p-4 rounded-2xl border border-white/5 mono-font text-[11px]">
+        <div class="flex justify-between"><span class="text-zinc-500">Cliente</span><span class="text-white font-bold">${cName}</span></div>
+        <div class="flex justify-between"><span class="text-zinc-500">WhatsApp</span><span class="text-sky-300 font-bold">${a.profiles?.phone || 'Não informado'}</span></div>
+        <div class="flex justify-between"><span class="text-zinc-500">Serviço</span><span class="text-orange-400 font-bold">${a.service}</span></div>
+        <div class="flex justify-between"><span class="text-zinc-500">Data & Hora</span><span class="text-white font-bold">${a.date} às ${a.time}</span></div>
+        <div class="flex justify-between"><span class="text-zinc-500">Valor</span><span class="text-emerald-400 font-bold">R$ ${parseFloat(a.price || 0).toFixed(2).replace('.',',')}</span></div>
+        <div class="flex justify-between"><span class="text-zinc-500">Sincronia</span><span class="text-emerald-400 font-bold">Supabase Realtime OK</span></div>
+      </div>
+      <div class="p-4 rounded-2xl bg-sky-950/20 border border-sky-500/20 space-y-2">
+        <p class="text-[10px] uppercase font-black tracking-widest text-sky-300 mono-font">Rastreio de Conexão</p>
+        <p class="text-xs text-zinc-300 leading-relaxed">Este agendamento está vinculado ao núcleo <strong class="text-white">${a.service}</strong> e sincronizado na agenda do dia <strong class="text-orange-400">${a.date}</strong>.</p>
+      </div>
+    `;
+    footerEl.innerHTML = `
+      ${whatsLink ? `<a href="${whatsLink}" target="_blank" class="flex-1 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black uppercase tracking-widest text-[10px] text-center transition-all">WhatsApp</a>` : ''}
+      <button onclick="selectCalendarDate('${a.date}'); switchTab('kanban');" class="flex-1 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest text-[10px] transition-all">Ver no Calendário</button>
+    `;
+  } else if (node.kind === 'client') {
+    const c = node.client;
+    const cleanPhone = (c.phone || '').replace(/\D/g, '');
+    const whatsLink = cleanPhone ? `https://wa.me/55${cleanPhone}` : '';
+    const lastStr = `${String(c.lastVisit.getDate()).padStart(2,'0')}/${String(c.lastVisit.getMonth()+1).padStart(2,'0')}/${c.lastVisit.getFullYear()}`;
+
+    badge.innerText = 'NÓ DE CLIENTE';
+    idEl.innerText = `#CLI-${String(c.id).slice(0, 6).toUpperCase()}`;
+    titleEl.innerText = `FICHA: ${c.name}`;
+
+    bodyEl.innerHTML = `
+      <div class="space-y-2.5 bg-zinc-950/70 p-4 rounded-2xl border border-white/5 mono-font text-[11px]">
+        <div class="flex justify-between"><span class="text-zinc-500">Cliente</span><span class="text-white font-bold">${c.name}</span></div>
+        <div class="flex justify-between"><span class="text-zinc-500">Contato</span><span class="text-sky-300 font-bold">${c.phone || '-'}</span></div>
+        <div class="flex justify-between"><span class="text-zinc-500">Frequência</span><span class="text-orange-400 font-bold">${c.visits} visitas concluídas</span></div>
+        <div class="flex justify-between"><span class="text-zinc-500">LTV (Total Gasto)</span><span class="text-emerald-400 font-bold">R$ ${c.totalSpent.toFixed(2).replace('.',',')}</span></div>
+        <div class="flex justify-between"><span class="text-zinc-500">Última Visita</span><span class="text-white font-bold">${lastStr}</span></div>
+      </div>
+    `;
+    footerEl.innerHTML = `${whatsLink ? `<a href="${whatsLink}" target="_blank" class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black uppercase tracking-widest text-[10px] text-center transition-all">Chamar no WhatsApp</a>` : ''}`;
+  }
+}
+
+function closeOrbitalInspector() {
+  const drawer = document.getElementById('orbital-inspector-drawer');
+  if (drawer) { drawer.classList.add('hidden'); drawer.classList.remove('flex'); }
+  orbSelectedNode = null;
+}
+
+// ============================================================================
+// MODO 2: CONSTELAÇÃO & FLUXOS (CABOS BÉZIER DINÂMICOS)
+// ============================================================================
+function setConstellationFilter(f) {
+  constellationFilter = f;
+  ['all','today','upcoming'].forEach(k => {
+    const btn = document.getElementById('c-filt-' + k);
+    if (!btn) return;
+    btn.className = k === f
+      ? 'px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30'
+      : 'px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white';
+  });
+  renderConstellationView();
+}
+
+function renderConstellationView() {
+  const servicesRow = document.getElementById('constellation-services-row');
+  const cardsGrid = document.getElementById('constellation-cards-grid');
+  if (!servicesRow || !cardsGrid) return;
+
+  const pool = (allHistoryData && allHistoryData.length) ? allHistoryData : allAppointments;
+  const now = new Date();
+  const todayStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const query = (document.getElementById('constellation-search')?.value || '').toLowerCase().trim();
+
+  let validApts = pool.filter(a => a.calendar_event_id !== 'blocked_time' && !(a.service || '').startsWith('🚫') && a.calendar_event_id !== 'cancelled_by_barber' && a.calendar_event_id !== 'cancelled_by_client');
+
+  if (constellationFilter === 'today') validApts = validApts.filter(a => a.date === todayStr);
+  else if (constellationFilter === 'upcoming') validApts = validApts.filter(a => parseBrDateToObj(a.date).getTime() >= todayMidnight);
+
+  if (query) {
+    validApts = validApts.filter(a =>
+      (a.profiles?.full_name || '').toLowerCase().includes(query) ||
+      (a.service || '').toLowerCase().includes(query) ||
+      (a.date || '').includes(query) ||
+      (a.time || '').includes(query)
+    );
+  }
+
+  const serviceKeys = Object.keys(servicesMap);
+  servicesRow.innerHTML = serviceKeys.map((sKey, idx) => {
+    const sMeta = servicesMap[sKey];
+    const count = validApts.filter(a => (a.service || '').toLowerCase() === sKey.toLowerCase()).length;
+    const isActive = activeConstellationService === sKey;
+    return `
+      <div id="c-service-node-${idx}" data-service="${sKey}"
+        onmouseenter="highlightConstellationService('${sKey}')"
+        onmouseleave="clearConstellationHighlight()"
+        onclick="toggleLockConstellationService('${sKey}')"
+        class="constellation-node hud-box rounded-2xl p-4 cursor-pointer border ${isActive ? 'active-node' : 'border-white/10'}">
+        <div class="flex items-center justify-between mb-2">
+          <span class="w-2.5 h-2.5 rounded-full" style="background:${sMeta.color}; box-shadow:0 0 12px ${sMeta.color}"></span>
+          <span class="text-[9px] font-black mono-font text-zinc-400">${count} conexões</span>
+        </div>
+        <p class="text-xs font-black text-white uppercase tracking-wider truncate">${sMeta.short}</p>
+        <p class="text-[10px] text-zinc-400 mono-font mt-1">R$ ${sMeta.price},00 · ${sMeta.duration}m</p>
+      </div>
+    `;
+  }).join('');
+
+  const displayList = validApts.slice(0, 18);
+  document.getElementById('constellation-cards-count').innerText = `${displayList.length} exibidos`;
+
+  if (!displayList.length) {
+    cardsGrid.innerHTML = `
+      <div class="col-span-full hud-box rounded-3xl p-10 text-center">
+        <p class="text-sm font-black text-white uppercase tracking-widest">Nenhuma conexão encontrada para este filtro</p>
+        <p class="text-xs text-zinc-400 mt-1">Altere o filtro acima para "Todos" ou crie um novo agendamento.</p>
+      </div>
+    `;
+    clearConstellationCables();
+    return;
+  }
+
+  cardsGrid.innerHTML = displayList.map(a => {
+    const cName = a.profiles?.full_name || 'Cliente';
+    const sTheme = getServiceTheme(a.service);
+    const isToday = a.date === todayStr;
+    return `
+      <div id="c-apt-card-${a.id}" data-service="${a.service}" data-apt-id="${a.id}"
+        onmouseenter="highlightConstellationCard('${a.id}', '${a.service}')"
+        onmouseleave="clearConstellationHighlight()"
+        onclick='openOrbitalInspector({kind:"appointment", apt:${JSON.stringify(a).replace(/'/g,"&apos;")}})'
+        class="constellation-card hud-box rounded-2xl p-4 cursor-pointer border border-white/10 flex flex-col justify-between gap-3">
+        <div>
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-white/5 text-sky-300 mono-font">${a.date} · ${a.time}</span>
+            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded ${isToday ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-zinc-800 text-zinc-400'}">${isToday ? '● Hoje' : 'Sincronizado'}</span>
+          </div>
+          <h4 class="text-sm font-black text-white truncate">${cName}</h4>
+          <p class="text-[10px] font-bold uppercase tracking-wider mt-1" style="color:${sTheme.hex}">${a.service}</p>
+        </div>
+        <div class="pt-2.5 border-t border-white/5 flex items-center justify-between text-[10px] mono-font">
+          <span class="text-emerald-400 font-black">R$ ${parseFloat(a.price || 0).toFixed(2).replace('.',',')}</span>
+          <span class="text-sky-400 font-bold">Abrir Ficha →</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  setTimeout(() => {
+    if (activeConstellationService) highlightConstellationService(activeConstellationService);
+    else if (displayList[0]) highlightConstellationCard(displayList[0].id, displayList[0].service);
+  }, 60);
+}
+
+function toggleLockConstellationService(serviceName) {
+  if (activeConstellationService === serviceName) { activeConstellationService = null; clearConstellationHighlight(); }
+  else { activeConstellationService = serviceName; highlightConstellationService(serviceName); }
+}
+
+function highlightConstellationCard(aptId, serviceName) {
+  const stage = document.getElementById('constellation-stage');
+  const svg = document.getElementById('constellation-svg-layer');
+  if (!stage || !svg) return;
+
+  document.querySelectorAll('.constellation-card').forEach(el => el.classList.toggle('active-card', el.dataset.aptId === String(aptId)));
+  const serviceKeys = Object.keys(servicesMap);
+  const sIdx = serviceKeys.findIndex(k => k.toLowerCase() === (serviceName || '').toLowerCase());
+  document.querySelectorAll('.constellation-node').forEach((el, i) => el.classList.toggle('active-node', i === sIdx));
+
+  const cardEl = document.getElementById(`c-apt-card-${aptId}`);
+  const nodeEl = document.getElementById(`c-service-node-${sIdx >= 0 ? sIdx : 0}`);
+  if (!cardEl || !nodeEl) return;
+
+  const color = servicesMap[serviceKeys[sIdx]]?.color || '#38bdf8';
+  drawBezierCablesBetween(stage, svg, [nodeEl], [cardEl], color);
+}
+
+function highlightConstellationService(serviceName) {
+  const stage = document.getElementById('constellation-stage');
+  const svg = document.getElementById('constellation-svg-layer');
+  if (!stage || !svg) return;
+
+  const serviceKeys = Object.keys(servicesMap);
+  const sIdx = serviceKeys.findIndex(k => k.toLowerCase() === (serviceName || '').toLowerCase());
+  const nodeEl = document.getElementById(`c-service-node-${sIdx}`);
+  if (!nodeEl) return;
+
+  document.querySelectorAll('.constellation-node').forEach((el, i) => el.classList.toggle('active-node', i === sIdx));
+  const matchingCards = [];
+  document.querySelectorAll('.constellation-card').forEach(card => {
+    const match = (card.dataset.service || '').toLowerCase() === serviceName.toLowerCase();
+    card.classList.toggle('active-card', match);
+    if (match) matchingCards.push(card);
+  });
+
+  const color = servicesMap[serviceName]?.color || '#38bdf8';
+  drawBezierCablesBetween(stage, svg, [nodeEl], matchingCards, color);
+}
+
+function clearConstellationHighlight() {
+  if (activeConstellationService) { highlightConstellationService(activeConstellationService); return; }
+  document.querySelectorAll('.constellation-card').forEach(el => el.classList.remove('active-card'));
+  document.querySelectorAll('.constellation-node').forEach(el => el.classList.remove('active-node'));
+  clearConstellationCables();
+}
+
+function clearConstellationCables() {
+  const svg = document.getElementById('constellation-svg-layer');
+  if (svg) svg.innerHTML = '';
+}
+
+function drawBezierCablesBetween(stageEl, svgEl, topElements, bottomElements, color) {
+  const stageRect = stageEl.getBoundingClientRect();
+  let pathsHtml = '';
+  topElements.forEach(topEl => {
+    const tRect = topEl.getBoundingClientRect();
+    const x1 = tRect.left - stageRect.left + tRect.width / 2;
+    const y1 = tRect.bottom - stageRect.top;
+    bottomElements.forEach(botEl => {
+      const bRect = botEl.getBoundingClientRect();
+      const x2 = bRect.left - stageRect.left + bRect.width / 2;
+      const y2 = bRect.top - stageRect.top;
+      const cy1 = y1 + (y2 - y1) * 0.45, cy2 = y1 + (y2 - y1) * 0.55;
+      const d = `M ${x1} ${y1} C ${x1} ${cy1}, ${x2} ${cy2}, ${x2} ${y2}`;
+      pathsHtml += `
+        <path d="${d}" fill="none" stroke="${color}" stroke-width="5" stroke-opacity="0.14" />
+        <path d="${d}" fill="none" stroke="${color}" stroke-width="2" class="flow-cable-animated" />
+        <circle cx="${x1}" cy="${y1}" r="4" fill="${color}" />
+        <circle cx="${x2}" cy="${y2}" r="4" fill="${color}" />
+      `;
+    });
+  });
+  svgEl.innerHTML = pathsHtml;
+}
+
+// ============================================================================
+// CALENDÁRIO INTERATIVO & AGENDA DO DIA
+// ============================================================================
+function renderCalendarSection() { renderCalendarGrid(); renderSelectedDaySchedule(); }
 
 function changeCalendarMonth(delta) {
   calCurrentMonth += delta;
-  if (calCurrentMonth < 0) {
-    calCurrentMonth = 11;
-    calCurrentYear--;
-  } else if (calCurrentMonth > 11) {
-    calCurrentMonth = 0;
-    calCurrentYear++;
-  }
+  if (calCurrentMonth < 0) { calCurrentMonth = 11; calCurrentYear--; }
+  else if (calCurrentMonth > 11) { calCurrentMonth = 0; calCurrentYear++; }
   renderCalendarGrid();
 }
 
 function selectCalendarToday() {
   const now = new Date();
-  calCurrentYear = now.getFullYear();
-  calCurrentMonth = now.getMonth();
+  calCurrentYear = now.getFullYear(); calCurrentMonth = now.getMonth();
   selectedCalendarDateStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
   renderCalendarSection();
 }
@@ -978,29 +1744,24 @@ function selectCalendarToday() {
 function selectCalendarDate(dateStr) {
   selectedCalendarDateStr = dateStr;
   const dObj = parseBrDateToObj(dateStr);
-  calCurrentYear = dObj.getFullYear();
-  calCurrentMonth = dObj.getMonth();
+  calCurrentYear = dObj.getFullYear(); calCurrentMonth = dObj.getMonth();
   renderCalendarSection();
 }
 
 function stepSelectedDate(daysDelta) {
   const dObj = parseBrDateToObj(selectedCalendarDateStr);
   dObj.setDate(dObj.getDate() + daysDelta);
-  const newStr = `${String(dObj.getDate()).padStart(2, '0')}/${String(dObj.getMonth() + 1).padStart(2, '0')}/${dObj.getFullYear()}`;
-  selectCalendarDate(newStr);
+  selectCalendarDate(`${String(dObj.getDate()).padStart(2, '0')}/${String(dObj.getMonth() + 1).padStart(2, '0')}/${dObj.getFullYear()}`);
 }
 
 function setCalendarViewMode(mode) {
   calendarViewMode = mode;
-  const btnCards = document.getElementById('btn-mode-cards');
-  const btnTimeline = document.getElementById('btn-mode-timeline');
-  if (mode === 'cards') {
-    btnCards.className = 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-orange-500 text-zinc-950 transition-all';
-    btnTimeline.className = 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all';
-  } else {
-    btnTimeline.className = 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-orange-500 text-zinc-950 transition-all';
-    btnCards.className = 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all';
-  }
+  document.getElementById('btn-mode-cards').className = mode === 'cards'
+    ? 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-orange-500 text-zinc-950 transition-all'
+    : 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all';
+  document.getElementById('btn-mode-timeline').className = mode === 'timeline'
+    ? 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-orange-500 text-zinc-950 transition-all'
+    : 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all';
   renderSelectedDaySchedule();
 }
 
@@ -1014,26 +1775,19 @@ function renderCalendarGrid() {
 
   const firstDayOfMonth = new Date(calCurrentYear, calCurrentMonth, 1).getDay();
   const daysInMonth = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
-
   const now = new Date();
   const todayStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
 
-  const countsMap = {};
-  const blocksMap = {};
+  const countsMap = {}, blocksMap = {};
   allAppointments.forEach(a => {
     if (!a.date) return;
     const isBlock = a.calendar_event_id === 'blocked_time' || (a.service && a.service.startsWith('🚫'));
-    if (isBlock) {
-      blocksMap[a.date] = (blocksMap[a.date] || 0) + 1;
-    } else {
-      countsMap[a.date] = (countsMap[a.date] || 0) + 1;
-    }
+    if (isBlock) blocksMap[a.date] = (blocksMap[a.date] || 0) + 1;
+    else countsMap[a.date] = (countsMap[a.date] || 0) + 1;
   });
 
   let html = '';
-  for (let i = 0; i < firstDayOfMonth; i++) {
-    html += `<div class="cal-day-empty h-11 rounded-xl"></div>`;
-  }
+  for (let i = 0; i < firstDayOfMonth; i++) html += `<div class="cal-day-empty h-11 rounded-xl"></div>`;
 
   for (let day = 1; day <= daysInMonth; day++) {
     const dStr = `${String(day).padStart(2, '0')}/${String(calCurrentMonth + 1).padStart(2, '0')}/${calCurrentYear}`;
@@ -1041,15 +1795,11 @@ function renderCalendarGrid() {
     const isToday = dStr === todayStr;
     const count = countsMap[dStr] || 0;
     const hasBlock = (blocksMap[dStr] || 0) > 0;
-    const dayOfWeek = new Date(calCurrentYear, calCurrentMonth, day).getDay();
-    const isSunday = dayOfWeek === 0;
+    const isSunday = new Date(calCurrentYear, calCurrentMonth, day).getDay() === 0;
 
     let badgeHtml = '';
-    if (count > 0) {
-      badgeHtml = `<span class="cal-badge text-[8px] font-black px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 leading-tight mt-0.5">${count}</span>`;
-    } else if (hasBlock) {
-      badgeHtml = `<span class="w-1.5 h-1.5 rounded-full bg-red-500 mt-1"></span>`;
-    }
+    if (count > 0) badgeHtml = `<span class="cal-badge text-[8px] font-black px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 leading-tight mt-0.5">${count}</span>`;
+    else if (hasBlock) badgeHtml = `<span class="w-1.5 h-1.5 rounded-full bg-red-500 mt-1"></span>`;
 
     html += `
       <button type="button" onclick="selectCalendarDate('${dStr}')"
@@ -1059,7 +1809,6 @@ function renderCalendarGrid() {
       </button>
     `;
   }
-
   grid.innerHTML = html;
 }
 
@@ -1069,12 +1818,8 @@ function renderSelectedDaySchedule() {
 
   const dObj = parseBrDateToObj(selectedCalendarDateStr);
   const now = new Date();
-
   const fullTitle = document.getElementById('selected-day-full-title');
-  if (fullTitle) {
-    fullTitle.innerText = dObj.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  }
-
+  if (fullTitle) fullTitle.innerText = dObj.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const summaryDateLabel = document.getElementById('cal-summary-date-label');
   if (summaryDateLabel) summaryDateLabel.innerText = selectedCalendarDateStr;
 
@@ -1082,27 +1827,18 @@ function renderSelectedDaySchedule() {
   const selMidnight = new Date(dObj.getFullYear(), dObj.getMonth(), dObj.getDate()).getTime();
   const diffDays = Math.round((selMidnight - todayMidnight) / 86400000);
 
-  let relLabel = `${selectedCalendarDateStr}`;
+  let relLabel = selectedCalendarDateStr;
   if (diffDays === 0) relLabel = 'Hoje';
   else if (diffDays === 1) relLabel = 'Amanhã';
   else if (diffDays === -1) relLabel = 'Ontem';
   else if (diffDays > 1) relLabel = `Daqui a ${diffDays} dias`;
   else if (diffDays < -1) relLabel = `Há ${Math.abs(diffDays)} dias`;
 
-  const relTag = document.getElementById('selected-day-relative-tag');
-  if (relTag) relTag.innerText = relLabel;
+  document.getElementById('selected-day-relative-tag').innerText = relLabel;
+  document.getElementById('cal-summary-badge').innerText = relLabel;
 
-  const summaryBadge = document.getElementById('cal-summary-badge');
-  if (summaryBadge) summaryBadge.innerText = relLabel;
-
-  const dayAptsRaw = allAppointments
-    .filter(a => a.date === selectedCalendarDateStr)
-    .sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
-
-  let dayCuts = 0;
-  let dayRev = 0;
-  let occupiedIntervals = [];
-  let occupiedMinutes = 0;
+  const dayAptsRaw = allAppointments.filter(a => a.date === selectedCalendarDateStr).sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+  let dayCuts = 0, dayRev = 0, occupiedIntervals = [], occupiedMinutes = 0;
 
   dayAptsRaw.forEach(a => {
     const isBlock = a.calendar_event_id === 'blocked_time' || (a.service && a.service.startsWith('🚫'));
@@ -1113,36 +1849,26 @@ function renderSelectedDaySchedule() {
       if (s.includes('corte e barba') || s.includes('combo') || s.includes('completo')) dur = 60;
       else if (s.includes('progressiva')) dur = 120;
       else if (s.includes('sobrancelha')) dur = 20;
-      dayCuts++;
-      dayRev += parseFloat(a.price || 0);
-      occupiedMinutes += dur;
+      dayCuts++; dayRev += parseFloat(a.price || 0); occupiedMinutes += dur;
     }
     occupiedIntervals.push({ start: startMin, end: startMin + dur, type: isBlock ? 'block' : 'apt', data: a });
   });
 
-  const openTime = document.getElementById('set-open')?.value || '09:00';
-  const closeTime = document.getElementById('set-close')?.value || '20:30';
+  const openMin = timeToMinutes(document.getElementById('set-open')?.value || '09:00');
+  const closeMin = timeToMinutes(document.getElementById('set-close')?.value || '20:30');
   const breakStart = document.getElementById('set-break-start')?.value || '';
   const breakEnd = document.getElementById('set-break-end')?.value || '';
-
-  const openMin = timeToMinutes(openTime);
-  const closeMin = timeToMinutes(closeTime);
   const bStartMin = breakStart ? timeToMinutes(breakStart) : -1;
   const bEndMin = breakEnd ? timeToMinutes(breakEnd) : -1;
 
-  let freeSlotsCount = 0;
-  let totalWorkSlots = 0;
+  let freeSlotsCount = 0, totalWorkSlots = 0;
   for (let t = openMin; t <= closeMin - 30; t += 30) {
-    const isBreak = (bStartMin >= 0 && bEndMin > bStartMin && t >= bStartMin && t < bEndMin);
-    if (isBreak) continue;
+    if (bStartMin >= 0 && bEndMin > bStartMin && t >= bStartMin && t < bEndMin) continue;
     totalWorkSlots++;
-    const isBusy = occupiedIntervals.some(i => t < i.end && (t + 30) > i.start);
-    if (!isBusy) freeSlotsCount++;
+    if (!occupiedIntervals.some(i => t < i.end && (t + 30) > i.start)) freeSlotsCount++;
   }
 
-  const totalAvailableMins = totalWorkSlots * 30;
-  const occPercent = totalAvailableMins > 0 ? Math.min(100, Math.round((occupiedMinutes / totalAvailableMins) * 100)) : 0;
-
+  const occPercent = totalWorkSlots > 0 ? Math.min(100, Math.round((occupiedMinutes / (totalWorkSlots * 30)) * 100)) : 0;
   document.getElementById('cal-stat-cuts').innerText = dayCuts;
   document.getElementById('cal-stat-rev').innerText = `R$ ${dayRev.toFixed(0)}`;
   document.getElementById('cal-stat-free').innerText = freeSlotsCount;
@@ -1154,10 +1880,9 @@ function renderSelectedDaySchedule() {
   if (calendarViewMode === 'cards') {
     const merged = mergeBlocks(dayAptsRaw).filter(item => {
       if (!searchQuery) return true;
-      const clientName = (item.profiles?.full_name || '').toLowerCase();
-      const serviceName = (item.service || '').toLowerCase();
-      const timeStr = (item.time || '').toLowerCase();
-      return clientName.includes(searchQuery) || serviceName.includes(searchQuery) || timeStr.includes(searchQuery);
+      return (item.profiles?.full_name || '').toLowerCase().includes(searchQuery) ||
+             (item.service || '').toLowerCase().includes(searchQuery) ||
+             (item.time || '').toLowerCase().includes(searchQuery);
     });
 
     if (!merged.length) {
@@ -1167,12 +1892,8 @@ function renderSelectedDaySchedule() {
           <p class="text-sm font-black uppercase tracking-widest text-zinc-200">Agenda Livre em ${selectedCalendarDateStr}</p>
           <p class="text-xs text-zinc-500 mt-1 max-w-xs">Não há clientes agendados para esta data ou filtro. Aproveite para encaixar um cliente ou alternar para a grade de horários.</p>
           <div class="flex gap-2.5 mt-5">
-            <button onclick="openManualModalForSelectedDate()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-wider transition-all">
-              ✨ Agendar Cliente
-            </button>
-            <button onclick="setCalendarViewMode('timeline')" class="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-black text-[10px] uppercase tracking-wider transition-all">
-              🕒 Ver Horários Livres
-            </button>
+            <button onclick="openManualModalForSelectedDate()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-wider transition-all">✨ Agendar Cliente</button>
+            <button onclick="setCalendarViewMode('timeline')" class="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-black text-[10px] uppercase tracking-wider transition-all">🕒 Ver Horários Livres</button>
           </div>
         </div>
       `;
@@ -1212,9 +1933,7 @@ function renderSelectedDaySchedule() {
                 <p class="text-[10px] text-zinc-500 font-semibold">Indisponível para agendamento</p>
               </div>
             </div>
-            <button onclick="deleteAppointment('${a.id}', true)" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-red-600 text-zinc-300 hover:text-white text-[9px] font-black uppercase tracking-wider border border-zinc-800 transition-all">
-              Liberar
-            </button>
+            <button onclick="deleteAppointment('${a.id}', true)" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-red-600 text-zinc-300 hover:text-white text-[9px] font-black uppercase tracking-wider border border-zinc-800 transition-all">Liberar</button>
           </div>
         `;
       } else {
@@ -1262,9 +1981,7 @@ function renderSelectedDaySchedule() {
             <span class="text-xs font-bold text-zinc-400 group-hover:text-white bg-zinc-900 px-3 py-1.5 rounded-xl border border-zinc-800">${slotStr}</span>
             <span class="text-xs font-semibold text-zinc-500 group-hover:text-zinc-300">Horário Livre</span>
           </div>
-          <button onclick="openManualModalForSelectedDate('${slotStr}')" class="px-3 py-1.5 rounded-xl bg-emerald-500/10 group-hover:bg-emerald-500 text-emerald-400 group-hover:text-zinc-950 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider transition-all">
-            + Encaixar Cliente
-          </button>
+          <button onclick="openManualModalForSelectedDate('${slotStr}')" class="px-3 py-1.5 rounded-xl bg-emerald-500/10 group-hover:bg-emerald-500 text-emerald-400 group-hover:text-zinc-950 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider transition-all">+ Encaixar Cliente</button>
         </div>
       `;
     }
@@ -1273,14 +1990,8 @@ function renderSelectedDaySchedule() {
   container.innerHTML = timelineHtml;
 }
 
-function openManualModalForSelectedDate(slotStr = null) {
-  prefillTimeSlot = slotStr;
-  openManualModal(brDateToIso(selectedCalendarDateStr));
-}
-
-function openBlockModalForSelectedDate() {
-  openBlockModal(brDateToIso(selectedCalendarDateStr));
-}
+function openManualModalForSelectedDate(slotStr = null) { prefillTimeSlot = slotStr; openManualModal(brDateToIso(selectedCalendarDateStr)); }
+function openBlockModalForSelectedDate() { openBlockModal(brDateToIso(selectedCalendarDateStr)); }
 
 function copySelectedDateSummary() {
   const appointments = allAppointments
@@ -1288,24 +1999,15 @@ function copySelectedDateSummary() {
     .sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
   const revenue = appointments.reduce((sum, a) => sum + parseFloat(a.price || 0), 0);
   let text = `RB BARBEARIA — AGENDA ${selectedCalendarDateStr}\n\nAtendimentos: ${appointments.length}\nPrevisão: R$ ${revenue.toFixed(2).replace('.', ',')}\n\n`;
-  if (!appointments.length) {
-    text += `Nenhum agendamento registrado para esta data.`;
-  } else {
-    appointments.forEach(a => {
-      text += `${a.time || '--:--'} — ${a.profiles?.full_name || 'Cliente'} — ${a.service || 'Serviço'} — R$ ${parseFloat(a.price || 0).toFixed(2).replace('.', ',')}\n`;
-    });
-  }
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(() => alert(`Resumo do dia ${selectedCalendarDateStr} copiado!`));
-  } else {
-    alert(text);
-  }
+  if (!appointments.length) text += `Nenhum agendamento registrado para esta data.`;
+  else appointments.forEach(a => { text += `${a.time || '--:--'} — ${a.profiles?.full_name || 'Cliente'} — ${a.service || 'Serviço'} — R$ ${parseFloat(a.price || 0).toFixed(2).replace('.', ',')}\n`; });
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => alert(`Resumo do dia ${selectedCalendarDateStr} copiado!`));
+  else alert(text);
 }
 
-// ------------------------------------
-// AGENDAMENTO MANUAL NO ADMIN
-// ------------------------------------
-
+// ============================================================================
+// AGENDAMENTO MANUAL, BLOQUEIOS, HISTÓRICO, CLIENTES E DASHBOARD
+// ============================================================================
 function openManualModal(customIsoDate = null) {
   document.getElementById('manual-name').value = '';
   document.getElementById('manual-phone').value = '';
@@ -1324,7 +2026,6 @@ function openManualModal(customIsoDate = null) {
     document.getElementById('manual-time-grid').innerHTML = `<div class="col-span-4 text-center py-4 bg-zinc-950 border border-zinc-800 rounded-xl"><span class="text-xs text-zinc-600">Selecione o serviço para ver horários</span></div>`;
     updateManualBtn();
   }
-  
   document.getElementById('modal-manual-booking').classList.remove('hidden');
   document.getElementById('modal-manual-booking').classList.add('flex');
 }
@@ -1339,7 +2040,6 @@ async function fetchManualTimes() {
   const service = document.getElementById('manual-service').value;
   const dateVal = document.getElementById('manual-date').value;
   const grid = document.getElementById('manual-time-grid');
-  
   if (!service || !dateVal) return;
 
   const sData = servicesMap[service];
@@ -1353,7 +2053,6 @@ async function fetchManualTimes() {
   const [y, m, d] = dateVal.split('-');
   const targetDate = `${d}/${m}/${y}`;
   const targetDateNoZero = `${parseInt(d, 10)}/${parseInt(m, 10)}/${y}`;
-
   const { data: booked } = await sb.from('appointments').select('service, time, calendar_event_id').in('date', [targetDate, targetDateNoZero]);
   
   let occupiedIntervals = [];
@@ -1375,15 +2074,12 @@ async function fetchManualTimes() {
   const breakEnd = document.getElementById('set-break-end').value || '';
 
   if (breakStart && breakEnd) {
-    const bs = timeToMinutes(breakStart);
-    const be = timeToMinutes(breakEnd);
+    const bs = timeToMinutes(breakStart), be = timeToMinutes(breakEnd);
     if (be > bs) occupiedIntervals.push({ start: bs, end: be });
   }
 
-  const startMin = timeToMinutes(openTime);
-  const endMin = timeToMinutes(closeTime);
+  const startMin = timeToMinutes(openTime), endMin = timeToMinutes(closeTime);
   const slots = [];
-  
   for (let t = startMin; t <= endMin - manualSelectedDuration; t += 30) {
     slots.push(`${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`);
   }
@@ -1395,8 +2091,7 @@ async function fetchManualTimes() {
 
   let html = '';
   slots.forEach(slot => {
-    const slotStart = timeToMinutes(slot);
-    const slotEnd = slotStart + manualSelectedDuration;
+    const slotStart = timeToMinutes(slot), slotEnd = slotStart + manualSelectedDuration;
     const isOccupied = occupiedIntervals.some(i => slotStart < i.end && slotEnd > i.start);
     const isPassed = isToday && slotStart <= currentMinutes;
 
@@ -1436,8 +2131,7 @@ function updateManualBtn() {
 
 async function saveManualBooking() {
   const name = document.getElementById('manual-name').value.trim();
-  const phoneInput = document.getElementById('manual-phone').value;
-  const cleanPhone = phoneInput.replace(/\D/g, '');
+  const cleanPhone = document.getElementById('manual-phone').value.replace(/\D/g, '');
   const service = document.getElementById('manual-service').value;
   const dateVal = document.getElementById('manual-date').value;
 
@@ -1445,8 +2139,7 @@ async function saveManualBooking() {
   if (!service || !manualSelectedTime) return alert('Verifique os campos de serviço, data e horário.');
 
   const btn = document.getElementById('btn-save-manual');
-  btn.disabled = true;
-  btn.innerText = 'Salvando...';
+  btn.disabled = true; btn.innerText = 'Salvando...';
 
   let finalUserId = generateUUID();
   if (cleanPhone.length >= 10) {
@@ -1458,21 +2151,18 @@ async function saveManualBooking() {
   }
 
   const [y, m, d] = dateVal.split('-');
-  const formattedDate = `${d}/${m}/${y}`;
-
   const { error } = await sb.from('appointments').insert([{
     user_id: finalUserId,
     service: service,
     price: manualSelectedPrice,
-    date: formattedDate,
+    date: `${d}/${m}/${y}`,
     time: manualSelectedTime,
     calendar_event_id: 'internal_system'
   }]);
 
   if (error) {
     alert('Erro ao agendar: ' + error.message);
-    btn.disabled = false;
-    btn.innerText = 'Confirmar Agendamento';
+    btn.disabled = false; btn.innerText = 'Confirmar Agendamento';
     return;
   }
 
@@ -1485,10 +2175,7 @@ function openBlockModal(customIsoDate = null) {
   const now = new Date();
   const todayIso = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
   const input = document.getElementById('block-date');
-  if (input) {
-    input.min = todayIso;
-    input.value = customIsoDate || todayIso;
-  }
+  if (input) { input.min = todayIso; input.value = customIsoDate || todayIso; }
   document.getElementById('modal-block').classList.remove('hidden');
   document.getElementById('modal-block').classList.add('flex');
 }
@@ -1502,22 +2189,18 @@ async function confirmBlock() {
   const dateVal = document.getElementById('block-date').value;
   const start = document.getElementById('block-start').value;
   const end = document.getElementById('block-end').value;
-  const reason = 'Bloqueado'; 
 
   if (!dateVal) return alert('Selecione uma data.');
   const now = new Date();
   const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-  const startMin = timeToMinutes(start);
-  const endMin = timeToMinutes(end);
+  const startMin = timeToMinutes(start), endMin = timeToMinutes(end);
 
   if (dateVal < todayStr) return alert('Data no passado.');
   if (dateVal === todayStr && startMin <= now.getHours() * 60 + now.getMinutes()) return alert('Horário passado.');
   if (startMin >= endMin) return alert('O fim precisa ser maior que o início.');
 
   const [y,m,d] = dateVal.split('-');
-  const formattedDate = `${d}/${m}/${y}`;
-  const formattedDateNoZero = `${parseInt(d,10)}/${parseInt(m,10)}/${y}`;
-
+  const formattedDate = `${d}/${m}/${y}`, formattedDateNoZero = `${parseInt(d,10)}/${parseInt(m,10)}/${y}`;
   const btn = document.getElementById('btn-confirm-block');
   btn.disabled = true; btn.innerText = 'Processando...';
 
@@ -1535,7 +2218,6 @@ async function confirmBlock() {
       if (apt.service && (apt.service.includes('Corte e Barba') || apt.service.includes('Completo'))) dur = 60;
       else if (apt.service && apt.service.includes('Progressiva')) dur = 120;
       else if (apt.service && apt.service.includes('Sobrancelha')) dur = 20;
-
       if (aptStart < endMin && aptStart + dur > startMin) {
         conflictClient = { name: apt.profiles?.full_name || 'Cliente', time: apt.time };
         break;
@@ -1565,7 +2247,7 @@ async function confirmBlock() {
   for (let t = startMin; t < endMin; t += 30) {
     inserts.push({
       user_id: targetUserId,
-      service: `🚫 ${reason}`,
+      service: `🚫 Bloqueado`,
       price: 0,
       date: formattedDate,
       time: `${String(Math.floor(t / 60)).padStart(2,'0')}:${String(t % 60).padStart(2,'0')}`,
@@ -1638,6 +2320,10 @@ async function fetchHistoryData() {
       }
     });
     renderHistoryTable(); calculateDashboard(); renderClientsTable();
+    if (!document.getElementById('tab-orbita').classList.contains('hidden')) {
+      buildOrbitalUniverseData();
+      if (orbitalCurrentMode === 'constellation') renderConstellationView();
+    }
   } catch (err) { console.error('Falha ao buscar dados:', err); }
 }
 
@@ -1646,8 +2332,9 @@ function setHistoryFilter(filter) {
   ['hoje','7dias','tudo'].forEach(b => {
     const el = document.getElementById('filter-' + b);
     if (!el) return;
-    if (b === filter) el.className = 'px-3 py-2 rounded-lg text-[9px] uppercase tracking-wider font-bold text-white bg-zinc-700/50';
-    else el.className = 'px-3 py-2 rounded-lg text-[9px] uppercase tracking-wider font-bold text-zinc-400 hover:text-white';
+    el.className = b === filter
+      ? 'px-3 py-2 rounded-lg text-[9px] uppercase tracking-wider font-bold text-white bg-zinc-700/50'
+      : 'px-3 py-2 rounded-lg text-[9px] uppercase tracking-wider font-bold text-zinc-400 hover:text-white';
   });
   renderHistoryTable();
 }
@@ -1718,7 +2405,7 @@ function openDetailsModal(item) {
   document.getElementById('detail-status').innerHTML = statusMsg;
   const container = document.getElementById('detail-whatsapp-container');
   if (whatsLink && !isBlock) {
-    container.innerHTML = `<a href="${whatsLink}" target="_blank" class="flex items-center justify-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 border border-emerald-500/20 px-4 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all mt-3 w-full"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.964 9.964 0 001.333 4.993L2 22l5.233-1.237a9.994 9.994 0 004.779 1.216h.004c5.505 0 9.988-4.478 9.989-9.984 0-2.67-1.04-5.18-2.929-7.071A9.92 9.92 0 0012.012 2zm5.826 14.18c-.246.697-1.436 1.34-1.986 1.385-.436.036-1.002.138-3.197-.773-2.653-1.101-4.341-3.812-4.473-3.987-.132-.175-1.066-1.423-1.066-2.716 0-1.293.673-1.93.916-2.193.242-.261.527-.261.705-.261.176 0 .354.004.508.01.172.007.404-.065.632.485.242.585.827 2.023.898 2.17.071.146.119.317.027.502-.089.183-.135.297-.27.447-.133.15-.286.326-.402.457-.131.149-.271.314-.117.579.155.265.69 1.137 1.479 1.843.918.819 1.769 1.072 2.035 1.196.265.124.421.102.576-.051.155-.153.669-.778.85-1.045.18-.266.36-.222.604-.132.245.091 1.543.729 1.808.861.265.133.441.198.508.31.066.112.066.65-.18 1.347z"/></svg> WhatsApp</a>`;
+    container.innerHTML = `<a href="${whatsLink}" target="_blank" class="flex items-center justify-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 border border-emerald-500/20 px-4 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all mt-3 w-full">WhatsApp</a>`;
   } else { container.innerHTML = ''; }
   document.getElementById('modal-details').classList.remove('hidden');
 }
@@ -1733,13 +2420,8 @@ function renderClientsTable() {
   allHistoryData.forEach(apt => {
     if (apt.calendar_event_id === 'blocked_time' || (apt.service && apt.service.startsWith('🚫'))) return;
     if (!apt.profiles || !apt.user_id) return;
-
-    const userId = apt.user_id;
-    const aptDate = parseBrDateToObj(apt.date);
-
-    if (!clientMap[userId]) {
-      clientMap[userId] = { id: userId, name: apt.profiles.full_name || 'Desconhecido', phone: apt.profiles.phone || '', lastVisit: aptDate, totalSpent: 0, visits: 0 };
-    }
+    const userId = apt.user_id, aptDate = parseBrDateToObj(apt.date);
+    if (!clientMap[userId]) clientMap[userId] = { id: userId, name: apt.profiles.full_name || 'Desconhecido', phone: apt.profiles.phone || '', lastVisit: aptDate, totalSpent: 0, visits: 0 };
     if (aptDate > clientMap[userId].lastVisit) clientMap[userId].lastVisit = aptDate;
     if (apt.calendar_event_id !== 'cancelled_by_barber' && apt.calendar_event_id !== 'cancelled_by_client') {
       clientMap[userId].totalSpent += parseFloat(apt.price || 0);
@@ -1753,8 +2435,7 @@ function renderClientsTable() {
 
 function filterClients() {
   const query = document.getElementById('search-client').value.toLowerCase();
-  const filtered = allClientsList.filter(c => c.name.toLowerCase().includes(query) || (c.phone && c.phone.includes(query)));
-  populateClientsUI(filtered);
+  populateClientsUI(allClientsList.filter(c => c.name.toLowerCase().includes(query) || (c.phone && c.phone.includes(query))));
 }
 
 function populateClientsUI(clients) {
@@ -1769,7 +2450,7 @@ function populateClientsUI(clients) {
     const cleanPhone = (c.phone || '').replace(/\D/g,'');
     const whatsLink = cleanPhone ? `https://wa.me/55${cleanPhone}` : '#';
     const dateStr = `${String(c.lastVisit.getDate()).padStart(2,'0')}/${String(c.lastVisit.getMonth()+1).padStart(2,'0')}/${c.lastVisit.getFullYear()}`;
-    const whatsBtn = cleanPhone ? `<a href="${whatsLink}" target="_blank" class="flex items-center justify-center gap-1.5 text-emerald-400 hover:text-zinc-950 text-[9px] uppercase font-black tracking-widest bg-emerald-500/10 hover:bg-emerald-500 px-3 py-1.5 rounded-lg transition-all border border-emerald-500/20"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.964 9.964 0 001.333 4.993L2 22l5.233-1.237a9.994 9.994 0 004.779 1.216h.004c5.505 0 9.988-4.478 9.989-9.984 0-2.67-1.04-5.18-2.929-7.071A9.92 9.92 0 0012.012 2zm5.826 14.18c-.246.697-1.436 1.34-1.986 1.385-.436.036-1.002.138-3.197-.773-2.653-1.101-4.341-3.812-4.473-3.987-.132-.175-1.066-1.423-1.066-2.716 0-1.293.673-1.93.916-2.193.242-.261.527-.261.705-.261.176 0 .354.004.508.01.172.007.404-.065.632.485.242.585.827 2.023.898 2.17.071.146.119.317.027.502-.089.183-.135.297-.27.447-.133.15-.286.326-.402.457-.131.149-.271.314-.117.579.155.265.69 1.137 1.479 1.843.918.819 1.769 1.072 2.035 1.196.265.124.421.102.576-.051.155-.153.669-.778.85-1.045.18-.266.36-.222.604-.132.245.091 1.543.729 1.808.861.265.133.441.198.508.31.066.112.066.65-.18 1.347z"/></svg> WhatsApp</a>` : `<span class="text-zinc-600 text-[9px] uppercase font-bold">Sem contato</span>`;
+    const whatsBtn = cleanPhone ? `<a href="${whatsLink}" target="_blank" class="inline-flex items-center justify-center gap-1.5 text-emerald-400 hover:text-zinc-950 text-[9px] uppercase font-black tracking-widest bg-emerald-500/10 hover:bg-emerald-500 px-3 py-1.5 rounded-lg transition-all border border-emerald-500/20">WhatsApp</a>` : `<span class="text-zinc-600 text-[9px] uppercase font-bold">Sem contato</span>`;
 
     html += `
       <tr class="hover:bg-zinc-800/40 transition-colors border-l-2 border-transparent hover:border-orange-500">
@@ -1801,21 +2482,17 @@ function applyCustomDashFilter() { calculateDashboard(); }
 
 function showCancellationsModal() {
   const container = document.getElementById('cancellations-list');
-  
   if (!window.currentPeriodCancellations || window.currentPeriodCancellations.length === 0) {
     container.innerHTML = `<p class="text-center text-zinc-500 text-xs py-8 font-bold uppercase tracking-widest">Nenhum cancelamento no período selecionado</p>`;
   } else {
     const sorted = window.currentPeriodCancellations.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    let html = '';
-    
-    sorted.forEach(item => {
+    container.innerHTML = sorted.map(item => {
       const clientName = item.profiles?.full_name || 'Cliente Não Id.';
       const isBarber = item.calendar_event_id === 'cancelled_by_barber';
       const badge = isBarber 
         ? `<span class="bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded text-[8px] uppercase font-black tracking-wider">Cancelado por você</span>`
         : `<span class="bg-orange-500/10 text-orange-500 border border-orange-500/20 px-2 py-0.5 rounded text-[8px] uppercase font-black tracking-wider">Cancelado pelo cliente</span>`;
-        
-      html += `
+      return `
         <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden">
           <div class="absolute left-0 top-0 bottom-0 w-1 ${isBarber ? 'bg-red-500' : 'bg-orange-500'}"></div>
           <div class="flex justify-between items-start pl-2">
@@ -1831,10 +2508,8 @@ function showCancellationsModal() {
           </div>
         </div>
       `;
-    });
-    container.innerHTML = html;
+    }).join('');
   }
-  
   document.getElementById('modal-cancellations').classList.remove('hidden');
   document.getElementById('modal-cancellations').classList.add('flex');
 }
@@ -1855,7 +2530,7 @@ function calculateDashboard() {
     else if (dashFilter === 'mes') { startD = new Date(now.getFullYear(), now.getMonth(), 1); endD = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23,59,59); chartTitle = 'Receita: Este Mês (Por Dia)'; }
     else if (dashFilter === 'ano') { startD = new Date(now.getFullYear(),0,1); endD = new Date(now.getFullYear(), 11, 31, 23,59,59); chartTitle = 'Receita: Este Ano (Por Mês)'; }
     else {
-      const s = document.getElementById('dash-start')?.value; const e = document.getElementById('dash-end')?.value;
+      const s = document.getElementById('dash-start')?.value, e = document.getElementById('dash-end')?.value;
       if (!s || !e) return;
       startD = new Date(s + 'T00:00:00'); endD = new Date(e + 'T23:59:59'); chartTitle = 'Receita: Período Personalizado';
     }
@@ -1864,8 +2539,7 @@ function calculateDashboard() {
     if (titleEl) titleEl.innerText = chartTitle;
 
     window.currentPeriodCancellations = [];
-    let revPeriodo = 0, cutsPeriodo = 0, canceladosPeriodo = 0, aptsValidosTotal = 0;
-    let aptsFuturos = 0, revFutura = 0; 
+    let revPeriodo = 0, cutsPeriodo = 0, canceladosPeriodo = 0, aptsValidosTotal = 0, aptsFuturos = 0, revFutura = 0; 
     const serviceCounter = {}, clientCounter = {};
     let chartLabels = [], chartMap = {};
     const diffDays = Math.ceil((endD - startD) / (1000 * 60 * 60 * 24));
@@ -1897,19 +2571,12 @@ function calculateDashboard() {
         const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const isPastDate = aptDate < todayDate;
         const isTodayPassed = aptDate.toDateString() === todayDate.toDateString() && aptTime <= now.getHours()*60 + now.getMinutes();
-
-        if (!isPastDate && !isTodayPassed) {
-          aptsFuturos++; revFutura += price;
-        }
+        if (!isPastDate && !isTodayPassed) { aptsFuturos++; revFutura += price; }
       }
 
       if (aptDate >= startD && aptDate <= endD) {
         if (!isBlock) aptsValidosTotal++;
-        if (isCancelled && !isBlock) {
-          canceladosPeriodo++;
-          window.currentPeriodCancellations.push(a);
-        }
-        
+        if (isCancelled && !isBlock) { canceladosPeriodo++; window.currentPeriodCancellations.push(a); }
         if (!isCancelled && !isBlock) {
           const aptTime = timeToMinutes(a.time);
           const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -1924,7 +2591,6 @@ function calculateDashboard() {
               if (!clientCounter[name]) clientCounter[name] = { count:0, rev:0 };
               clientCounter[name].count++; clientCounter[name].rev += price;
             }
-
             if (dashFilter === 'hoje' && a.time) {
               const h = a.time.split(':')[0] + ':00';
               if (chartMap[h] !== undefined) chartMap[h] += price;
@@ -1942,8 +2608,7 @@ function calculateDashboard() {
     });
 
     const periodLabels = { hoje: 'Hoje', '7dias': '7 Dias', mes: 'Este Mês', ano: 'Este Ano', custom: 'Período' };
-    const walletPeriod = document.getElementById('dash-wallet-period');
-    if (walletPeriod) walletPeriod.innerText = periodLabels[dashFilter] || 'Período';
+    document.getElementById('dash-wallet-period').innerText = periodLabels[dashFilter] || 'Período';
     document.getElementById('dash-wallet-saldo').innerText = `R$ ${revPeriodo.toFixed(2).replace('.',',')}`;
     document.getElementById('dash-fat-periodo').innerText = `R$ ${revPeriodo.toFixed(2).replace('.',',')}`;
     document.getElementById('dash-cortes-periodo').innerText = `${cutsPeriodo} atendimentos concluídos`;
@@ -1957,28 +2622,24 @@ function calculateDashboard() {
 
     const medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
     const topServ = Object.keys(serviceCounter).map(k => ({ name:k, count:serviceCounter[k] })).sort((a,b) => b.count-a.count).slice(0,5);
-    let sHtml = topServ.length === 0 ? `<p class="text-zinc-600 text-[10px] uppercase font-bold tracking-widest text-center">Sem dados</p>` : '';
-    topServ.forEach((s,i) => {
-      sHtml += `
-        <div class="flex items-center justify-between p-3 bg-zinc-800/30 border border-zinc-800 rounded-xl">
-          <div class="flex items-center gap-2 min-w-0"><span>${medals[i]}</span><span class="text-zinc-100 text-[10px] font-black uppercase truncate">${s.name}</span></div>
-          <span class="text-emerald-400 font-black text-[10px] bg-emerald-500/10 px-2 py-1 rounded">${s.count}x</span>
-        </div>`;
-    });
-    document.getElementById('dash-top-services').innerHTML = sHtml;
+    document.getElementById('dash-top-services').innerHTML = topServ.length === 0
+      ? `<p class="text-zinc-600 text-[10px] uppercase font-bold tracking-widest text-center">Sem dados</p>`
+      : topServ.map((s,i) => `
+          <div class="flex items-center justify-between p-3 bg-zinc-800/30 border border-zinc-800 rounded-xl">
+            <div class="flex items-center gap-2 min-w-0"><span>${medals[i]}</span><span class="text-zinc-100 text-[10px] font-black uppercase truncate">${s.name}</span></div>
+            <span class="text-emerald-400 font-black text-[10px] bg-emerald-500/10 px-2 py-1 rounded">${s.count}x</span>
+          </div>`).join('');
 
     const topCli = Object.keys(clientCounter).map(k => ({ name:k, rev:clientCounter[k].rev, count:clientCounter[k].count })).sort((a,b) => b.rev-a.rev).slice(0,5);
-    let cHtml = topCli.length === 0 ? `<p class="text-zinc-600 text-[10px] uppercase font-bold tracking-widest text-center">Sem dados</p>` : '';
-    topCli.forEach((c,i) => {
-      cHtml += `
-        <div class="flex items-center justify-between p-3 bg-zinc-800/30 border border-zinc-800 rounded-xl">
-          <div class="flex items-center gap-2 min-w-0"><span>${medals[i]}</span>
-            <div class="flex flex-col min-w-0"><span class="text-zinc-100 text-[10px] font-black uppercase truncate">${c.name}</span><span class="text-[8px] text-zinc-500 font-bold uppercase">${c.count} visitas</span></div>
-          </div>
-          <span class="text-emerald-400 font-black text-[10px] bg-emerald-500/10 px-2 py-1 rounded">R$ ${c.rev.toFixed(2).replace('.',',')}</span>
-        </div>`;
-    });
-    document.getElementById('dash-top-clients').innerHTML = cHtml;
+    document.getElementById('dash-top-clients').innerHTML = topCli.length === 0
+      ? `<p class="text-zinc-600 text-[10px] uppercase font-bold tracking-widest text-center">Sem dados</p>`
+      : topCli.map((c,i) => `
+          <div class="flex items-center justify-between p-3 bg-zinc-800/30 border border-zinc-800 rounded-xl">
+            <div class="flex items-center gap-2 min-w-0"><span>${medals[i]}</span>
+              <div class="flex flex-col min-w-0"><span class="text-zinc-100 text-[10px] font-black uppercase truncate">${c.name}</span><span class="text-[8px] text-zinc-500 font-bold uppercase">${c.count} visitas</span></div>
+            </div>
+            <span class="text-emerald-400 font-black text-[10px] bg-emerald-500/10 px-2 py-1 rounded">R$ ${c.rev.toFixed(2).replace('.',',')}</span>
+          </div>`).join('');
 
     const chartData = chartLabels.map(l => chartMap[l] || 0);
     if (revenueChartInstance) revenueChartInstance.destroy();
@@ -1997,11 +2658,11 @@ function calculateDashboard() {
 }
 
 function mergeBlocks(dayApts) {
-  let merged = []; let currentBlock = null;
+  let merged = [], currentBlock = null;
   dayApts.forEach(item => {
     const isBlock = item.calendar_event_id === 'blocked_time' || (item.service && item.service.startsWith('🚫'));
     if (isBlock) {
-      if (!currentBlock) { currentBlock = { ...item, type:'block', end_time:item.time, block_ids:[item.id] }; }
+      if (!currentBlock) currentBlock = { ...item, type:'block', end_time:item.time, block_ids:[item.id] };
       else if (add30Mins(currentBlock.end_time) === item.time && currentBlock.service === item.service) { currentBlock.end_time = item.time; currentBlock.block_ids.push(item.id); }
       else { merged.push(currentBlock); currentBlock = { ...item, type:'block', end_time:item.time, block_ids:[item.id] }; }
     } else {
@@ -2046,7 +2707,7 @@ function generateCardHtml(item) {
         <p class="font-black text-white text-[15px] leading-tight truncate tracking-wide drop-shadow-lg">${clientName}</p>
         <p class="text-[10px] ${sTheme.text} truncate mt-1.5 font-bold uppercase tracking-widest drop-shadow-md">${item.service || '-'}</p>
         <div class="pt-3.5 mt-3.5 border-t border-zinc-500/30 flex items-center justify-between">
-          ${cleanPhone ? `<a href="${whatsLink}" target="_blank" class="text-emerald-400 hover:text-zinc-950 text-[9px] uppercase tracking-widest font-black flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500 px-3 py-1.5 rounded-lg border border-emerald-500/20 transition-all backdrop-blur-sm"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.964 9.964 0 001.333 4.993L2 22l5.233-1.237a9.994 9.994 0 004.779 1.216h.004c5.505 0 9.988-4.478 9.989-9.984 0-2.67-1.04-5.18-2.929-7.071A9.92 9.92 0 0012.012 2zm5.826 14.18c-.246.697-1.436 1.34-1.986 1.385-.436.036-1.002.138-3.197-.773-2.653-1.101-4.341-3.812-4.473-3.987-.132-.175-1.066-1.423-1.066-2.716 0-1.293.673-1.93.916-2.193.242-.261.527-.261.705-.261.176 0 .354.004.508.01.172.007.404-.065.632.485.242.585.827 2.023.898 2.17.071.146.119.317.027.502-.089.183-.135.297-.27.447-.133.15-.286.326-.402.457-.131.149-.271.314-.117.579.155.265.69 1.137 1.479 1.843.918.819 1.769 1.072 2.035 1.196.265.124.421.102.576-.051.155-.153.669-.778.85-1.045.18-.266.36-.222.604-.132.245.091 1.543.729 1.808.861.265.133.441.198.508.31.066.112.066.65-.18 1.347z"/></svg> WhatsApp</a>` : `<span class="text-zinc-300 font-bold text-[9px] uppercase tracking-widest drop-shadow-md">Sem contato</span>`}
+          ${cleanPhone ? `<a href="${whatsLink}" target="_blank" class="text-emerald-400 hover:text-zinc-950 text-[9px] uppercase tracking-widest font-black flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500 px-3 py-1.5 rounded-lg border border-emerald-500/20 transition-all backdrop-blur-sm">WhatsApp</a>` : `<span class="text-zinc-300 font-bold text-[9px] uppercase tracking-widest drop-shadow-md">Sem contato</span>`}
           <button onclick="deleteAppointment('${item.id}', false)" class="text-zinc-300 hover:text-white text-[9px] uppercase font-black tracking-widest bg-zinc-900/80 hover:bg-red-600 px-3 py-1.5 rounded-lg border border-zinc-700/50 transition-all backdrop-blur-sm">Cancelar</button>
         </div>
       </div>
@@ -2057,7 +2718,6 @@ async function loadAgendaData(silent = false) {
   try {
     const { data: apts, error } = await sb.from('appointments').select(`id, service, date, time, price, calendar_event_id, user_id, profiles(full_name, phone)`).neq('calendar_event_id', 'cancelled_by_barber').neq('calendar_event_id', 'cancelled_by_client');
     if (error) return;
-
     allAppointments = apts || [];
     allAppointments.forEach(a => {
       if (a.date && a.date.includes('/')) {
@@ -2065,7 +2725,6 @@ async function loadAgendaData(silent = false) {
         if (p.length === 3) a.date = `${String(p[0]).padStart(2,'0')}/${String(p[1]).padStart(2,'0')}/${p[2]}`;
       }
     });
-
     renderBoards();
   } catch (err) { console.error('Erro no loadAgendaData:', err); }
 }
@@ -2087,15 +2746,12 @@ function renderBoards() {
 
   updateTodaySmartStats(todayAptsRaw, todayCuts, todayRevenue);
 
-  let dailyHtml = '';
   const mergedToday = mergeBlocks(todayAptsRaw);
-  if (!mergedToday.length) {
-    dailyHtml = `
-      <div class="col-span-full flex flex-col items-center justify-center py-20 text-zinc-600 border-2 border-dashed border-zinc-800/50 rounded-3xl bg-zinc-900/20">
-        <span class="text-3xl mb-3">✂️</span><span class="text-xs font-black uppercase tracking-widest">Agenda Livre</span><span class="text-[9px] mt-2 text-zinc-700 uppercase font-bold">Nenhum atendimento programado para hoje</span>
-      </div>`;
-  } else { mergedToday.forEach(item => { dailyHtml += generateCardHtml(item); }); }
-  if (dailyContainer) dailyContainer.innerHTML = dailyHtml;
+  if (dailyContainer) {
+    dailyContainer.innerHTML = !mergedToday.length
+      ? `<div class="col-span-full flex flex-col items-center justify-center py-20 text-zinc-600 border-2 border-dashed border-zinc-800/50 rounded-3xl bg-zinc-900/20"><span class="text-3xl mb-3">✂️</span><span class="text-xs font-black uppercase tracking-widest">Agenda Livre</span><span class="text-[9px] mt-2 text-zinc-700 uppercase font-bold">Nenhum atendimento programado para hoje</span></div>`
+      : mergedToday.map(item => generateCardHtml(item)).join('');
+  }
 
   renderCalendarSection();
   filterAgendaCards();
@@ -2103,8 +2759,7 @@ function renderBoards() {
 
 function formatNextWhenLabel(dateStr, todayStr) {
   if (!dateStr || dateStr === todayStr) return '';
-  const d = parseBrDateToObj(dateStr);
-  const t = parseBrDateToObj(todayStr);
+  const d = parseBrDateToObj(dateStr), t = parseBrDateToObj(todayStr);
   const diffDays = Math.round((d.getTime() - t.getTime()) / 86400000);
   const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
   const shortDate = dateStr.includes('/') ? dateStr.slice(0, 5) : dateStr;
@@ -2126,11 +2781,7 @@ function updateTodaySmartStats(appointments, total, revenue) {
     if (day > todayStart) return true;
     if (day === todayStart) return timeToMinutes(a.time) >= currentMins;
     return false;
-  }).sort((a, b) => {
-    const da = parseBrDateToObj(a.date).getTime() + timeToMinutes(a.time) * 60000;
-    const db = parseBrDateToObj(b.date).getTime() + timeToMinutes(b.time) * 60000;
-    return da - db;
-  });
+  }).sort((a, b) => (parseBrDateToObj(a.date).getTime() + timeToMinutes(a.time) * 60000) - (parseBrDateToObj(b.date).getTime() + timeToMinutes(b.time) * 60000));
   const next = upcoming[0] || null;
 
   const nextTime = document.getElementById('today-next-time');
@@ -2155,20 +2806,15 @@ function updateTodaySmartStats(appointments, total, revenue) {
     }
   }
 
-  const elTotalCount = document.getElementById('today-total-count');
-  if (elTotalCount) elTotalCount.innerText = total;
-
-  const elTodayRev = document.getElementById('today-revenue');
-  if (elTodayRev) elTodayRev.innerText = `R$ ${revenue.toFixed(2).replace('.',',')}`;
+  document.getElementById('today-total-count').innerText = total;
+  document.getElementById('today-revenue').innerText = `R$ ${revenue.toFixed(2).replace('.',',')}`;
 
   let completedRevenue = 0;
   appointments.forEach(a => {
     if (a.calendar_event_id === 'blocked_time' || (a.service && a.service.startsWith('🚫'))) return;
-    if (timeToMinutes(a.time) < now.getHours()*60 + now.getMinutes()) completedRevenue += parseFloat(a.price || 0);
+    if (timeToMinutes(a.time) < currentMins) completedRevenue += parseFloat(a.price || 0);
   });
-  
-  const elTodayComp = document.getElementById('today-completed');
-  if (elTodayComp) elTodayComp.innerText = `R$ ${completedRevenue.toFixed(2).replace('.',',')} realizados hoje`;
+  document.getElementById('today-completed').innerText = `R$ ${completedRevenue.toFixed(2).replace('.',',')} realizados hoje`;
 
   const valid = appointments.filter(a => a.calendar_event_id !== 'blocked_time' && !(a.service || '').startsWith('🚫'));
   let occupiedMinutes = 0;
@@ -2181,14 +2827,9 @@ function updateTodaySmartStats(appointments, total, revenue) {
     occupiedMinutes += duration;
   });
 
-  const opening = 9 * 60, closing = 20 * 60, available = closing - opening;
-  const occupancy = available > 0 ? Math.min(100, Math.round((occupiedMinutes / available) * 100)) : 0;
-  
-  const elOccupancy = document.getElementById('today-occupancy');
-  if (elOccupancy) elOccupancy.innerText = `${occupancy}%`;
-  
-  const elOccupancyBar = document.getElementById('today-occupancy-bar');
-  if (elOccupancyBar) elOccupancyBar.style.width = `${occupancy}%`;
+  const occupancy = Math.min(100, Math.round((occupiedMinutes / (11 * 60)) * 100));
+  document.getElementById('today-occupancy').innerText = `${occupancy}%`;
+  document.getElementById('today-occupancy-bar').style.width = `${occupancy}%`;
 }
 
 function filterAgendaCards() {
@@ -2201,11 +2842,14 @@ function filterAgendaCards() {
     card.style.display = show ? '' : 'none'; if (show) visible++;
   });
   const counter = document.getElementById('agenda-result-count');
-  if (counter) { if (query) { counter.classList.remove('hidden'); counter.innerText = `${visible} resultado${visible === 1 ? '' : 's'}`; } else { counter.classList.add('hidden'); } }
+  if (counter) {
+    if (query) { counter.classList.remove('hidden'); counter.innerText = `${visible} resultado${visible === 1 ? '' : 's'}`; }
+    else counter.classList.add('hidden');
+  }
 }
 
 function exportHistoryCSV() {
-  if (!allHistoryData.length) { alert('Não há dados para exportar.'); return; }
+  if (!allHistoryData.length) return alert('Não há dados para exportar.');
   const rows = [['Data Registro', 'Data Agendada', 'Horário', 'Cliente', 'Telefone', 'Serviço', 'Valor', 'Status']];
   allHistoryData.forEach(a => {
     const isBlock = a.calendar_event_id === 'blocked_time' || (a.service || '').startsWith('🚫');
@@ -2217,7 +2861,7 @@ function exportHistoryCSV() {
   });
   const csv = rows.map(row => row.map(value => `"${String(value).replace(/"/g,'""')}"`).join(';')).join('\n');
   const blob = new Blob(['\ufeff' + csv], { type:'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob); const link = document.createElement('a');
+  const url = URL.createObjectURL(blob), link = document.createElement('a');
   link.href = url; link.download = `RB-Barbearia-${new Date().toISOString().slice(0,10)}.csv`;
   document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
 }
@@ -2229,8 +2873,8 @@ function copyDaySummary() {
   const revenue = appointments.reduce((sum,a) => sum + parseFloat(a.price || 0), 0);
   let text = `RB BARBEARIA — RESUMO DO DIA\n${date}\n\nAtendimentos: ${appointments.length}\nFaturamento previsto: R$ ${revenue.toFixed(2).replace('.',',')}\n\n`;
   appointments.forEach(a => { text += `${a.time || '--:--'} — ${a.profiles?.full_name || 'Cliente'} — ${a.service || 'Serviço'} — R$ ${parseFloat(a.price || 0).toFixed(2).replace('.',',')}\n`; });
-  if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(() => { alert('Resumo copiado!'); }).catch(() => { alert('Não foi possível copiar automaticamente.'); }); }
-  else { alert(text); }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => alert('Resumo copiado!')).catch(() => alert('Não foi possível copiar automaticamente.'));
+  else alert(text);
 }
 </script>
 </body>
