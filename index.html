@@ -10,7 +10,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
@@ -41,6 +41,11 @@
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
       border: 1px solid rgba(255,255,255,0.08);
+    }
+    .next-apt-highlight {
+      background: radial-gradient(circle at 100% 0%, rgba(217,164,65,0.22), transparent 55%), linear-gradient(145deg, #171510 0%, #0d0d0d 100%);
+      border: 1.5px solid rgba(217,164,65,0.55);
+      box-shadow: 0 18px 50px rgba(217,164,65,0.14), inset 0 1px 0 rgba(255,255,255,0.08);
     }
     .soft-shadow {
       box-shadow: 0 20px 60px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.025);
@@ -102,7 +107,7 @@
       <div class="space-y-4">
         <div>
           <label class="text-[10px] text-zinc-500 uppercase font-bold tracking-[0.16em] mb-2 block">Nome e Sobrenome</label>
-          <input type="text" id="mandatory-name-input" placeholder="Ex: João Silva" class="w-full px-4 py-3.5 bg-[#090909] border border-white/10 rounded-2xl text-white outline-none focus:border-[#d9a441] text-sm">
+          <input type="text" id="mandatory-name-input" placeholder="Ex: João Silva" onblur="this.value = formatClientName(this.value)" class="w-full px-4 py-3.5 bg-[#090909] border border-white/10 rounded-2xl text-white outline-none focus:border-[#d9a441] text-sm">
         </div>
         <div>
           <label class="text-[10px] text-zinc-500 uppercase font-bold tracking-[0.16em] mb-2 block">WhatsApp</label>
@@ -167,7 +172,7 @@
 
       <!-- HOME -->
       <section id="tab-content-inicio" class="animate-fade-up">
-        <div class="relative h-[340px] overflow-hidden">
+        <div class="relative h-[300px] overflow-hidden">
           <img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=1200&auto=format&fit=crop&q=85" class="absolute inset-0 w-full h-full object-cover" alt="Barbearia">
           <div class="absolute inset-0 hero-overlay"></div>
           <div class="absolute inset-x-0 top-0 safe-top px-5">
@@ -186,45 +191,29 @@
           </div>
           <div class="absolute bottom-6 left-5 right-5">
             <p class="text-[#edbc61] text-[10px] uppercase font-bold tracking-[0.3em] mb-1">Estilo • Respeito • Você</p>
-            <h1 class="display-font text-[32px] leading-tight text-white">Seu próximo corte<br>começa aqui.</h1>
+            <h1 class="display-font text-[30px] leading-tight text-white">Seu próximo corte<br>começa aqui.</h1>
           </div>
         </div>
 
+        <!-- DESTAQUE PRINCIPAL: PRÓXIMO AGENDAMENTO -->
         <div class="px-5 -mt-4 relative z-10">
+          <div id="home-next-appointment-wrapper"></div>
+        </div>
+
+        <!-- BOTÃO AGENDAR NOVO -->
+        <div class="px-5 mt-4">
           <button onclick="switchAppTab('servicos')" class="press gold-gradient gold-shadow rounded-2xl w-full p-4 flex items-center justify-between text-black">
             <div class="flex items-center gap-3">
               <div class="w-11 h-11 rounded-xl bg-black/10 flex items-center justify-center">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"/></svg>
               </div>
               <div class="text-left">
-                <p class="font-bold text-sm">Agendar agora</p>
-                <p class="text-[11px] opacity-75">Horários sempre sincronizados</p>
+                <p class="font-bold text-sm">Agendar novo horário</p>
+                <p id="home-limit-subtitle" class="text-[11px] opacity-80">Você pode marcar até 3 horários</p>
               </div>
             </div>
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           </button>
-        </div>
-
-        <!-- PRÓXIMO CORTE -->
-        <div class="px-5 mt-7">
-          <div class="flex items-center justify-between mb-3">
-            <h2 class="text-white font-bold text-lg">Seu próximo corte</h2>
-            <span class="text-[10px] uppercase tracking-widest text-zinc-600">Agenda</span>
-          </div>
-
-          <div id="home-next-appointment" class="glass rounded-3xl p-5 soft-shadow">
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 rounded-2xl bg-[#d9a441]/10 border border-[#d9a441]/20 flex items-center justify-center shrink-0">
-                <svg class="w-5 h-5 gold-text" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 001 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"/></svg>
-              </div>
-              <div class="flex-1 min-w-0">
-                <p id="next-appointment-service" class="font-bold text-white truncate">Nenhum agendamento</p>
-                <p id="next-appointment-date" class="text-xs text-zinc-500 mt-1">Você não possui horário marcado.</p>
-              </div>
-              <span id="next-appointment-status" class="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-full bg-[#d9a441]/10 text-[#e4b75d] border border-[#d9a441]/20 shrink-0">Livre</span>
-            </div>
-            <button id="next-appointment-action" onclick="switchAppTab('servicos')" class="press mt-4 w-full py-3 rounded-xl bg-white/5 border border-white/5 text-xs font-semibold text-zinc-300">Agendar meu horário</button>
-          </div>
         </div>
 
         <!-- SERVIÇOS CAROUSEL -->
@@ -279,7 +268,7 @@
         <div class="mb-7">
           <p class="text-[10px] uppercase tracking-[0.28em] text-[#d9a441] font-bold">Catálogo</p>
           <h2 class="display-font text-3xl text-white mt-1">Nossos Serviços</h2>
-          <p class="text-xs text-zinc-500 mt-1">Selecione para escolher o dia e horário.</p>
+          <p class="text-xs text-zinc-500 mt-1">Selecione para escolher o dia e horário (até 3 agendamentos ativos).</p>
         </div>
 
         <div class="space-y-3">
@@ -335,11 +324,12 @@
 
       <!-- HISTÓRICO -->
       <section id="tab-content-historico" class="hidden px-5 pt-7 animate-fade-up">
-        <div class="mb-7">
+        <div class="mb-6">
           <p class="text-[10px] uppercase tracking-[0.28em] text-[#d9a441] font-bold">Meus Registros</p>
-          <h2 class="display-font text-3xl text-white mt-1">Histórico</h2>
+          <h2 class="display-font text-3xl text-white mt-1">Meus Horários</h2>
+          <p class="text-xs text-zinc-500 mt-1">Atualizado automaticamente em tempo real com a barbearia.</p>
         </div>
-        <div id="history-container" class="space-y-3"></div>
+        <div id="history-container" class="space-y-4"></div>
       </section>
 
       <!-- PERFIL -->
@@ -352,7 +342,7 @@
         <div class="bg-[#111111] border border-white/10 rounded-[28px] p-6 space-y-4">
           <div>
             <label class="text-[10px] text-zinc-500 uppercase font-bold tracking-[0.15em] block mb-2">Nome</label>
-            <input type="text" id="profile-name-input" class="w-full px-4 py-3.5 bg-[#090909] border border-white/10 rounded-2xl text-white outline-none focus:border-[#d9a441] text-sm">
+            <input type="text" id="profile-name-input" onblur="this.value = formatClientName(this.value)" class="w-full px-4 py-3.5 bg-[#090909] border border-white/10 rounded-2xl text-white outline-none focus:border-[#d9a441] text-sm">
           </div>
           <div>
             <label class="text-[10px] text-zinc-500 uppercase font-bold tracking-[0.15em] block mb-2">WhatsApp</label>
@@ -412,7 +402,7 @@
       <div class="px-5 pt-6">
         <div class="flex items-end justify-between mb-3">
           <div>
-            <p class="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">1. Escolha a data</p>
+            <p class="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">1. Escolha a data (Próximos 3 meses)</p>
             <h3 id="booking-month-title" class="display-font text-2xl text-white mt-0.5">Mês</h3>
           </div>
         </div>
@@ -421,8 +411,8 @@
 
         <div class="mt-7 mb-3 flex items-center justify-between">
           <div>
-            <p class="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">2. Escolha o horário</p>
-            <h3 class="text-base font-bold text-white mt-0.5">Disponíveis</h3>
+            <p class="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">2. Escolha o horário</p>
+            <h3 class="text-base font-bold text-white mt-0.5">Disponíveis por Turno</h3>
           </div>
           <span id="booking-duration-label" class="text-[10px] text-[#d9a441] font-semibold bg-[#d9a441]/10 px-2.5 py-1 rounded-md">30 min</span>
         </div>
@@ -454,12 +444,16 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_AcMuSuUE6DK5gGQ9eStmMw_muIgJsG6';
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    const MAX_ACTIVE_BOOKINGS = 3;
+
     let clientUser = null;
     let selectedService = null;
     let selectedDuration = 30;
     let selectedPrice = null;
     let selectedDate = null;
     let selectedTime = null;
+    let knownCompletedIds = new Set();
+    let initialLoadDone = false;
 
     let shopSettings = {
       open: '09:00',
@@ -471,12 +465,55 @@
     let realtimeSub = null;
     let syncInterval = null;
 
-    function generateUUID() {
-      if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-        const r = Math.random() * 16 | 0;
-        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-      });
+    function formatClientName(name) {
+      if (!name) return 'Cliente';
+      return String(name)
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, ' ')
+        .split(' ')
+        .map(word => word ? word.charAt(0).toUpperCase() + word.slice(1) : '')
+        .join(' ');
+    }
+
+    function isCompletedItem(item) {
+      if (!item || !item.calendar_event_id) return false;
+      return String(item.calendar_event_id).startsWith('completed:');
+    }
+
+    function getPaymentMethod(item) {
+      if (!isCompletedItem(item)) return '';
+      return String(item.calendar_event_id).replace('completed:', '').trim();
+    }
+
+    function isNoShowItem(item) {
+      if (!item) return false;
+      return item.calendar_event_id === 'no_show';
+    }
+
+    function isCancelledItem(item) {
+      if (!item) return false;
+      return item.calendar_event_id === 'cancelled_by_barber' || item.calendar_event_id === 'cancelled_by_client';
+    }
+
+    function isBlockItem(item) {
+      if (!item) return false;
+      return item.calendar_event_id === 'blocked_time' || (item.service && item.service.startsWith('🚫'));
+    }
+
+    function getServiceDuration(serviceName) {
+      const s = (serviceName || '').toLowerCase();
+      if (s.includes('corte e barba') || s.includes('combo') || s.includes('completo')) return 60;
+      if (s.includes('progressiva')) return 120;
+      if (s.includes('sobrancelha')) return 20;
+      return 30;
+    }
+
+    function formatServiceWithDuration(serviceName) {
+      if (!serviceName) return 'Serviço';
+      const dur = getServiceDuration(serviceName);
+      if (/\(\d+\s*m(in)?\)/i.test(serviceName)) return serviceName;
+      return `${serviceName} (${dur} min)`;
     }
 
     function showToast(text) {
@@ -484,7 +521,7 @@
       toast.innerText = text;
       toast.classList.remove('hidden');
       clearTimeout(window.toastTimer);
-      window.toastTimer = setTimeout(() => toast.classList.add('hidden'), 2600);
+      window.toastTimer = setTimeout(() => toast.classList.add('hidden'), 3200);
     }
 
     function maskPhone(input) {
@@ -511,12 +548,42 @@
       if (dateParts.length !== 3) return null;
       const timeParts = item.time.split(':');
       return new Date(
-        parseInt(dateParts[2], 10), 
-        parseInt(dateParts[1], 10) - 1, 
-        parseInt(dateParts[0], 10), 
-        parseInt(timeParts[0] || 0, 10), 
+        parseInt(dateParts[2], 10),
+        parseInt(dateParts[1], 10) - 1,
+        parseInt(dateParts[0], 10),
+        parseInt(timeParts[0] || 0, 10),
         parseInt(timeParts[1] || 0, 10)
       );
+    }
+
+    function getRelativeDayLabel(dateStr) {
+      if (!dateStr) return '';
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return dateStr;
+      const target = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const diff = Math.round((target.getTime() - today.getTime()) / 86400000);
+      if (diff === 0) return 'HOJE';
+      if (diff === 1) return 'AMANHÃ';
+      if (diff > 1) return `EM ${diff} DIAS`;
+      return dateStr;
+    }
+
+    function formatFullDateReadable(dateStr) {
+      if (!dateStr) return '';
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return dateStr;
+      const d = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+      return d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).replace('.', '');
+    }
+
+    function isActiveUpcomingAppointment(item, now = new Date()) {
+      if (!item || isBlockItem(item) || isCancelledItem(item) || isCompletedItem(item) || isNoShowItem(item)) {
+        return false;
+      }
+      const d = parseAppointmentDate(item);
+      return d && d >= now;
     }
 
     async function fetchSettings() {
@@ -529,27 +596,27 @@
           shopSettings.break_end = data.break_end || '';
         }
       } catch (e) {
-        console.warn('Configurações offline/padrão utilizadas:', e);
+        console.warn('Configurações padrão utilizadas:', e);
       }
     }
 
     function initClientRealtime() {
       if (realtimeSub) return;
 
-      realtimeSub = sb.channel('public:realtime_sync')
+      realtimeSub = sb.channel('public:client_realtime_sync')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
-          triggerImmediateSync();
+          triggerImmediateSync(true);
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, async () => {
           await fetchSettings();
-          triggerImmediateSync();
+          triggerImmediateSync(true);
         })
         .subscribe();
 
       if (syncInterval) clearInterval(syncInterval);
       syncInterval = setInterval(() => {
         triggerImmediateSync(true);
-      }, 4000);
+      }, 3500);
     }
 
     function triggerImmediateSync(silent = false) {
@@ -557,8 +624,7 @@
         renderTimeOptions(selectedDate, silent);
       }
       if (clientUser) {
-        loadHistory();
-        loadNextAppointment();
+        syncClientAppointmentsData();
       }
     }
 
@@ -568,6 +634,7 @@
       if (savedSession) {
         try {
           clientUser = JSON.parse(savedSession);
+          clientUser.name = formatClientName(clientUser.name);
           enterApp();
           return;
         } catch (e) {
@@ -578,7 +645,7 @@
       sb.auth.onAuthStateChange(async (event, session) => {
         if (session && session.user && !clientUser) {
           const u = session.user;
-          const name = u.user_metadata?.full_name || 'Cliente';
+          const name = formatClientName(u.user_metadata?.full_name || 'Cliente');
           const avatar = u.user_metadata?.avatar_url || null;
           let phone = u.phone || u.user_metadata?.typed_phone || '';
           const cleanPhone = phone.replace(/\D/g, '');
@@ -588,7 +655,7 @@
           } else {
             const { data: prof } = await sb.from('profiles').select('*').eq('id', u.id).maybeSingle();
             if (prof && prof.phone && prof.phone.length >= 10) {
-              await unifyAndEnterApp(u.id, prof.full_name || name, u.email, prof.phone, prof.avatar_url || avatar);
+              await unifyAndEnterApp(u.id, formatClientName(prof.full_name || name), u.email, prof.phone, prof.avatar_url || avatar);
             } else {
               window.tempAuthUser = { ...u, tempAvatar: avatar };
               if (name !== 'Cliente') document.getElementById('mandatory-name-input').value = name;
@@ -599,7 +666,8 @@
       });
     });
 
-    async function unifyAndEnterApp(authId, name, email, phone, avatarUrlFromAuth) {
+    async function unifyAndEnterApp(authId, rawName, email, phone, avatarUrlFromAuth) {
+      const name = formatClientName(rawName);
       const cleanPhone = phone.replace(/\D/g, '');
       const { data: existingProfile } = await sb.from('profiles').select('*').eq('phone', cleanPhone).maybeSingle();
 
@@ -615,7 +683,7 @@
 
       clientUser = {
         id: finalUserId,
-        name: existingProfile ? (existingProfile.full_name || name) : name,
+        name: formatClientName(existingProfile ? (existingProfile.full_name || name) : name),
         email: email || '',
         phone: cleanPhone,
         avatar_url: finalAvatar
@@ -627,7 +695,7 @@
     }
 
     async function submitMandatoryPhone() {
-      const nameInput = document.getElementById('mandatory-name-input').value.trim();
+      const nameInput = formatClientName(document.getElementById('mandatory-name-input').value.trim());
       const phoneInput = document.getElementById('mandatory-phone-input').value;
       const cleanPhone = phoneInput.replace(/\D/g, '');
 
@@ -668,25 +736,26 @@
       document.getElementById('view-app').classList.add('flex');
 
       loadProfileDataIntoUI();
-      loadHistory();
-      loadNextAppointment();
+      syncClientAppointmentsData();
       initClientRealtime();
       switchAppTab('inicio');
     }
 
     function loadProfileDataIntoUI() {
       if (!clientUser) return;
-      document.getElementById('profile-name-input').value = clientUser.name || '';
+      const formatted = formatClientName(clientUser.name || '');
+      document.getElementById('profile-name-input').value = formatted;
       document.getElementById('profile-phone-input').value = clientUser.phone || '';
-      document.getElementById('home-greeting-name').innerText = `Olá, ${(clientUser.name || 'Cliente').split(' ')[0]}!`;
+      document.getElementById('home-greeting-name').innerText = `Olá, ${formatted.split(' ')[0]}!`;
     }
 
     async function saveProfile() {
-      const newName = document.getElementById('profile-name-input').value.trim();
-      if (!newName.includes(' ')) {
+      const rawName = document.getElementById('profile-name-input').value.trim();
+      if (!rawName.includes(' ')) {
         alert('Informe seu Nome e Sobrenome.');
         return;
       }
+      const newName = formatClientName(rawName);
       await sb.from('profiles').update({ full_name: newName }).eq('id', clientUser.id);
       clientUser.name = newName;
       localStorage.setItem('rb_client_session', JSON.stringify(clientUser));
@@ -705,8 +774,7 @@
         }
       });
       document.getElementById('app-scroll').scrollTo({ top: 0, behavior: 'smooth' });
-      if (tab === 'historico') loadHistory();
-      if (tab === 'inicio') loadNextAppointment();
+      if (tab === 'historico' || tab === 'inicio') syncClientAppointmentsData();
     }
 
     function startBooking(service, price, duration) {
@@ -716,7 +784,7 @@
       selectedDate = null;
       selectedTime = null;
 
-      document.getElementById('booking-service-name').innerText = service;
+      document.getElementById('booking-service-name').innerText = `${service} (${duration} min)`;
       document.getElementById('booking-duration-label').innerText = `${duration} min`;
 
       document.getElementById('view-app').classList.add('hidden');
@@ -738,37 +806,35 @@
       const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
       const dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const maxDate = new Date(today);
+      maxDate.setMonth(maxDate.getMonth() + 3);
+
       let html = '';
-      let added = 0;
-      let offset = 0;
-      let firstMonth = '', firstYear = '';
+      let d = new Date(today);
+      let firstMonth = meses[d.getMonth()];
+      let firstYear = d.getFullYear();
 
-      while (added < 14) {
-        const d = new Date();
-        d.setDate(d.getDate() + offset);
-
-        if (d.getDay() !== 0) { // Não abre domingo
-          if (added === 0) {
-            firstMonth = meses[d.getMonth()];
-            firstYear = d.getFullYear();
-          }
-
+      while (d <= maxDate) {
+        if (d.getDay() !== 0) {
           const dayName = dias[d.getDay()];
           const dayNum = String(d.getDate()).padStart(2, '0');
           const month = String(d.getMonth() + 1).padStart(2, '0');
-          const val = `${dayNum}/${month}/${d.getFullYear()}`;
+          const monthLabel = meses[d.getMonth()];
+          const yearLabel = d.getFullYear();
+          const val = `${dayNum}/${month}/${yearLabel}`;
 
           html += `
-            <button type="button" class="date-option shrink-0 w-[62px] h-[78px] rounded-2xl border border-white/10 bg-[#111111] flex flex-col items-center justify-center"
-              data-date="${val}" onclick="selectDateOption('${val}', this)">
+            <button type="button" class="date-option shrink-0 w-[64px] h-[80px] rounded-2xl border border-white/10 bg-[#111111] flex flex-col items-center justify-center"
+              data-date="${val}" data-month="${monthLabel} ${yearLabel}" onclick="selectDateOption('${val}', this)">
               <span class="text-[10px] text-zinc-500 font-semibold uppercase">${dayName}</span>
               <span class="text-lg font-bold text-white mt-1">${dayNum}</span>
-              <span class="text-[9px] text-zinc-600 mt-0.5">${meses[d.getMonth()].slice(0,3)}</span>
+              <span class="text-[9px] text-zinc-500 mt-0.5">${monthLabel.slice(0,3)}</span>
             </button>
           `;
-          added++;
         }
-        offset++;
+        d.setDate(d.getDate() + 1);
       }
 
       document.getElementById('booking-month-title').innerText = `${firstMonth} ${firstYear}`;
@@ -781,10 +847,25 @@
     function selectDateOption(value, element) {
       document.querySelectorAll('.date-option').forEach(el => el.classList.remove('selected'));
       element.classList.add('selected');
+      const monthTitle = element.getAttribute('data-month');
+      if (monthTitle) document.getElementById('booking-month-title').innerText = monthTitle;
       selectedDate = value;
       selectedTime = null;
       renderTimeOptions(selectedDate);
     }
+
+    function getShiftKey(timeStr) {
+      const mins = timeToMinutes(timeStr);
+      if (mins < 720) return 'manha';
+      if (mins < 1080) return 'tarde';
+      return 'noite';
+    }
+
+    const shiftHeaders = {
+      manha: { title: '☀️ Manhã', sub: 'Até 12:00' },
+      tarde: { title: '🌤️ Tarde', sub: '12:00 às 18:00' },
+      noite: { title: '🌙 Noite', sub: 'Após 18:00' }
+    };
 
     async function renderTimeOptions(targetDate, silent = false) {
       const container = document.getElementById('time-grid-container');
@@ -811,20 +892,9 @@
 
       if (booked) {
         booked.forEach(b => {
-          if (b.calendar_event_id === 'cancelled_by_barber' || b.calendar_event_id === 'cancelled_by_client') {
-            return;
-          }
-
+          if (isCancelledItem(b) || isNoShowItem(b)) return;
           const startMin = timeToMinutes(b.time);
-          let dur = 30;
-
-          if (b.service) {
-            const s = b.service.toLowerCase();
-            if (s.includes('corte e barba') || s.includes('combo') || s.includes('completo')) dur = 60;
-            else if (s.includes('progressiva')) dur = 120;
-            else if (s.includes('sobrancelha')) dur = 20;
-          }
-
+          const dur = isBlockItem(b) ? 30 : getServiceDuration(b.service);
           occupiedIntervals.push({ start: startMin, end: startMin + dur });
         });
       }
@@ -852,7 +922,8 @@
       const isToday = targetDate === todayStr;
       const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-      let html = '';
+      const shiftGroups = { manha: '', tarde: '', noite: '' };
+
       slots.forEach(slot => {
         const slotStart = timeToMinutes(slot);
         const slotEnd = slotStart + selectedDuration;
@@ -860,21 +931,34 @@
         const isOccupied = occupiedIntervals.some(i => slotStart < i.end && slotEnd > i.start);
         const isPassed = isToday && slotStart <= currentMinutes;
         const isSelected = selectedTime === slot;
+        const shiftKey = getShiftKey(slot);
 
         if (isOccupied || isPassed) {
-          html += `
+          shiftGroups[shiftKey] += `
             <div class="py-3 rounded-2xl border border-white/5 bg-[#0e0e0e] text-center opacity-30 cursor-not-allowed">
               <span class="text-zinc-600 font-medium text-xs line-through">${slot}</span>
             </div>
           `;
         } else {
-          html += `
+          shiftGroups[shiftKey] += `
             <button type="button" class="time-option available py-3 rounded-2xl border border-white/10 bg-[#111111] text-center text-zinc-300 font-semibold text-xs ${isSelected ? 'selected' : ''}"
               data-time="${slot}" onclick="selectTimeOption('${slot}', this)">
               ${slot}
             </button>
           `;
         }
+      });
+
+      let html = '';
+      ['manha', 'tarde', 'noite'].forEach(k => {
+        if (!shiftGroups[k]) return;
+        html += `
+          <div class="col-span-3 mt-3 first:mt-0 pb-1.5 border-b border-white/10 flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-[#f0c46a]">${shiftHeaders[k].title}</span>
+            <span class="text-[9px] text-zinc-500 font-semibold uppercase">${shiftHeaders[k].sub}</span>
+          </div>
+          ${shiftGroups[k]}
+        `;
       });
 
       if (!slots.length) {
@@ -905,7 +989,7 @@
         btn.innerText = 'Confirmar agendamento';
         btn.className = 'press w-full py-4 rounded-2xl font-bold text-sm gold-gradient text-black gold-shadow transition-all';
         summary.classList.remove('hidden');
-        document.getElementById('summary-service').innerText = selectedService;
+        document.getElementById('summary-service').innerText = `${selectedService} (${selectedDuration} min)`;
         document.getElementById('summary-datetime').innerText = `${selectedDate} às ${selectedTime}`;
         document.getElementById('summary-price').innerText = formatCurrency(selectedPrice);
       } else {
@@ -921,36 +1005,22 @@
 
       const btn = document.getElementById('btn-save-appointment');
       btn.disabled = true;
-      btn.innerText = 'Verificando segurança...';
+      btn.innerText = 'Verificando disponibilidade...';
 
-      // --- CAMADA DE SEGURANÇA 1: BLOQUEIO ANTI-SPAM DE AGENDAMENTOS MÚLTIPLOS ---
-      const { data: futureApts } = await sb.from('appointments')
-        .select('date, time')
-        .eq('user_id', clientUser.id)
-        .neq('calendar_event_id', 'cancelled_by_client')
-        .neq('calendar_event_id', 'cancelled_by_barber')
-        .neq('calendar_event_id', 'blocked_time');
+      // --- PERMITE ATÉ 3 AGENDAMENTOS ATIVOS ---
+      const { data: userApts } = await sb.from('appointments')
+        .select('id, date, time, service, calendar_event_id')
+        .eq('user_id', clientUser.id);
 
-      if (futureApts && futureApts.length > 0) {
-        const now = new Date();
-        let hasActiveFuture = false;
+      const now = new Date();
+      const activeFutureApts = (userApts || []).filter(apt => isActiveUpcomingAppointment(apt, now));
 
-        for (const apt of futureApts) {
-          const aptDateObj = parseAppointmentDate(apt);
-          if (aptDateObj && aptDateObj > now) {
-            hasActiveFuture = true;
-            break;
-          }
-        }
-
-        if (hasActiveFuture) {
-          alert('⚠️ Você já possui um agendamento futuro ativo. Por favor, aguarde a conclusão do seu corte atual ou cancele-o antes de agendar um novo.');
-          btn.disabled = false;
-          btn.innerText = 'Confirmar agendamento';
-          return;
-        }
+      if (activeFutureApts.length >= MAX_ACTIVE_BOOKINGS) {
+        alert(`⚠️ Você já atingiu o limite máximo de ${MAX_ACTIVE_BOOKINGS} agendamentos ativos.\n\nAguarde a conclusão de um atendimento ou cancele um horário marcado antes de agendar outro.`);
+        btn.disabled = false;
+        btn.innerText = 'Confirmar agendamento';
+        return;
       }
-      // ----------------------------------------------------------------------------
 
       btn.innerText = 'Confirmando...';
 
@@ -972,59 +1042,139 @@
 
       showToast('Horário agendado com sucesso!');
       cancelBooking();
-      loadHistory();
-      loadNextAppointment();
+      await syncClientAppointmentsData();
       switchAppTab('inicio');
     }
 
-    async function loadNextAppointment() {
+    /* ==============================================================
+       SINCRONIZAÇÃO EM TEMPO REAL: PRÓXIMO AGENDAMENTO & HISTÓRICO
+       ============================================================== */
+    async function syncClientAppointmentsData() {
       if (!clientUser) return;
-      const { data } = await sb.from('appointments')
+
+      const { data, error } = await sb.from('appointments')
         .select('*')
         .eq('user_id', clientUser.id)
         .order('created_at', { ascending: false });
 
-      const now = new Date();
-      const next = (data || []).filter(item => {
-        if (!item.service || item.service.startsWith('🚫')) return false;
-        if (item.calendar_event_id === 'cancelled_by_barber' || item.calendar_event_id === 'cancelled_by_client') return false;
-        const d = parseAppointmentDate(item);
-        return d && d >= now;
-      }).sort((a, b) => parseAppointmentDate(a) - parseAppointmentDate(b))[0];
+      if (error) return;
 
-      const sEl = document.getElementById('next-appointment-service');
-      const dEl = document.getElementById('next-appointment-date');
-      const stEl = document.getElementById('next-appointment-status');
-      const aEl = document.getElementById('next-appointment-action');
+      const validItems = (data || []).filter(item => item.service && !isBlockItem(item));
 
-      if (!next) {
-        sEl.innerText = 'Nenhum agendamento';
-        dEl.innerText = 'Você não possui horário marcado.';
-        stEl.innerText = 'Livre';
-        aEl.innerText = 'Agendar meu horário';
-        aEl.onclick = () => switchAppTab('servicos');
-      } else {
-        sEl.innerText = next.service;
-        dEl.innerText = `${next.date} às ${next.time}`;
-        stEl.innerText = 'Confirmado';
-        aEl.innerText = 'Ver no histórico';
-        aEl.onclick = () => switchAppTab('historico');
-      }
+      // Detecta se o barbeiro acabou de finalizar algum atendimento para avisar na tela
+      validItems.forEach(item => {
+        if (isCompletedItem(item)) {
+          if (initialLoadDone && !knownCompletedIds.has(item.id)) {
+            showToast(`✅ Atendimento concluído (${getPaymentMethod(item)})!`);
+          }
+          knownCompletedIds.add(item.id);
+        }
+      });
+      initialLoadDone = true;
+
+      renderNextAppointmentHighlight(validItems);
+      renderHistoryList(validItems);
     }
 
-    async function loadHistory() {
+    function renderNextAppointmentHighlight(allUserItems) {
+      const wrapper = document.getElementById('home-next-appointment-wrapper');
+      const limitSub = document.getElementById('home-limit-subtitle');
+      if (!wrapper) return;
+
+      const now = new Date();
+      const upcomingList = allUserItems
+        .filter(item => isActiveUpcomingAppointment(item, now))
+        .sort((a, b) => parseAppointmentDate(a) - parseAppointmentDate(b));
+
+      const activeCount = upcomingList.length;
+      if (limitSub) {
+        limitSub.innerText = `${activeCount} de ${MAX_ACTIVE_BOOKINGS} agendamentos ativos utilizados`;
+      }
+
+      if (activeCount === 0) {
+        wrapper.innerHTML = `
+          <div class="glass rounded-3xl p-5 soft-shadow border border-white/10">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] font-extrabold uppercase tracking-widest text-zinc-400 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-zinc-600"></span> Próximo Agendamento
+              </span>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/5 text-zinc-400 border border-white/10">0/${MAX_ACTIVE_BOOKINGS} Ativos</span>
+            </div>
+            <p class="font-bold text-white text-base">Você não possui horário marcado</p>
+            <p class="text-xs text-zinc-400 mt-1">Garanta seu horário agora mesmo. Você pode ter até 3 agendamentos ativos.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const next = upcomingList[0];
+      const relBadge = getRelativeDayLabel(next.date);
+      const readableDate = formatFullDateReadable(next.date);
+      const servWithDur = formatServiceWithDuration(next.service);
+
+      let extraUpcomingHtml = '';
+      if (upcomingList.length > 1) {
+        const others = upcomingList.slice(1);
+        extraUpcomingHtml = `
+          <div class="mt-4 pt-3.5 border-t border-white/10 space-y-2">
+            <p class="text-[9px] uppercase tracking-widest text-[#f0c46a] font-extrabold">Outros horários agendados (${others.length})</p>
+            ${others.map(o => `
+              <div class="flex items-center justify-between bg-black/40 border border-white/10 rounded-2xl px-3.5 py-2.5">
+                <div class="min-w-0">
+                  <p class="text-xs font-bold text-white truncate">${formatServiceWithDuration(o.service)}</p>
+                  <p class="text-[11px] text-[#f0c46a] font-semibold mt-0.5">📅 ${o.date} às ${o.time} •${formatCurrency(o.price)}</p>
+                </div>
+                <button onclick="executeCancel('${o.id}')" class="press text-[10px] font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-2.5 py-1.5 rounded-xl shrink-0">Cancelar</button>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      wrapper.innerHTML = `
+        <div class="next-apt-highlight rounded-[28px] p-5 relative overflow-hidden">
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-extrabold uppercase tracking-wider">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              Próximo Agendamento
+            </span>
+            <span class="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#d9a441]/20 text-[#f0c46a] border border-[#d9a441]/40">
+              ${activeCount}/${MAX_ACTIVE_BOOKINGS} agendados
+            </span>
+          </div>
+
+          <div class="bg-black/45 border border-[#d9a441]/30 rounded-2xl p-4 flex items-center justify-between gap-3">
+            <div>
+              <span class="inline-block text-[9px] font-black uppercase tracking-widest bg-[#d9a441] text-black px-2 py-0.5 rounded-md mb-1.5">${relBadge}</span>
+              <p class="text-3xl font-black text-white tracking-tight leading-none">${next.time}</p>
+              <p class="text-xs font-bold text-[#f0c46a] capitalize mt-1">${readableDate} (${next.date})</p>
+            </div>
+            <div class="text-right min-w-0">
+              <p class="text-sm font-extrabold text-white truncate">${servWithDur}</p>
+              <p class="text-base font-black text-emerald-400 mt-1">${formatCurrency(next.price)}</p>
+              <span class="inline-block text-[9px] text-zinc-400 uppercase font-semibold mt-0.5">✓ Confirmado</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 mt-3.5">
+            <button onclick="switchAppTab('historico')" class="press flex-1 py-2.5 rounded-xl bg-white/10 border border-white/10 text-xs font-bold text-white">
+              Ver detalhes
+            </button>
+            <button onclick="executeCancel('${next.id}')" class="press py-2.5 px-4 rounded-xl bg-red-500/10 border border-red-500/25 text-xs font-bold text-red-400">
+              Cancelar horário
+            </button>
+          </div>
+
+          ${extraUpcomingHtml}
+        </div>
+      `;
+    }
+
+    function renderHistoryList(allUserItems) {
       const container = document.getElementById('history-container');
-      if (!clientUser) return;
+      if (!container) return;
 
-      const { data } = await sb.from('appointments')
-        .select('*')
-        .eq('user_id', clientUser.id)
-        .neq('calendar_event_id', 'blocked_time')
-        .order('created_at', { ascending: false });
-
-      const filtered = (data || []).filter(item => item.service && !item.service.startsWith('🚫'));
-
-      if (!filtered.length) {
+      if (!allUserItems.length) {
         container.innerHTML = `
           <div class="bg-[#111] border border-white/5 rounded-3xl p-8 text-center">
             <p class="text-white font-semibold text-sm">Sua agenda está vazia</p>
@@ -1034,26 +1184,93 @@
         return;
       }
 
+      const now = new Date();
+      const upcoming = allUserItems
+        .filter(item => isActiveUpcomingAppointment(item, now))
+        .sort((a, b) => parseAppointmentDate(a) - parseAppointmentDate(b));
+
+      const pastOrFinalized = allUserItems
+        .filter(item => !isActiveUpcomingAppointment(item, now))
+        .sort((a, b) => (parseAppointmentDate(b) || 0) - (parseAppointmentDate(a) || 0));
+
       let html = '';
-      filtered.forEach(item => {
-        const isCancelled = item.calendar_event_id === 'cancelled_by_barber' || item.calendar_event_id === 'cancelled_by_client';
+
+      if (upcoming.length > 0) {
         html += `
-          <div class="bg-[#111111] border ${isCancelled ? 'border-white/5 opacity-50' : 'border-white/10'} rounded-3xl p-4">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="font-bold text-white text-sm ${isCancelled ? 'line-through' : ''}">${item.service}</p>
-                <p class="text-zinc-400 text-xs mt-0.5">${item.date} às ${item.time}</p>
-                <p class="text-[#d9a441] text-xs font-semibold mt-1">${formatCurrency(item.price)}</p>
-              </div>
-              ${!isCancelled ? `
-                <button onclick="executeCancel('${item.id}')" class="press text-red-400 text-[10px] font-semibold bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-xl">Cancelar</button>
-              ` : `
-                <span class="text-[10px] text-red-400 uppercase font-bold">Cancelado</span>
-              `}
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between px-1">
+              <p class="text-[10px] font-extrabold uppercase tracking-widest text-[#f0c46a]">📅 Próximos Agendamentos (${upcoming.length}/${MAX_ACTIVE_BOOKINGS})</p>
             </div>
+            ${upcoming.map((item, idx) => `
+              <div class="next-apt-highlight rounded-3xl p-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-[#d9a441] text-black">${idx === 0 ? '★ Próximo' : `${idx + 1}º Horário`} • ${getRelativeDayLabel(item.date)}</span>
+                      <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Confirmado</span>
+                    </div>
+                    <p class="font-extrabold text-white text-base mt-1">${formatServiceWithDuration(item.service)}</p>
+                    <p class="text-[#f0c46a] text-xs font-bold mt-0.5">📆 ${item.date} às ${item.time}</p>
+                    <p class="text-emerald-400 text-xs font-extrabold mt-1">${formatCurrency(item.price)}</p>
+                  </div>
+                  <button onclick="executeCancel('${item.id}')" class="press text-red-400 text-[10px] font-bold bg-red-500/15 border border-red-500/30 px-3 py-2 rounded-xl shrink-0">
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            `).join('')}
           </div>
         `;
-      });
+      }
+
+      if (pastOrFinalized.length > 0) {
+        html += `
+          <div class="space-y-2.5 pt-2">
+            <p class="text-[10px] font-extrabold uppercase tracking-widest text-zinc-500 px-1">Histórico de Atendimentos</p>
+            ${pastOrFinalized.map(item => {
+              const isDone = isCompletedItem(item);
+              const isNoShow = isNoShowItem(item);
+              const isCanc = isCancelledItem(item);
+              const payMethod = getPaymentMethod(item);
+
+              let statusBadge = `<span class="text-[10px] text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-xl font-bold uppercase">✅ Concluído</span>`;
+              let cardBorder = 'border-emerald-500/25';
+              let paymentLine = '';
+
+              if (isDone) {
+                statusBadge = `<span class="text-[10px] text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-xl font-bold uppercase">✅ Concluído</span>`;
+                paymentLine = `<p class="text-[11px] text-emerald-400/90 font-semibold mt-1">💳 Pago via ${payMethod}</p>`;
+              } else if (isNoShow) {
+                statusBadge = `<span class="text-[10px] text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2.5 py-1 rounded-xl font-bold uppercase">⚠️ Não Compareceu</span>`;
+                cardBorder = 'border-amber-500/25 opacity-75';
+                paymentLine = `<p class="text-[11px] text-amber-400/80 font-medium mt-1">Serviço não concluído</p>`;
+              } else if (isCanc) {
+                statusBadge = `<span class="text-[10px] text-red-400 bg-red-500/10 border border-red-500/20 px-2.5 py-1 rounded-xl font-bold uppercase">Cancelado</span>`;
+                cardBorder = 'border-white/5 opacity-50';
+              } else {
+                statusBadge = `<span class="text-[10px] text-zinc-400 bg-white/5 border border-white/10 px-2.5 py-1 rounded-xl font-bold uppercase">Realizado</span>`;
+                cardBorder = 'border-white/10';
+              }
+
+              return `
+                <div class="bg-[#111111] border ${cardBorder} rounded-3xl p-4">
+                  <div class="flex items-center justify-between gap-2">
+                    <div>
+                      <p class="font-bold text-white text-sm ${isCanc ? 'line-through' : ''}">${formatServiceWithDuration(item.service)}</p>
+                      <p class="text-zinc-400 text-xs mt-0.5">${item.date} às ${item.time}</p>
+                      <p class="text-[#d9a441] text-xs font-semibold mt-1">${formatCurrency(item.price)}</p>${paymentLine}
+                    </div>
+                    <div class="shrink-0">
+                      ${statusBadge}
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }
+
       container.innerHTML = html;
     }
 
@@ -1065,8 +1282,7 @@
       }).eq('id', id);
 
       showToast('Agendamento cancelado.');
-      loadHistory();
-      loadNextAppointment();
+      await syncClientAppointmentsData();
     }
   </script>
 </body>
