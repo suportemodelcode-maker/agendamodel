@@ -89,7 +89,7 @@
 
 <audio id="notification-sound" src="https://cdnjs.cloudflare.com/ajax/libs/ion-sound/3.0.7/sounds/water_droplet.mp3" preload="auto"></audio>
 
-<!-- LOGIN -->
+<!-- LOGIN (TOTALMENTE DESVINCULADO DO SUPABASE E SEM RELOAD DE FORMULÁRIO) -->
 <div id="auth-screen" class="fixed inset-0 bg-zinc-950 z-50 flex items-center justify-center p-4">
   <div class="absolute inset-0 overflow-hidden pointer-events-none">
     <div class="absolute top-[15%] left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-orange-500/10 blur-[100px] rounded-full"></div>
@@ -101,14 +101,54 @@
     <p class="text-[10px] text-orange-500 font-black tracking-[.35em] uppercase mb-2">RB Barbearia</p>
     <h2 class="text-2xl font-black text-white tracking-tight uppercase">Painel RB Barbearia</h2>
     <p class="text-[11px] text-zinc-500 mt-2 mb-8 font-medium">Gestão inteligente da sua barbearia</p>
-    <form id="login-form" onsubmit="checkAdmin(event)">
-      <input type="password" id="admin-pass" autocomplete="current-password" placeholder="SENHA MESTRA" class="w-full py-4 px-4 rounded-2xl bg-zinc-950 border border-zinc-700 text-white focus:border-orange-500 outline-none mb-3 text-center tracking-widest font-bold transition-all placeholder:text-zinc-600">
-      <button type="submit" class="w-full py-4 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-black font-black uppercase tracking-widest rounded-2xl shadow-[0_0_25px_rgba(249,115,22,.18)] transition-all transform hover:scale-[1.01]">
+    <div id="login-form">
+      <input type="password" id="admin-pass" placeholder="SENHA MESTRA" onkeydown="if(event.key==='Enter'){event.preventDefault();checkAdmin(event);}" class="w-full py-4 px-4 rounded-2xl bg-zinc-950 border border-zinc-700 text-white focus:border-orange-500 outline-none mb-3 text-center tracking-widest font-bold transition-all placeholder:text-zinc-600">
+      <button type="button" onclick="checkAdmin(event)" class="w-full py-4 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-black font-black uppercase tracking-widest rounded-2xl shadow-[0_0_25px_rgba(249,115,22,.18)] transition-all transform hover:scale-[1.01]">
         Desbloquear
       </button>
-    </form>
+    </div>
   </div>
 </div>
+
+<!-- SCRIPT INDEPENDENTE DE LOGIN LOCAL -->
+<script>
+  const ADMIN_PASSWORD = "rb";
+
+  function unlockAdminUI() {
+    const authScreen = document.getElementById('auth-screen');
+    const mainPanel = document.getElementById('main-panel');
+    if (authScreen) {
+      authScreen.classList.add('hidden');
+      authScreen.classList.remove('flex');
+      authScreen.style.display = 'none';
+    }
+    if (mainPanel) {
+      mainPanel.classList.remove('hidden');
+      mainPanel.style.display = 'flex';
+    }
+    if (typeof window.initAdminPanelData === 'function') {
+      window.initAdminPanelData();
+    }
+  }
+
+  function checkAdmin(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const passInput = document.getElementById('admin-pass');
+    const typedPass = (passInput ? passInput.value : '').trim().toLowerCase();
+    if (typedPass === ADMIN_PASSWORD) {
+      try { localStorage.setItem('rb_admin_logged', 'true'); } catch (err) {}
+      unlockAdminUI();
+    } else {
+      alert('Senha incorreta.');
+    }
+    return false;
+  }
+
+  function logoutAdmin() {
+    try { localStorage.removeItem('rb_admin_logged'); } catch (err) {}
+    window.location.reload();
+  }
+</script>
 
 <!-- MODAL DETALHES -->
 <div id="modal-details" class="hidden fixed inset-0 z-50 bg-zinc-950/85 backdrop-blur-md flex items-center justify-center p-4">
@@ -170,7 +210,7 @@
   </div>
 </div>
 
-<!-- MODAL AGENDAMENTO MANUAL (COM AUTOCOMPLETAR DE CLIENTES) -->
+<!-- MODAL AGENDAMENTO MANUAL -->
 <div id="modal-manual-booking" class="hidden fixed inset-0 z-50 bg-zinc-950/85 backdrop-blur-md flex flex-col justify-end md:items-center md:justify-center p-0 md:p-4">
   <div class="bg-zinc-900 border border-zinc-700/60 md:rounded-[28px] rounded-t-[28px] p-6 w-full max-w-sm flex flex-col max-h-[90vh] shadow-2xl">
     <div class="flex justify-between items-center border-b border-zinc-800 pb-4 shrink-0">
@@ -234,7 +274,7 @@
 <!-- PAINEL PRINCIPAL -->
 <div id="main-panel" class="hidden w-full h-full flex flex-col md:flex-row overflow-hidden relative">
   
-  <!-- SIDEBAR EXPANSÍVEL COM LARGURA TRAVADA NO DESKTOP -->
+  <!-- SIDEBAR -->
   <aside class="sidebar-expandable fixed bottom-0 left-0 w-full md:w-[78px] h-[75px] md:h-full bg-zinc-950/95 backdrop-blur-xl border-t md:border-t-0 md:border-r border-zinc-800/90 flex flex-row md:flex-col items-center md:items-stretch justify-around md:justify-between py-2 md:py-5 px-2 md:px-3 shrink-0 z-40 overflow-hidden">
     
     <div class="hidden md:flex items-center px-1 mb-4 shrink-0">
@@ -545,7 +585,7 @@
       </div>
     </main>
 
-    <!-- ABA CLIENTES (COM TERMÔMETRO DE RETORNO) -->
+    <!-- ABA CLIENTES -->
     <main id="tab-clientes" class="hidden flex-1 flex-col p-4 md:p-8 min-h-0 relative z-0">
       <div class="flex flex-col md:flex-row md:items-center justify-between mb-5 gap-4 shrink-0">
         <div>
@@ -724,12 +764,16 @@
 </div>
 
 <script>
-// SENHA FIXA LOCAL (DESVINCULADA DO SUPABASE)
-const ADMIN_PASSWORD = "rb";
-
 const SUPABASE_URL = 'https://cifrmupwumffzrcqwfjv.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_AcMuSuUE6DK5gGQ9eStmMw_muIgJsG6';
-const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+let sb = null;
+try {
+  if (window.supabase && typeof window.supabase.createClient === 'function') {
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+} catch (err) {
+  console.error('Erro ao iniciar cliente Supabase:', err);
+}
 
 let realtimeSubscription = null;
 let allHistoryData = [];
@@ -786,34 +830,7 @@ function maskAdminPhone(input) {
   else input.value = v;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  if (window.Chart) {
-    Chart.defaults.color = '#71717a';
-    Chart.defaults.font.family = "'Inter', sans-serif";
-  }
-  updateHeaderDate();
-  if (localStorage.getItem('rb_admin_logged') === 'true') { processLogin(); }
-});
-
-function updateHeaderDate() {
-  const hDate = document.getElementById('header-date');
-  if (hDate) hDate.innerText = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-}
-
-function checkAdmin(e) {
-  if (e) e.preventDefault();
-  const typedPass = (document.getElementById('admin-pass').value || '').trim().toLowerCase();
-  if (typedPass === ADMIN_PASSWORD) {
-    localStorage.setItem('rb_admin_logged', 'true');
-    processLogin();
-  } else {
-    alert('Senha incorreta.');
-  }
-}
-
-function processLogin() {
-  document.getElementById('auth-screen').classList.add('hidden');
-  document.getElementById('main-panel').classList.remove('hidden');
+window.initAdminPanelData = function() {
   const sound = document.getElementById('notification-sound');
   if (sound) { sound.play().catch(() => {}); sound.pause(); }
   switchTab('hoje');
@@ -825,9 +842,25 @@ function processLogin() {
     if (pollTimer) clearInterval(pollTimer);
     pollTimer = setInterval(() => { loadAgendaData(true); }, 4000);
   }
-}
+};
 
-function logoutAdmin() { localStorage.removeItem('rb_admin_logged'); if (pollTimer) clearInterval(pollTimer); window.location.reload(); }
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.Chart) {
+    Chart.defaults.color = '#71717a';
+    Chart.defaults.font.family = "'Inter', sans-serif";
+  }
+  updateHeaderDate();
+  try {
+    if (localStorage.getItem('rb_admin_logged') === 'true') {
+      unlockAdminUI();
+    }
+  } catch (err) {}
+});
+
+function updateHeaderDate() {
+  const hDate = document.getElementById('header-date');
+  if (hDate) hDate.innerText = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+}
 
 function switchTab(tab) {
   ['tab-hoje','tab-kanban','tab-historico','tab-clientes','tab-financeiro','tab-config'].forEach(id => {
@@ -888,9 +921,6 @@ function brDateToIso(brDateStr) {
   return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 }
 
-// ============================================================================
-// CALENDÁRIO INTERATIVO & AGENDA DO DIA
-// ============================================================================
 function renderCalendarSection() { renderCalendarGrid(); renderSelectedDaySchedule(); }
 
 function changeCalendarMonth(delta) {
@@ -1171,9 +1201,6 @@ function copySelectedDateSummary() {
   else alert(text);
 }
 
-// ============================================================================
-// AGENDAMENTO MANUAL (COM AUTOCOMPLETAR), BLOQUEIOS, HISTÓRICO, CLIENTES E BI
-// ============================================================================
 function updateClientsDatalist() {
   const dl = document.getElementById('existing-clients-datalist');
   if (!dl) return;
@@ -1223,7 +1250,7 @@ async function fetchManualTimes() {
   const service = document.getElementById('manual-service').value;
   const dateVal = document.getElementById('manual-date').value;
   const grid = document.getElementById('manual-time-grid');
-  if (!service || !dateVal) return;
+  if (!service || !dateVal || !sb) return;
 
   const sData = servicesMap[service];
   manualSelectedDuration = sData.duration;
@@ -1313,6 +1340,7 @@ function updateManualBtn() {
 }
 
 async function saveManualBooking() {
+  if (!sb) return;
   const name = document.getElementById('manual-name').value.trim();
   const cleanPhone = document.getElementById('manual-phone').value.replace(/\D/g, '');
   const service = document.getElementById('manual-service').value;
@@ -1369,6 +1397,7 @@ function closeBlockModal() {
 }
 
 async function confirmBlock() {
+  if (!sb) return;
   const dateVal = document.getElementById('block-date').value;
   const start = document.getElementById('block-start').value;
   const end = document.getElementById('block-end').value;
@@ -1445,6 +1474,7 @@ async function confirmBlock() {
 }
 
 async function deleteAppointment(idsStr, isBlocked) {
+  if (!sb) return;
   if (!confirm(isBlocked ? 'Liberar horário?' : 'Cancelar agendamento?')) return;
   if (isBlocked) await sb.from('appointments').delete().in('id', idsStr.split(','));
   else await sb.from('appointments').update({ calendar_event_id: 'cancelled_by_barber', created_at: new Date().toISOString() }).eq('id', idsStr);
@@ -1452,6 +1482,7 @@ async function deleteAppointment(idsStr, isBlocked) {
 }
 
 async function loadSettings() {
+  if (!sb) return;
   const { data } = await sb.from('settings').select('*').eq('id', 1).maybeSingle();
   if (data) {
     document.getElementById('set-open').value = data.open_time || '09:00';
@@ -1462,6 +1493,7 @@ async function loadSettings() {
 }
 
 async function saveSettings() {
+  if (!sb) return;
   const { error } = await sb.from('settings').upsert({
     id: 1,
     open_time: document.getElementById('set-open').value,
@@ -1492,6 +1524,7 @@ function parseBrDateToObj(dateStr) {
 }
 
 async function fetchHistoryData() {
+  if (!sb) return;
   try {
     const { data, error } = await sb.from('appointments').select(`*, profiles(full_name, phone)`).order('created_at', { ascending:false });
     if (error) throw error;
@@ -1845,6 +1878,7 @@ function calculateDashboard() {
             <span class="text-emerald-400 font-black text-[10px] bg-emerald-500/10 px-2 py-1 rounded">R$ ${c.rev.toFixed(2).replace('.',',')}</span>
           </div>`).join('');
 
+    if (!window.Chart) return;
     const chartData = chartLabels.map(l => chartMap[l] || 0);
     if (revenueChartInstance) revenueChartInstance.destroy();
     const canvas = document.getElementById('revenueChart');
@@ -1919,6 +1953,7 @@ function generateCardHtml(item) {
 }
 
 async function loadAgendaData(silent = false) {
+  if (!sb) return;
   try {
     const { data: apts, error } = await sb.from('appointments').select(`id, service, date, time, price, calendar_event_id, user_id, profiles(full_name, phone)`).neq('calendar_event_id', 'cancelled_by_barber').neq('calendar_event_id', 'cancelled_by_client');
     if (error) return;
