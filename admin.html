@@ -1569,160 +1569,148 @@
 
     <!-- ABA FINANCEIRO (DASHBOARD) -->
 
+<!-- ABA FINANCEIRO (DASHBOARD) -->
     <main id="tab-financeiro" class="hidden flex-1 flex-col p-4 md:p-8 overflow-y-auto custom-scroll relative z-0">
-
-      <div class="flex flex-col xl:flex-row justify-between xl:items-end mb-7 gap-5">
-
+      <div class="flex flex-col xl:flex-row justify-between xl:items-end mb-6 gap-5">
         <div>
-
           <p class="text-[9px] text-orange-500 uppercase font-black tracking-[.25em] mb-1">Financeiro & Métricas</p>
-
           <h2 class="text-2xl font-black text-zinc-100 tracking-tight">Dashboard</h2>
-
           <p class="text-xs text-zinc-500 font-medium uppercase tracking-widest mt-1">Visão Geral & Resultados</p>
-
         </div>
-
         <div class="flex flex-col sm:flex-row items-center gap-2 bg-zinc-900/80 p-2 rounded-2xl border border-zinc-800">
-
           <div class="flex gap-1 overflow-x-auto custom-scroll max-w-full">
-
             <button onclick="setDashFilter('hoje')" id="d-filter-hoje" class="px-3 py-2.5 rounded-xl text-[9px] uppercase tracking-wider font-black text-zinc-400">Hoje</button>
-
             <button onclick="setDashFilter('7dias')" id="d-filter-7dias" class="px-3 py-2.5 rounded-xl text-[9px] uppercase tracking-wider font-black text-zinc-400">7 Dias</button>
-
             <button onclick="setDashFilter('mes')" id="d-filter-mes" class="px-3 py-2.5 rounded-xl text-[9px] uppercase tracking-wider font-black text-white bg-zinc-700/50">Este Mês</button>
-
             <button onclick="setDashFilter('ano')" id="d-filter-ano" class="px-3 py-2.5 rounded-xl text-[9px] uppercase tracking-wider font-black text-zinc-400">Este Ano</button>
-
             <button onclick="setDashFilter('custom')" id="d-filter-custom" class="px-3 py-2.5 rounded-xl text-[9px] uppercase tracking-wider font-black text-zinc-400">Manual</button>
-
           </div>
-
           <div id="custom-date-filters" class="hidden flex items-center gap-2 px-2 pb-1 sm:pb-0 border-t sm:border-t-0 sm:border-l border-zinc-800 pt-2 sm:pt-0">
-
             <input type="date" id="dash-start" class="bg-zinc-950 border border-zinc-700 text-zinc-300 text-xs px-2 py-1.5 rounded-lg outline-none">
-
             <span class="text-zinc-500 text-[9px] font-bold">ATÉ</span>
-
             <input type="date" id="dash-end" class="bg-zinc-950 border border-zinc-700 text-zinc-300 text-xs px-2 py-1.5 rounded-lg outline-none">
-
             <button onclick="applyCustomDashFilter()" class="bg-orange-500 hover:bg-orange-400 text-zinc-900 px-3 py-1.5 rounded-lg text-xs font-black">IR</button>
-
           </div>
-
         </div>
+      </div>
 
+      <!-- FILTRO E VALORES POR TIPO DE PAGAMENTO -->
+      <div class="mb-6">
+        <div class="flex items-center justify-between mb-2.5">
+          <p class="text-[10px] text-zinc-400 uppercase font-black tracking-widest">💳 Receita por Forma de Pagamento (Clique para filtrar)</p>
+          <span id="dash-active-pay-badge" class="text-[9px] font-black uppercase px-2.5 py-1 rounded-lg bg-orange-500/15 text-orange-400 border border-orange-500/30">Exibindo: Todos</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <button type="button" onclick="setDashPaymentFilter('todos')" id="pay-filter-todos" class="stat-card rounded-2xl p-3.5 text-left border-orange-500/60 bg-zinc-900/90 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-[9px] font-black uppercase tracking-wider text-orange-400">📊 Todos</span>
+              <span id="pay-pct-todos" class="text-[8px] font-black text-zinc-400">100%</span>
+            </div>
+            <p id="pay-val-todos" class="text-base md:text-lg font-black text-white mt-1.5">R$ 0,00</p>
+            <p id="pay-cnt-todos" class="text-[9px] text-zinc-500 font-bold mt-0.5">0 atendimentos</p>
+          </button>
+
+          <button type="button" onclick="setDashPaymentFilter('Pix')" id="pay-filter-Pix" class="stat-card rounded-2xl p-3.5 text-left transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-[9px] font-black uppercase tracking-wider text-emerald-400">💠 Pix</span>
+              <span id="pay-pct-Pix" class="text-[8px] font-black text-zinc-500">0%</span>
+            </div>
+            <p id="pay-val-Pix" class="text-base md:text-lg font-black text-white mt-1.5">R$ 0,00</p>
+            <p id="pay-cnt-Pix" class="text-[9px] text-zinc-500 font-bold mt-0.5">0 atendimentos</p>
+          </button>
+
+          <button type="button" onclick="setDashPaymentFilter('Dinheiro')" id="pay-filter-Dinheiro" class="stat-card rounded-2xl p-3.5 text-left transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-[9px] font-black uppercase tracking-wider text-green-400">💵 Dinheiro</span>
+              <span id="pay-pct-Dinheiro" class="text-[8px] font-black text-zinc-500">0%</span>
+            </div>
+            <p id="pay-val-Dinheiro" class="text-base md:text-lg font-black text-white mt-1.5">R$ 0,00</p>
+            <p id="pay-cnt-Dinheiro" class="text-[9px] text-zinc-500 font-bold mt-0.5">0 atendimentos</p>
+          </button>
+
+          <button type="button" onclick="setDashPaymentFilter('Cartão Débito')" id="pay-filter-Cartão Débito" class="stat-card rounded-2xl p-3.5 text-left transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-[9px] font-black uppercase tracking-wider text-sky-400">💳 Débito</span>
+              <span id="pay-pct-Cartão Débito" class="text-[8px] font-black text-zinc-500">0%</span>
+            </div>
+            <p id="pay-val-Cartão Débito" class="text-base md:text-lg font-black text-white mt-1.5">R$ 0,00</p>
+            <p id="pay-cnt-Cartão Débito" class="text-[9px] text-zinc-500 font-bold mt-0.5">0 atendimentos</p>
+          </button>
+
+          <button type="button" onclick="setDashPaymentFilter('Cartão Crédito')" id="pay-filter-Cartão Crédito" class="stat-card rounded-2xl p-3.5 text-left transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-[9px] font-black uppercase tracking-wider text-purple-400">💳 Crédito</span>
+              <span id="pay-pct-Cartão Crédito" class="text-[8px] font-black text-zinc-500">0%</span>
+            </div>
+            <p id="pay-val-Cartão Crédito" class="text-base md:text-lg font-black text-white mt-1.5">R$ 0,00</p>
+            <p id="pay-cnt-Cartão Crédito" class="text-[9px] text-zinc-500 font-bold mt-0.5">0 atendimentos</p>
+          </button>
+
+          <button type="button" onclick="setDashPaymentFilter('Pendente')" id="pay-filter-Pendente" class="stat-card rounded-2xl p-3.5 text-left transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-[9px] font-black uppercase tracking-wider text-zinc-400">⏳ Sem Baixa</span>
+              <span id="pay-pct-Pendente" class="text-[8px] font-black text-zinc-500">0%</span>
+            </div>
+            <p id="pay-val-Pendente" class="text-base md:text-lg font-black text-white mt-1.5">R$ 0,00</p>
+            <p id="pay-cnt-Pendente" class="text-[9px] text-zinc-500 font-bold mt-0.5">0 atendimentos</p>
+          </button>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
-
         <div class="wallet-card rounded-3xl p-6 md:p-7 relative overflow-hidden flex flex-col justify-center gap-5">
-
           <div class="flex items-center justify-between relative z-10">
-
             <span class="text-orange-400 text-[10px] uppercase font-black tracking-widest flex items-center gap-2">💳 CARTEIRA RB</span>
-
             <span id="dash-wallet-period" class="bg-orange-500/10 text-orange-400 text-[8px] px-2.5 py-1.5 rounded-md border border-orange-500/20 font-bold uppercase">Este Mês</span>
-
           </div>
-
           <div class="relative z-10">
-
             <p class="text-orange-200/50 text-[10px] font-bold uppercase tracking-widest mb-1.5">Receita realizada</p>
-
             <h3 id="dash-wallet-saldo" class="text-4xl md:text-5xl font-black text-white tracking-tighter">R$ 0,00</h3>
-
           </div>
-
         </div>
-
         <div class="lg:col-span-2 grid grid-cols-2 gap-4">
-
           <div class="stat-card rounded-3xl p-5">
-
             <span class="text-zinc-400 text-[9px] uppercase font-black tracking-widest">Faturamento</span>
-
             <p id="dash-fat-periodo" class="text-2xl font-black text-zinc-100 mt-2">R$ 0,00</p>
-
             <span id="dash-cortes-periodo" class="text-[10px] text-zinc-500 mt-1 block">0 atendimentos</span>
-
           </div>
-
           <div class="stat-card rounded-3xl p-5">
-
             <span class="text-zinc-400 text-[9px] uppercase font-black tracking-widest">Ticket Médio</span>
-
             <p id="dash-ticket-medio" class="text-2xl font-black text-zinc-100 mt-2">R$ 0,00</p>
-
             <span class="text-[10px] text-zinc-500 mt-1 block">por atendimento</span>
-
           </div>
-
           <div class="stat-card rounded-3xl p-5">
-
             <span class="text-zinc-400 text-[9px] uppercase font-black tracking-widest">Agendamentos Futuros</span>
-
             <p id="dash-agendamentos-futuros" class="text-2xl font-black text-zinc-100 mt-2">0</p>
-
             <span id="dash-fat-futuro" class="text-[10px] text-emerald-400 mt-1 block font-bold">Projeção global: R$ 0,00</span>
-
           </div>
-
           <div class="stat-card rounded-3xl p-5 cursor-pointer hover:border-orange-500/50 transition-colors" onclick="showCancellationsModal()">
-
             <div class="flex justify-between items-start">
-
               <span class="text-zinc-400 text-[9px] uppercase font-black tracking-widest">Cancelamento / Falta</span>
-
               <svg class="w-3 h-3 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-
             </div>
-
             <p id="dash-tx-cancelamento" class="text-2xl font-black text-zinc-100 mt-2">0%</p>
-
             <span id="dash-num-cancelados" class="text-[10px] text-zinc-500 mt-1 block">0 perdidos</span>
-
           </div>
-
         </div>
-
       </div>
-
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
         <div class="lg:col-span-2 bg-zinc-900/60 border border-zinc-800/80 rounded-3xl p-5 md:p-6 shadow-xl">
-
           <h3 id="chart-title" class="text-[10px] uppercase font-black tracking-widest text-zinc-400 mb-5">Curva de Receita</h3>
-
           <div class="w-full h-[250px] relative"><canvas id="revenueChart"></canvas></div>
-
         </div>
-
         <div class="flex flex-col gap-5">
-
           <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-3xl p-5 shadow-xl">
-
             <h3 class="text-[10px] uppercase font-black tracking-widest text-zinc-400 mb-4">🏆 Top Serviços</h3>
-
             <div id="dash-top-services" class="flex flex-col gap-2"></div>
-
           </div>
-
           <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-3xl p-5 shadow-xl">
-
             <h3 class="text-[10px] uppercase font-black tracking-widest text-zinc-400 mb-4">💎 Top Clientes</h3>
-
             <div id="dash-top-clients" class="flex flex-col gap-2"></div>
-
           </div>
-
         </div>
-
       </div>
-
     </main>
-
 
 
     <!-- ABA CONFIG -->
