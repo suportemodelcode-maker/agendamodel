@@ -9,11 +9,10 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; background: #09090b; color: #fafafa; overscroll-behavior-y: none; }
-    .mono-font { font-family: 'JetBrains Mono', monospace; }
     ::selection { background: rgba(249,115,22,.35); color: white; }
     .custom-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
     .custom-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -83,23 +82,6 @@
     .cal-day.selected { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important; color: #09090b !important; font-weight: 900 !important; border-color: #fb923c !important; box-shadow: 0 8px 25px rgba(249, 115, 22, 0.35); }
     .cal-day.selected .cal-badge { background: #09090b !important; color: #f97316 !important; border-color: transparent !important; }
     .cal-day.today:not(.selected) { border-color: #f97316; color: #fb923c; }
-
-    /* UNIVERSO ORBITAL 3D & CONSTELAÇÃO */
-    .orbital-bg {
-      background: radial-gradient(circle at 50% 48%, rgba(14, 165, 233, 0.09) 0%, rgba(249, 115, 22, 0.04) 28%, rgba(4, 7, 15, 0.98) 70%), #04070f;
-    }
-    .hud-box {
-      background: rgba(8, 15, 28, 0.78);
-      border: 1px solid rgba(56, 189, 248, 0.2);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    }
-    .constellation-node, .constellation-card { transition: all 0.22s ease; }
-    .constellation-node.active-node { border-color: #38bdf8 !important; box-shadow: 0 0 25px rgba(56, 189, 248, 0.35); transform: translateY(-2px); }
-    .constellation-card.active-card { border-color: #38bdf8 !important; box-shadow: 0 0 28px rgba(56, 189, 248, 0.25); background: rgba(12, 24, 44, 0.9) !important; }
-    @keyframes dashFlow { to { stroke-dashoffset: -28; } }
-    .flow-cable-animated { stroke-dasharray: 8 6; animation: dashFlow 0.9s linear infinite; }
   </style>
 </head>
 
@@ -188,7 +170,7 @@
   </div>
 </div>
 
-<!-- MODAL AGENDAMENTO MANUAL -->
+<!-- MODAL AGENDAMENTO MANUAL (COM AUTOCOMPLETAR DE CLIENTES) -->
 <div id="modal-manual-booking" class="hidden fixed inset-0 z-50 bg-zinc-950/85 backdrop-blur-md flex flex-col justify-end md:items-center md:justify-center p-0 md:p-4">
   <div class="bg-zinc-900 border border-zinc-700/60 md:rounded-[28px] rounded-t-[28px] p-6 w-full max-w-sm flex flex-col max-h-[90vh] shadow-2xl">
     <div class="flex justify-between items-center border-b border-zinc-800 pb-4 shrink-0">
@@ -198,7 +180,8 @@
     <div class="overflow-y-auto custom-scroll flex-1 pt-4 pb-2 space-y-4">
       <div>
         <label class="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5">Nome do Cliente</label>
-        <input type="text" id="manual-name" placeholder="Nome completo" class="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-xl text-white outline-none focus:border-emerald-500 text-sm">
+        <input type="text" id="manual-name" list="existing-clients-datalist" oninput="checkClientAutoFill(this.value)" placeholder="Digite ou selecione da lista" class="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-xl text-white outline-none focus:border-emerald-500 text-sm">
+        <datalist id="existing-clients-datalist"></datalist>
       </div>
       <div>
         <label class="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5">WhatsApp (Opcional)</label>
@@ -265,7 +248,7 @@
     </div>
     
     <nav class="flex flex-row md:flex-col gap-1 md:gap-2 w-full flex-1 justify-around md:justify-start items-center md:items-stretch">
-      <button onclick="switchTab('hoje')" id="nav-btn-hoje" class="nav-btn w-11 h-11 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
+      <button onclick="switchTab('hoje')" id="nav-btn-hoje" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-hoje" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
         <div class="sidebar-label text-left ml-3.5">
@@ -274,7 +257,7 @@
         </div>
       </button>
 
-      <button onclick="switchTab('kanban')" id="nav-btn-kanban" class="nav-btn w-11 h-11 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
+      <button onclick="switchTab('kanban')" id="nav-btn-kanban" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-kanban" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         <div class="sidebar-label text-left ml-3.5">
@@ -283,19 +266,7 @@
         </div>
       </button>
 
-      <button onclick="switchTab('orbita')" id="nav-btn-orbita" class="nav-btn w-11 h-11 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
-        <div id="nav-ind-orbita" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-sky-400 rounded-r-full"></div>
-        <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke-width="2"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(-25 12 12)" stroke-width="1.8"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(35 12 12)" stroke-width="1.4" stroke-dasharray="3 3"/></svg>
-        <div class="sidebar-label text-left ml-3.5">
-          <div class="flex items-center gap-1.5">
-            <p class="text-xs font-extrabold leading-none text-sky-300">Órbita RB</p>
-            <span class="text-[7px] font-black uppercase px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-400/30">3D</span>
-          </div>
-          <p class="text-[9px] text-zinc-500 font-semibold mt-0.5">Universo conectado</p>
-        </div>
-      </button>
-
-      <button onclick="switchTab('historico')" id="nav-btn-historico" class="nav-btn w-11 h-11 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
+      <button onclick="switchTab('historico')" id="nav-btn-historico" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-historico" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
         <div class="sidebar-label text-left ml-3.5">
@@ -304,16 +275,16 @@
         </div>
       </button>
 
-      <button onclick="switchTab('clientes')" id="nav-btn-clientes" class="nav-btn w-11 h-11 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
+      <button onclick="switchTab('clientes')" id="nav-btn-clientes" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-clientes" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
         <div class="sidebar-label text-left ml-3.5">
-          <p class="text-xs font-extrabold leading-none">Clientes</p>
+          <p class="text-xs font-extrabold leading-none">Clientes & Retorno</p>
           <p class="text-[9px] text-zinc-500 font-semibold mt-0.5">Carteira & Fidelidade</p>
         </div>
       </button>
 
-      <button onclick="switchTab('financeiro')" id="nav-btn-financeiro" class="nav-btn w-11 h-11 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
+      <button onclick="switchTab('financeiro')" id="nav-btn-financeiro" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-financeiro" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         <div class="sidebar-label text-left ml-3.5">
@@ -324,7 +295,7 @@
     </nav>
 
     <div class="md:pt-3 md:border-t md:border-zinc-800/80 shrink-0">
-      <button onclick="switchTab('config')" id="nav-btn-config" class="nav-btn w-11 h-11 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group shrink-0">
+      <button onclick="switchTab('config')" id="nav-btn-config" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group shrink-0">
         <div id="nav-ind-config" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 001.065-2.572c1.756-.426 1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543-.826-3.31-2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         <div class="sidebar-label text-left ml-3.5">
@@ -344,10 +315,6 @@
       </div>
 
       <div class="flex items-center gap-2 md:gap-4">
-        <button onclick="switchTab('orbita')" class="hidden lg:flex items-center gap-2 px-3.5 py-2 bg-sky-950/40 border border-sky-500/30 text-sky-300 rounded-xl text-xs hover:bg-sky-900/50 transition-all font-black uppercase tracking-wider">
-          <span>🪐</span> Órbita 3D
-        </button>
-
         <button onclick="openManualModal()" class="hidden md:flex items-center gap-2 px-4 py-2 bg-emerald-950/40 border border-emerald-800/60 text-emerald-400 rounded-xl text-xs hover:bg-emerald-900/40 hover:text-emerald-300 transition-all font-black uppercase tracking-wider">
           <span>✨</span> Novo Agendamento
         </button>
@@ -545,128 +512,6 @@
       </div>
     </main>
 
-    <!-- ABA ÓRBITA RB (3D + CONSTELAÇÃO) -->
-    <main id="tab-orbita" class="hidden flex-1 flex-col min-h-0 orbital-bg relative overflow-hidden z-0">
-      <div class="relative z-20 flex flex-wrap items-center justify-between gap-4 px-5 md:px-8 pt-5 pb-3 pointer-events-none">
-        <div class="pointer-events-auto">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
-            <p class="text-[9px] text-sky-400/90 uppercase font-black tracking-[.32em] mono-font">Seu universo operacional</p>
-          </div>
-          <h2 id="orbital-main-heading" class="text-2xl md:text-3xl font-black text-white tracking-tight mt-0.5">Barbearia conectada.</h2>
-        </div>
-
-        <div class="pointer-events-auto flex items-center gap-1.5 hud-box p-1.5 rounded-full">
-          <button onclick="switchOrbitalMode('orbit')" id="btn-orb-mode-orbit" class="px-4 py-2 rounded-full text-[11px] font-black tracking-wider uppercase flex items-center gap-2 bg-sky-500/20 text-sky-300 border border-sky-400/40 shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all">
-            <span>🪐</span> Órbita 3D
-          </button>
-          <button onclick="switchOrbitalMode('constellation')" id="btn-orb-mode-constellation" class="px-4 py-2 rounded-full text-[11px] font-black tracking-wider uppercase flex items-center gap-2 text-zinc-400 hover:text-white border border-transparent transition-all">
-            <span>🕸️</span> Constelação & Fluxos
-          </button>
-        </div>
-
-        <div class="pointer-events-auto hud-box rounded-2xl px-4 py-2.5 flex items-center gap-5">
-          <div>
-            <p id="orb-hud-nodes" class="text-base md:text-lg font-black text-white mono-font leading-none">0</p>
-            <p class="text-[9px] text-zinc-400 font-semibold mt-1">nós ativos</p>
-          </div>
-          <div class="h-6 w-px bg-sky-500/20"></div>
-          <div>
-            <p id="orb-hud-links" class="text-base md:text-lg font-black text-sky-300 mono-font leading-none">0</p>
-            <p class="text-[9px] text-zinc-400 font-semibold mt-1">ligações</p>
-          </div>
-          <div class="h-6 w-px bg-sky-500/20"></div>
-          <div>
-            <p id="orb-hud-today-future" class="text-base md:text-lg font-black text-orange-400 mono-font leading-none">0 / 0</p>
-            <p class="text-[9px] text-zinc-400 font-semibold mt-1">hoje / futuros</p>
-          </div>
-          <div class="h-6 w-px bg-sky-500/20 hidden sm:block"></div>
-          <div class="hidden sm:block">
-            <p id="orb-hud-rev" class="text-base md:text-lg font-black text-emerald-400 mono-font leading-none">R$ 0</p>
-            <p class="text-[9px] text-zinc-400 font-semibold mt-1">receita total</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- SUB-VIEW 1: CANVAS 3D ORBITAL -->
-      <div id="orbital-3d-wrapper" class="flex-1 relative w-full h-full min-h-0 overflow-hidden">
-        <canvas id="orbital-canvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
-
-        <div class="absolute bottom-5 left-5 z-20 flex flex-wrap items-center gap-2">
-          <button onclick="resetOrbitalCamera()" class="hud-box px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-sky-300 hover:text-white hover:border-sky-400/50 transition-all flex items-center gap-1.5">
-            <span>⌖</span> Centralizar Órbita
-          </button>
-          <button onclick="toggleOrbitalAutoRotate()" id="btn-orb-autorotate" class="hud-box px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-emerald-400 border-emerald-500/30 transition-all flex items-center gap-1.5">
-            <span>↻</span> Giro Automático: ON
-          </button>
-          <div class="hidden xl:flex items-center gap-3 hud-box px-3.5 py-2 rounded-xl text-[10px] font-bold text-zinc-300">
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span> Corte</span>
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-orange-400"></span> Barba</span>
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span> Combo</span>
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-teal-400"></span> Sobrancelha</span>
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-pink-400"></span> Progressiva</span>
-          </div>
-        </div>
-
-        <div class="hidden md:block absolute bottom-5 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-          <p class="text-[10px] text-zinc-500 font-semibold tracking-wider uppercase mono-font bg-zinc-950/70 px-4 py-1.5 rounded-full border border-white/5">
-            Arraste para girar 3D &nbsp;·&nbsp; Role o mouse para zoom &nbsp;·&nbsp; Clique em um nó para abrir a Ficha
-          </p>
-        </div>
-      </div>
-
-      <!-- SUB-VIEW 2: CONSTELAÇÃO & FLUXOS -->
-      <div id="orbital-constellation-wrapper" class="hidden flex-1 overflow-y-auto custom-scroll px-5 md:px-8 pb-10 pt-2 relative">
-        <div id="constellation-stage" class="relative max-w-7xl mx-auto space-y-12 py-4">
-          <svg id="constellation-svg-layer" class="pointer-events-none absolute inset-0 w-full h-full z-10 overflow-visible"></svg>
-
-          <div class="relative z-20 hud-box rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-3">
-            <div class="flex items-center gap-3 w-full md:w-auto">
-              <span class="text-sky-400 text-sm">⚡</span>
-              <input id="constellation-search" oninput="renderConstellationView()" placeholder="Buscar cliente, serviço ou horário na constelação..." class="bg-transparent outline-none text-xs text-white placeholder:text-zinc-500 w-full md:w-80">
-            </div>
-            <div class="flex items-center gap-2 w-full md:w-auto justify-end">
-              <button onclick="setConstellationFilter('all')" id="c-filt-all" class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30">Todos</button>
-              <button onclick="setConstellationFilter('today')" id="c-filt-today" class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white">Hoje</button>
-              <button onclick="setConstellationFilter('upcoming')" id="c-filt-upcoming" class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white">Futuros</button>
-            </div>
-          </div>
-
-          <div class="relative z-20">
-            <div class="flex items-center justify-between mb-3">
-              <p class="text-[10px] text-sky-400 uppercase font-black tracking-[.25em] mono-font">01 &nbsp; Núcleos de Serviço & Especialidades</p>
-              <span class="text-[9px] text-zinc-500 font-bold uppercase mono-font">Passe o mouse ou clique para rastrear conexões</span>
-            </div>
-            <div id="constellation-services-row" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5"></div>
-          </div>
-
-          <div class="relative z-20 pt-4">
-            <div class="flex items-center justify-between mb-3">
-              <p class="text-[10px] text-orange-400 uppercase font-black tracking-[.25em] mono-font">02 &nbsp; Atendimentos & Clientes Conectados</p>
-              <span id="constellation-cards-count" class="text-[9px] text-zinc-400 font-bold uppercase mono-font">0 conexões</span>
-            </div>
-            <div id="constellation-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- GAVETA LATERAL DIREITA (FICHA TÉCNICA) -->
-      <aside id="orbital-inspector-drawer" class="hidden absolute top-0 right-0 bottom-0 w-full sm:w-[410px] z-30 hud-box border-l border-sky-400/25 flex-col justify-between overflow-hidden shadow-[-25px_0_60px_rgba(0,0,0,0.85)]">
-        <div class="p-6 border-b border-sky-500/15 flex items-start justify-between gap-3 bg-zinc-950/60">
-          <div class="min-w-0">
-            <div class="flex items-center gap-2">
-              <span id="insp-badge" class="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-400/30 mono-font">NÓ ORBITAL</span>
-              <span id="insp-id" class="text-[9px] text-zinc-500 mono-font truncate">#RB-001</span>
-            </div>
-            <h3 id="insp-title" class="text-lg font-black text-white mt-2 leading-snug">FICHA: Carregando...</h3>
-          </div>
-          <button onclick="closeOrbitalInspector()" class="w-8 h-8 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center border border-white/10 shrink-0">✕</button>
-        </div>
-        <div id="insp-body" class="flex-1 overflow-y-auto custom-scroll p-6 space-y-5 text-xs"></div>
-        <div id="insp-footer" class="p-4 border-t border-sky-500/15 bg-zinc-950/80 flex items-center gap-2.5"></div>
-      </aside>
-    </main>
-
     <!-- ABA HISTÓRICO -->
     <main id="tab-historico" class="hidden flex-1 flex-col p-4 md:p-8 min-h-0 relative z-0">
       <div class="flex flex-col md:flex-row md:items-center justify-between mb-5 gap-4 shrink-0">
@@ -700,13 +545,13 @@
       </div>
     </main>
 
-    <!-- ABA CLIENTES -->
+    <!-- ABA CLIENTES (COM TERMÔMETRO DE RETORNO) -->
     <main id="tab-clientes" class="hidden flex-1 flex-col p-4 md:p-8 min-h-0 relative z-0">
       <div class="flex flex-col md:flex-row md:items-center justify-between mb-5 gap-4 shrink-0">
         <div>
-          <p class="text-[9px] text-orange-500 uppercase font-black tracking-[.25em]">Relacionamento</p>
+          <p class="text-[9px] text-orange-500 uppercase font-black tracking-[.25em]">Relacionamento & Retenção</p>
           <h2 class="text-xl font-black text-zinc-100 tracking-wide">Carteira de Clientes</h2>
-          <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Ativos nos últimos 12 meses</p>
+          <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Acompanhe quem está em dia e chame quem sumiu</p>
         </div>
         <div class="flex items-center bg-zinc-900 border border-zinc-800 p-1.5 rounded-xl w-full md:w-auto focus-within:border-orange-500">
           <svg class="w-5 h-5 text-zinc-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -720,6 +565,7 @@
               <th class="px-5 py-4">Nome</th>
               <th class="px-5 py-4">Contato</th>
               <th class="px-5 py-4">Última Visita</th>
+              <th class="px-5 py-4">Status de Retorno</th>
               <th class="px-5 py-4">Gasto Total</th>
               <th class="px-5 py-4">Frequência</th>
               <th class="px-5 py-4 text-right">Ação</th>
@@ -850,20 +696,20 @@
         <div class="premium-card rounded-3xl p-6 md:p-8">
           <h3 class="text-sm font-black tracking-widest uppercase text-white mb-6 border-b border-zinc-800 pb-3">Atalhos Rápidos</h3>
           <div class="grid grid-cols-2 gap-3">
-            <button onclick="switchTab('orbita')" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-sky-500/40 text-left transition-all">
-              <span class="text-xl">🪐</span>
-              <p class="text-xs font-black text-white mt-3">Órbita RB 3D</p>
-              <p class="text-[9px] text-zinc-500 mt-1">Universo conectado</p>
-            </button>
             <button onclick="switchTab('kanban')" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-orange-500/40 text-left transition-all">
               <span class="text-xl">📅</span>
               <p class="text-xs font-black text-white mt-3">Calendário</p>
               <p class="text-[9px] text-zinc-500 mt-1">Consultar datas</p>
             </button>
+            <button onclick="openBlockModal()" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-red-500/40 text-left transition-all">
+              <span class="text-xl">🚫</span>
+              <p class="text-xs font-black text-white mt-3">Bloquear horários</p>
+              <p class="text-[9px] text-zinc-500 mt-1">Fechar horário</p>
+            </button>
             <button onclick="switchTab('clientes')" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-blue-500/40 text-left transition-all">
               <span class="text-xl">👤</span>
               <p class="text-xs font-black text-white mt-3">Clientes</p>
-              <p class="text-[9px] text-zinc-500 mt-1">Carteira</p>
+              <p class="text-[9px] text-zinc-500 mt-1">Carteira & Retorno</p>
             </button>
             <button onclick="openManualModal()" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-emerald-500/40 text-left transition-all">
               <span class="text-xl">✨</span>
@@ -902,11 +748,11 @@ let calendarViewMode = 'cards';
 let prefillTimeSlot = null;
 
 const servicesMap = {
-  'Corte Masculino': { price: 40, duration: 30, color: '#38bdf8', short: 'Corte' },
-  'Barba': { price: 30, duration: 30, color: '#fb923c', short: 'Barba' },
-  'Corte e Barba': { price: 65, duration: 60, color: '#c084fc', short: 'Corte + Barba' },
-  'Sobrancelha': { price: 15, duration: 20, color: '#2dd4bf', short: 'Sobrancelha' },
-  'Progressiva feminina orgânica': { price: 180, duration: 120, color: '#f472b6', short: 'Progressiva' }
+  'Corte Masculino': { price: 40, duration: 30 },
+  'Barba': { price: 30, duration: 30 },
+  'Corte e Barba': { price: 65, duration: 60 },
+  'Sobrancelha': { price: 15, duration: 20 },
+  'Progressiva feminina orgânica': { price: 180, duration: 120 }
 };
 let manualSelectedTime = null;
 let manualSelectedDuration = 30;
@@ -914,11 +760,11 @@ let manualSelectedPrice = 0;
 
 function getServiceTheme(serviceName) {
   const s = (serviceName || '').toLowerCase();
-  if (s.includes('corte e barba') || s.includes('combo') || s.includes('completo')) return { borderL: 'border-l-purple-500', borderHover: 'hover:border-purple-500/50', text: 'text-purple-300', hex: '#c084fc', img: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=300&auto=format&fit=crop&q=80' };
-  if (s.includes('progressiva')) return { borderL: 'border-l-pink-500', borderHover: 'hover:border-pink-500/50', text: 'text-pink-300', hex: '#f472b6', img: './progressiva.jpg' };
-  if (s.includes('barba')) return { borderL: 'border-l-orange-500', borderHover: 'hover:border-orange-500/50', text: 'text-orange-300', hex: '#fb923c', img: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300&auto=format&fit=crop&q=80' };
-  if (s.includes('sobrancelha')) return { borderL: 'border-l-teal-500', borderHover: 'hover:border-teal-500/50', text: 'text-teal-300', hex: '#2dd4bf', img: './sobrancelha.jpeg' };
-  return { borderL: 'border-l-blue-500', borderHover: 'hover:border-blue-500/50', text: 'text-blue-300', hex: '#38bdf8', img: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=300&auto=format&fit=crop&q=80' };
+  if (s.includes('corte e barba') || s.includes('combo') || s.includes('completo')) return { borderL: 'border-l-purple-500', borderHover: 'hover:border-purple-500/50', text: 'text-purple-300', img: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=300&auto=format&fit=crop&q=80' };
+  if (s.includes('progressiva')) return { borderL: 'border-l-pink-500', borderHover: 'hover:border-pink-500/50', text: 'text-pink-300', img: './progressiva.jpg' };
+  if (s.includes('barba')) return { borderL: 'border-l-orange-500', borderHover: 'hover:border-orange-500/50', text: 'text-orange-300', img: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300&auto=format&fit=crop&q=80' };
+  if (s.includes('sobrancelha')) return { borderL: 'border-l-teal-500', borderHover: 'hover:border-teal-500/50', text: 'text-teal-300', img: './sobrancelha.jpeg' };
+  return { borderL: 'border-l-blue-500', borderHover: 'hover:border-blue-500/50', text: 'text-blue-300', img: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=300&auto=format&fit=crop&q=80' };
 }
 
 function getServiceImage(serviceName) { return getServiceTheme(serviceName).img; }
@@ -942,7 +788,6 @@ document.addEventListener('DOMContentLoaded', () => {
   Chart.defaults.color = '#71717a';
   Chart.defaults.font.family = "'Inter', sans-serif";
   updateHeaderDate();
-  initOrbitalCanvasEvents();
   if (localStorage.getItem('rb_admin_logged') === 'true') { processLogin(); }
 });
 
@@ -975,12 +820,12 @@ function processLogin() {
 function logoutAdmin() { localStorage.removeItem('rb_admin_logged'); if (pollTimer) clearInterval(pollTimer); window.location.reload(); }
 
 function switchTab(tab) {
-  ['tab-hoje','tab-kanban','tab-orbita','tab-historico','tab-clientes','tab-financeiro','tab-config'].forEach(id => {
+  ['tab-hoje','tab-kanban','tab-historico','tab-clientes','tab-financeiro','tab-config'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
   });
   
-  ['hoje','kanban','orbita','historico','clientes','financeiro','config'].forEach(id => {
+  ['hoje','kanban','historico','clientes','financeiro','config'].forEach(id => {
     const btn = document.getElementById('nav-btn-' + id);
     const ind = document.getElementById('nav-ind-' + id);
     if (btn) { btn.classList.remove('nav-active', 'text-white'); btn.classList.add('text-zinc-400'); }
@@ -995,13 +840,6 @@ function switchTab(tab) {
   if (activeInd) activeInd.classList.remove('hidden');
 
   if (tab === 'kanban') renderCalendarSection();
-  if (tab === 'orbita') {
-    buildOrbitalUniverseData();
-    startOrbitalLoop();
-    if (orbitalCurrentMode === 'constellation') renderConstellationView();
-  } else {
-    stopOrbitalLoop();
-  }
   if (tab === 'historico' || tab === 'financeiro' || tab === 'clientes') fetchHistoryData();
   if (tab === 'financeiro') setTimeout(calculateDashboard, 100);
 }
@@ -1038,688 +876,6 @@ function brDateToIso(brDateStr) {
   if (!brDateStr || !brDateStr.includes('/')) return '';
   const [d, m, y] = brDateStr.split('/');
   return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-}
-
-// ============================================================================
-// MOTOR 3D ORBITAL & CONSTELAÇÃO
-// ============================================================================
-let orbitalCurrentMode = 'orbit';
-let orbitalAnimFrame = null;
-let orbitalAutoRotate = true;
-let orbRotY = 0.4;
-let orbRotX = 0.58;
-let orbZoom = 1.0;
-let orbIsDragging = false;
-let orbDragStartX = 0, orbDragStartY = 0;
-let orbHoveredNode = null;
-let orbSelectedNode = null;
-let orbitalNodes = [];
-let orbitalprojectedHitList = [];
-let starfieldParticles = [];
-let constellationFilter = 'all';
-let activeConstellationService = null;
-
-function switchOrbitalMode(mode) {
-  orbitalCurrentMode = mode;
-  const w3d = document.getElementById('orbital-3d-wrapper');
-  const wConst = document.getElementById('orbital-constellation-wrapper');
-  const bOrbit = document.getElementById('btn-orb-mode-orbit');
-  const bConst = document.getElementById('btn-orb-mode-constellation');
-  const heading = document.getElementById('orbital-main-heading');
-
-  if (mode === 'orbit') {
-    w3d.classList.remove('hidden'); wConst.classList.add('hidden');
-    bOrbit.className = 'px-4 py-2 rounded-full text-[11px] font-black tracking-wider uppercase flex items-center gap-2 bg-sky-500/20 text-sky-300 border border-sky-400/40 shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all';
-    bConst.className = 'px-4 py-2 rounded-full text-[11px] font-black tracking-wider uppercase flex items-center gap-2 text-zinc-400 hover:text-white border border-transparent transition-all';
-    if (heading) heading.innerText = 'Barbearia conectada.';
-    startOrbitalLoop();
-  } else {
-    w3d.classList.add('hidden'); wConst.classList.remove('hidden');
-    bConst.className = 'px-4 py-2 rounded-full text-[11px] font-black tracking-wider uppercase flex items-center gap-2 bg-sky-500/20 text-sky-300 border border-sky-400/40 shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all';
-    bOrbit.className = 'px-4 py-2 rounded-full text-[11px] font-black tracking-wider uppercase flex items-center gap-2 text-zinc-400 hover:text-white border border-transparent transition-all';
-    if (heading) heading.innerText = 'Do agendamento à entrega.';
-    stopOrbitalLoop();
-    setTimeout(renderConstellationView, 40);
-  }
-}
-
-function resetOrbitalCamera() { orbRotY = 0.4; orbRotX = 0.58; orbZoom = 1.0; }
-
-function toggleOrbitalAutoRotate() {
-  orbitalAutoRotate = !orbitalAutoRotate;
-  const btn = document.getElementById('btn-orb-autorotate');
-  if (btn) {
-    btn.innerText = `↻ Giro Automático: ${orbitalAutoRotate ? 'ON' : 'OFF'}`;
-    btn.className = orbitalAutoRotate
-      ? 'hud-box px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-emerald-400 border-emerald-500/30 transition-all flex items-center gap-1.5'
-      : 'hud-box px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-zinc-400 transition-all flex items-center gap-1.5';
-  }
-}
-
-function buildOrbitalUniverseData() {
-  orbitalNodes = [];
-  if (!starfieldParticles.length) {
-    for (let i = 0; i < 110; i++) {
-      starfieldParticles.push({
-        x: (Math.random() - 0.5) * 1600,
-        y: (Math.random() - 0.5) * 900,
-        z: (Math.random() - 0.5) * 1200,
-        r: Math.random() * 1.4 + 0.4,
-        alpha: Math.random() * 0.55 + 0.15
-      });
-    }
-  }
-
-  const pool = (allHistoryData && allHistoryData.length) ? allHistoryData : allAppointments;
-  const validApts = pool.filter(a => a.calendar_event_id !== 'blocked_time' && !(a.service || '').startsWith('🚫') && a.calendar_event_id !== 'cancelled_by_barber' && a.calendar_event_id !== 'cancelled_by_client');
-
-  const now = new Date();
-  const todayStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
-  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-
-  let todayCount = 0, futureCount = 0, totalRev = 0;
-  validApts.forEach(a => {
-    totalRev += parseFloat(a.price || 0);
-    if (a.date === todayStr) todayCount++;
-    if (parseBrDateToObj(a.date).getTime() >= todayMidnight) futureCount++;
-  });
-
-  const serviceKeys = Object.keys(servicesMap);
-  const sectorCount = serviceKeys.length;
-
-  serviceKeys.forEach((sKey, idx) => {
-    const sMeta = servicesMap[sKey];
-    const startAngle = (idx / sectorCount) * Math.PI * 2;
-    const endAngle = ((idx + 1) / sectorCount) * Math.PI * 2;
-    const midAngle = (startAngle + endAngle) / 2;
-
-    const matchingApts = validApts.filter(a => (a.service || '').toLowerCase() === sKey.toLowerCase());
-    const sectorRevenue = matchingApts.reduce((acc, item) => acc + parseFloat(item.price || 0), 0);
-
-    const sectorNode = {
-      id: `sector-${idx}`,
-      kind: 'service_sector',
-      title: sKey,
-      shortLabel: sMeta.short,
-      color: sMeta.color,
-      x: Math.cos(midAngle) * 250,
-      y: -18,
-      z: Math.sin(midAngle) * 250,
-      radius: 8,
-      serviceName: sKey,
-      count: matchingApts.length,
-      revenue: sectorRevenue,
-      price: sMeta.price,
-      duration: sMeta.duration,
-      apts: matchingApts
-    };
-    orbitalNodes.push(sectorNode);
-
-    const cellTotal = Math.max(18, Math.min(44, 16 + matchingApts.length * 4));
-    for (let c = 0; c < cellTotal; c++) {
-      const ang = startAngle + 0.08 + Math.random() * (endAngle - startAngle - 0.16);
-      const rad = 115 + Math.random() * 78;
-      const linkedApt = matchingApts[c % Math.max(1, matchingApts.length)] || null;
-      orbitalNodes.push({
-        id: `cell-${idx}-${c}`,
-        kind: 'hex_cell',
-        title: linkedApt ? `${linkedApt.profiles?.full_name || 'Cliente'} — ${sMeta.short}` : `Célula ${sMeta.short}`,
-        color: sMeta.color,
-        x: Math.cos(ang) * rad,
-        y: (Math.random() - 0.5) * 8,
-        z: Math.sin(ang) * rad,
-        radius: 4.5,
-        serviceName: sKey,
-        apt: linkedApt,
-        parentSector: sectorNode
-      });
-    }
-  });
-
-  const displayApts = validApts.slice(0, 26);
-  displayApts.forEach((apt, i) => {
-    const ang = (i / Math.max(1, displayApts.length)) * Math.PI * 2 + 0.2;
-    const rad = 295 + (i % 2) * 22;
-    const theme = getServiceTheme(apt.service);
-    const isToday = apt.date === todayStr;
-
-    orbitalNodes.push({
-      id: `apt-${apt.id}`,
-      kind: 'appointment',
-      title: `${apt.profiles?.full_name || 'Cliente'} (${apt.date} às ${apt.time})`,
-      shortLabel: `${apt.time} · ${(apt.profiles?.full_name || 'Cliente').split(' ')[0]}`,
-      showCallout: i < 8 || isToday,
-      color: isToday ? '#10b981' : theme.hex,
-      x: Math.cos(ang) * rad,
-      y: (i % 3 - 1) * 14,
-      z: Math.sin(ang) * rad,
-      radius: isToday ? 7 : 5.5,
-      apt: apt
-    });
-  });
-
-  const topClients = (allClientsList || []).slice(0, 12);
-  topClients.forEach((cli, i) => {
-    const ang = (i / Math.max(1, topClients.length)) * Math.PI * 2 + 0.55;
-    const rad = 365;
-    orbitalNodes.push({
-      id: `cli-${cli.id}`,
-      kind: 'client',
-      title: `Cliente: ${cli.name}`,
-      shortLabel: `👤 ${cli.name.split(' ')[0]} (${cli.visits}x)`,
-      showCallout: i < 5,
-      color: '#38bdf8',
-      x: Math.cos(ang) * rad,
-      y: (i % 2 === 0 ? 18 : -18),
-      z: Math.sin(ang) * rad,
-      radius: 6,
-      client: cli
-    });
-  });
-
-  const elNodes = document.getElementById('orb-hud-nodes');
-  const elLinks = document.getElementById('orb-hud-links');
-  const elTF = document.getElementById('orb-hud-today-future');
-  const elRev = document.getElementById('orb-hud-rev');
-  if (elNodes) elNodes.innerText = orbitalNodes.length;
-  if (elLinks) elLinks.innerText = validApts.length * 2 + serviceKeys.length;
-  if (elTF) elTF.innerText = `${todayCount} / ${futureCount}`;
-  if (elRev) elRev.innerText = `R$ ${totalRev.toFixed(0)}`;
-}
-
-function project3D(x, y, z, cx, cy) {
-  const cosY = Math.cos(orbRotY), sinY = Math.sin(orbRotY);
-  const x1 = x * cosY - z * sinY;
-  const z1 = z * cosY + x * sinY;
-  const cosX = Math.cos(orbRotX), sinX = Math.sin(orbRotX);
-  const y2 = y * cosX - z1 * sinX;
-  const z2 = z1 * cosX + y * sinX;
-  const scale = (780 / Math.max(120, 920 + z2)) * orbZoom;
-  return { sx: cx + x1 * scale, sy: cy + y2 * scale, scale, depth: z2 };
-}
-
-function drawPolygonHex(ctx, x, y, r, fillStyle, strokeStyle) {
-  ctx.beginPath();
-  for (let i = 0; i < 6; i++) {
-    const a = (Math.PI / 3) * i;
-    const px = x + r * Math.cos(a);
-    const py = y + r * Math.sin(a) * 0.72;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-  }
-  ctx.closePath();
-  if (fillStyle) { ctx.fillStyle = fillStyle; ctx.fill(); }
-  if (strokeStyle) { ctx.strokeStyle = strokeStyle; ctx.lineWidth = 1; ctx.stroke(); }
-}
-
-function renderOrbitalFrame() {
-  const canvas = document.getElementById('orbital-canvas');
-  if (!canvas) return;
-  const rect = canvas.parentElement.getBoundingClientRect();
-  if (rect.width === 0 || rect.height === 0) return;
-
-  const dpr = window.devicePixelRatio || 1;
-  if (canvas.width !== Math.floor(rect.width * dpr) || canvas.height !== Math.floor(rect.height * dpr)) {
-    canvas.width = Math.floor(rect.width * dpr);
-    canvas.height = Math.floor(rect.height * dpr);
-  }
-
-  const ctx = canvas.getContext('2d');
-  ctx.save();
-  ctx.scale(dpr, dpr);
-
-  const W = rect.width, H = rect.height, cx = W * 0.5, cy = H * 0.52;
-  ctx.clearRect(0, 0, W, H);
-
-  if (orbitalAutoRotate && !orbIsDragging) orbRotY += 0.0022;
-
-  starfieldParticles.forEach(st => {
-    const p = project3D(st.x, st.y, st.z, cx, cy);
-    ctx.fillStyle = `rgba(148, 163, 184, ${st.alpha})`;
-    ctx.beginPath();
-    ctx.arc(p.sx, p.sy, st.r * p.scale, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  [110, 198, 250, 298, 365].forEach((rad, rIdx) => {
-    ctx.beginPath();
-    for (let s = 0; s <= 80; s++) {
-      const a = (s / 80) * Math.PI * 2;
-      const p = project3D(Math.cos(a) * rad, 0, Math.sin(a) * rad, cx, cy);
-      if (s === 0) ctx.moveTo(p.sx, p.sy); else ctx.lineTo(p.sx, p.sy);
-    }
-    ctx.strokeStyle = rIdx === 2 ? 'rgba(56, 189, 248, 0.24)' : 'rgba(148, 163, 184, 0.11)';
-    ctx.lineWidth = rIdx === 2 ? 1.4 : 1;
-    ctx.stroke();
-  });
-
-  orbitalNodes.forEach(node => {
-    if (node.kind === 'appointment' || node.kind === 'client' || node.kind === 'service_sector') {
-      const pNode = project3D(node.x, node.y, node.z, cx, cy);
-      const innerFactor = node.kind === 'service_sector' ? 0.65 : 0.68;
-      const pInner = project3D(node.x * innerFactor, 0, node.z * innerFactor, cx, cy);
-      const isHigh = (orbHoveredNode && orbHoveredNode.id === node.id) || (orbSelectedNode && orbSelectedNode.id === node.id);
-      ctx.beginPath();
-      ctx.moveTo(pInner.sx, pInner.sy);
-      ctx.lineTo(pNode.sx, pNode.sy);
-      ctx.strokeStyle = isHigh ? node.color : 'rgba(56, 189, 248, 0.14)';
-      ctx.lineWidth = isHigh ? 1.8 : 0.8;
-      ctx.stroke();
-    }
-  });
-
-  const coreCenter = project3D(0, 0, 0, cx, cy);
-  const coreRadius = 56 * orbZoom;
-  const coreGlow = ctx.createRadialGradient(coreCenter.sx, coreCenter.sy, 4, coreCenter.sx, coreCenter.sy, coreRadius * 2.1);
-  coreGlow.addColorStop(0, 'rgba(224, 242, 254, 0.95)');
-  coreGlow.addColorStop(0.28, 'rgba(56, 189, 248, 0.65)');
-  coreGlow.addColorStop(0.6, 'rgba(249, 115, 22, 0.18)');
-  coreGlow.addColorStop(1, 'rgba(56, 189, 248, 0)');
-
-  ctx.fillStyle = coreGlow;
-  ctx.beginPath();
-  ctx.arc(coreCenter.sx, coreCenter.sy, coreRadius * 2.1, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = 'rgba(186, 230, 253, 0.85)';
-  ctx.lineWidth = 2.2;
-  ctx.beginPath();
-  ctx.arc(coreCenter.sx, coreCenter.sy, coreRadius * 0.68, 0, Math.PI * 2);
-  ctx.stroke();
-
-  ctx.fillStyle = '#e0f2fe';
-  ctx.font = `900 ${Math.round(10 * orbZoom)}px 'JetBrains Mono', monospace`;
-  ctx.textAlign = 'center';
-  ctx.fillText('RB CORE', coreCenter.sx, coreCenter.sy + coreRadius + 16);
-
-  orbitalprojectedHitList = [];
-  const projectedNodes = orbitalNodes.map(n => ({ node: n, ...project3D(n.x, n.y, n.z, cx, cy) })).sort((a, b) => b.depth - a.depth);
-
-  projectedNodes.forEach(item => {
-    const { node, sx, sy, scale } = item;
-    const r = Math.max(2.5, node.radius * scale);
-    const isHovered = orbHoveredNode && orbHoveredNode.id === node.id;
-    const isSelected = orbSelectedNode && orbSelectedNode.id === node.id;
-
-    orbitalprojectedHitList.push({ node, sx, sy, r: Math.max(10, r + 5) });
-
-    if (node.kind === 'hex_cell') {
-      drawPolygonHex(ctx, sx, sy, r * (isHovered || isSelected ? 1.5 : 1.15), isHovered || isSelected ? node.color : `${node.color}55`, node.color);
-    } else {
-      if (isHovered || isSelected || node.kind === 'service_sector') {
-        ctx.beginPath(); ctx.arc(sx, sy, r * 2.1, 0, Math.PI * 2);
-        ctx.fillStyle = `${node.color}30`; ctx.fill();
-      }
-      ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2);
-      ctx.fillStyle = node.color; ctx.fill();
-      ctx.lineWidth = isHovered || isSelected ? 2.5 : 1.2;
-      ctx.strokeStyle = '#ffffff'; ctx.stroke();
-
-      if (node.kind === 'service_sector' || node.showCallout || isHovered || isSelected) {
-        const labelText = node.shortLabel || node.title;
-        ctx.font = `700 10px 'Inter', sans-serif`;
-        const boxW = ctx.measureText(labelText).width + 18, boxH = 22;
-        const bx = sx - boxW / 2, by = sy - r - boxH - 8;
-
-        ctx.fillStyle = isHovered || isSelected ? 'rgba(14, 165, 233, 0.92)' : 'rgba(9, 14, 26, 0.86)';
-        ctx.strokeStyle = isHovered || isSelected ? '#ffffff' : `${node.color}88`;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.roundRect(bx, by, boxW, boxH, 6);
-        ctx.fill(); ctx.stroke();
-
-        ctx.fillStyle = isHovered || isSelected ? '#04070f' : '#f8fafc';
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(labelText, sx, by + boxH / 2);
-      }
-    }
-  });
-  ctx.restore();
-}
-
-function startOrbitalLoop() {
-  if (orbitalAnimFrame) cancelAnimationFrame(orbitalAnimFrame);
-  function loop() {
-    if (orbitalCurrentMode === 'orbit' && !document.getElementById('tab-orbita').classList.contains('hidden')) {
-      renderOrbitalFrame();
-      orbitalAnimFrame = requestAnimationFrame(loop);
-    }
-  }
-  orbitalAnimFrame = requestAnimationFrame(loop);
-}
-
-function stopOrbitalLoop() {
-  if (orbitalAnimFrame) { cancelAnimationFrame(orbitalAnimFrame); orbitalAnimFrame = null; }
-}
-
-function initOrbitalCanvasEvents() {
-  const canvas = document.getElementById('orbital-canvas');
-  if (!canvas) return;
-  let movedDuringDrag = false;
-
-  canvas.addEventListener('mousedown', e => {
-    orbIsDragging = true; movedDuringDrag = false;
-    orbDragStartX = e.clientX; orbDragStartY = e.clientY;
-  });
-  window.addEventListener('mouseup', () => { orbIsDragging = false; });
-
-  canvas.addEventListener('mousemove', e => {
-    const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-    if (orbIsDragging) {
-      const dx = e.clientX - orbDragStartX, dy = e.clientY - orbDragStartY;
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) movedDuringDrag = true;
-      orbRotY += dx * 0.0065;
-      orbRotX = Math.max(0.18, Math.min(1.25, orbRotX + dy * 0.005));
-      orbDragStartX = e.clientX; orbDragStartY = e.clientY;
-      return;
-    }
-    let found = null;
-    for (let i = orbitalprojectedHitList.length - 1; i >= 0; i--) {
-      const item = orbitalprojectedHitList[i];
-      if (Math.hypot(mx - item.sx, my - item.sy) <= item.r) { found = item.node; break; }
-    }
-    orbHoveredNode = found;
-    canvas.style.cursor = found ? 'pointer' : (orbIsDragging ? 'grabbing' : 'grab');
-  });
-
-  canvas.addEventListener('click', () => {
-    if (!movedDuringDrag && orbHoveredNode) {
-      orbSelectedNode = orbHoveredNode;
-      openOrbitalInspector(orbHoveredNode);
-    }
-  });
-
-  canvas.addEventListener('wheel', e => {
-    e.preventDefault();
-    orbZoom = Math.max(0.55, Math.min(2.1, orbZoom * (e.deltaY < 0 ? 1.08 : 0.92)));
-  }, { passive: false });
-}
-
-function openOrbitalInspector(node) {
-  const drawer = document.getElementById('orbital-inspector-drawer');
-  const badge = document.getElementById('insp-badge');
-  const idEl = document.getElementById('insp-id');
-  const titleEl = document.getElementById('insp-title');
-  const bodyEl = document.getElementById('insp-body');
-  const footerEl = document.getElementById('insp-footer');
-  if (!drawer) return;
-  drawer.classList.remove('hidden'); drawer.classList.add('flex');
-
-  if (node.kind === 'hex_cell' && node.apt) node = { id: `apt-${node.apt.id}`, kind: 'appointment', color: node.color, apt: node.apt };
-  else if (node.kind === 'hex_cell' && node.parentSector) node = node.parentSector;
-
-  if (node.kind === 'service_sector') {
-    badge.innerText = 'NÚCLEO DE SERVIÇO';
-    idEl.innerText = `SETOR // ${node.shortLabel.toUpperCase()}`;
-    titleEl.innerText = `FICHA: ${node.title}`;
-    const recentList = (node.apts || []).slice(0, 6).map(a => `
-      <div onclick='openOrbitalInspector({kind:"appointment", apt:${JSON.stringify(a).replace(/'/g,"&apos;")}})' class="p-2.5 rounded-xl bg-zinc-900/90 border border-white/5 hover:border-sky-400/40 cursor-pointer flex items-center justify-between transition-all">
-        <div>
-          <p class="font-bold text-white text-xs">${a.profiles?.full_name || 'Cliente'}</p>
-          <p class="text-[10px] text-zinc-400 mono-font">${a.date} às ${a.time}</p>
-        </div>
-        <span class="text-[10px] font-black text-emerald-400 mono-font">R$ ${parseFloat(a.price || 0).toFixed(2).replace('.',',')}</span>
-      </div>
-    `).join('') || `<p class="text-zinc-500 text-xs">Nenhum atendimento registrado neste setor ainda.</p>`;
-
-    bodyEl.innerHTML = `
-      <div class="space-y-2.5 bg-zinc-950/70 p-4 rounded-2xl border border-white/5 mono-font text-[11px]">
-        <div class="flex justify-between"><span class="text-zinc-500">Origem</span><span class="text-sky-300 font-bold">rb_barbearia/servicos/${node.shortLabel.toLowerCase()}</span></div>
-        <div class="flex justify-between"><span class="text-zinc-500">Status</span><span class="text-emerald-400 font-bold">● Ativo no catálogo</span></div>
-        <div class="flex justify-between"><span class="text-zinc-500">Valor Tabela</span><span class="text-white font-bold">R$ ${node.price.toFixed(2).replace('.',',')}</span></div>
-        <div class="flex justify-between"><span class="text-zinc-500">Tempo Médio</span><span class="text-white font-bold">${node.duration} minutos</span></div>
-        <div class="flex justify-between"><span class="text-zinc-500">Atendimentos</span><span class="text-orange-400 font-bold">${node.count} realizados/agendados</span></div>
-        <div class="flex justify-between"><span class="text-zinc-500">Receita Acumulada</span><span class="text-emerald-400 font-bold">R$ ${node.revenue.toFixed(2).replace('.',',')}</span></div>
-      </div>
-      <div>
-        <p class="text-[10px] uppercase font-black tracking-widest text-sky-400 mono-font mb-2.5">Ligações de Entrada (Clientes neste serviço)</p>
-        <div class="space-y-2">${recentList}</div>
-      </div>
-    `;
-    footerEl.innerHTML = `<button onclick="openManualModal()" class="w-full py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-zinc-950 font-black uppercase tracking-widest text-[10px] transition-all">✨ Novo Agendamento neste Setor</button>`;
-  } else if (node.kind === 'appointment') {
-    const a = node.apt;
-    const cName = a.profiles?.full_name || 'Cliente';
-    const cleanPhone = (a.profiles?.phone || '').replace(/\D/g, '');
-    const whatsLink = cleanPhone ? `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(`Olá ${cName}, tudo certo para seu horário na RB Barbearia dia ${a.date} às ${a.time}?`)}` : '';
-
-    badge.innerText = 'AGENDAMENTO CONECTADO';
-    idEl.innerText = `#APT-${String(a.id).slice(0, 6).toUpperCase()}`;
-    titleEl.innerText = `FICHA: ${cName}`;
-
-    bodyEl.innerHTML = `
-      <div class="space-y-2.5 bg-zinc-950/70 p-4 rounded-2xl border border-white/5 mono-font text-[11px]">
-        <div class="flex justify-between"><span class="text-zinc-500">Cliente</span><span class="text-white font-bold">${cName}</span></div>
-        <div class="flex justify-between"><span class="text-zinc-500">WhatsApp</span><span class="text-sky-300 font-bold">${a.profiles?.phone || 'Não informado'}</span></div>
-        <div class="flex justify-between"><span class="text-zinc-500">Serviço</span><span class="text-orange-400 font-bold">${a.service}</span></div>
-        <div class="flex justify-between"><span class="text-zinc-500">Data & Hora</span><span class="text-white font-bold">${a.date} às ${a.time}</span></div>
-        <div class="flex justify-between"><span class="text-zinc-500">Valor</span><span class="text-emerald-400 font-bold">R$ ${parseFloat(a.price || 0).toFixed(2).replace('.',',')}</span></div>
-        <div class="flex justify-between"><span class="text-zinc-500">Sincronia</span><span class="text-emerald-400 font-bold">Supabase Realtime OK</span></div>
-      </div>
-      <div class="p-4 rounded-2xl bg-sky-950/20 border border-sky-500/20 space-y-2">
-        <p class="text-[10px] uppercase font-black tracking-widest text-sky-300 mono-font">Rastreio de Conexão</p>
-        <p class="text-xs text-zinc-300 leading-relaxed">Este agendamento está vinculado ao núcleo <strong class="text-white">${a.service}</strong> e sincronizado na agenda do dia <strong class="text-orange-400">${a.date}</strong>.</p>
-      </div>
-    `;
-    footerEl.innerHTML = `
-      ${whatsLink ? `<a href="${whatsLink}" target="_blank" class="flex-1 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black uppercase tracking-widest text-[10px] text-center transition-all">WhatsApp</a>` : ''}
-      <button onclick="selectCalendarDate('${a.date}'); switchTab('kanban');" class="flex-1 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest text-[10px] transition-all">Ver no Calendário</button>
-    `;
-  } else if (node.kind === 'client') {
-    const c = node.client;
-    const cleanPhone = (c.phone || '').replace(/\D/g, '');
-    const whatsLink = cleanPhone ? `https://wa.me/55${cleanPhone}` : '';
-    const lastStr = `${String(c.lastVisit.getDate()).padStart(2,'0')}/${String(c.lastVisit.getMonth()+1).padStart(2,'0')}/${c.lastVisit.getFullYear()}`;
-
-    badge.innerText = 'NÓ DE CLIENTE';
-    idEl.innerText = `#CLI-${String(c.id).slice(0, 6).toUpperCase()}`;
-    titleEl.innerText = `FICHA: ${c.name}`;
-
-    bodyEl.innerHTML = `
-      <div class="space-y-2.5 bg-zinc-950/70 p-4 rounded-2xl border border-white/5 mono-font text-[11px]">
-        <div class="flex justify-between"><span class="text-zinc-500">Cliente</span><span class="text-white font-bold">${c.name}</span></div>
-        <div class="flex justify-between"><span class="text-zinc-500">Contato</span><span class="text-sky-300 font-bold">${c.phone || '-'}</span></div>
-        <div class="flex justify-between"><span class="text-zinc-500">Frequência</span><span class="text-orange-400 font-bold">${c.visits} visitas concluídas</span></div>
-        <div class="flex justify-between"><span class="text-zinc-500">LTV (Total Gasto)</span><span class="text-emerald-400 font-bold">R$ ${c.totalSpent.toFixed(2).replace('.',',')}</span></div>
-        <div class="flex justify-between"><span class="text-zinc-500">Última Visita</span><span class="text-white font-bold">${lastStr}</span></div>
-      </div>
-    `;
-    footerEl.innerHTML = `${whatsLink ? `<a href="${whatsLink}" target="_blank" class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black uppercase tracking-widest text-[10px] text-center transition-all">Chamar no WhatsApp</a>` : ''}`;
-  }
-}
-
-function closeOrbitalInspector() {
-  const drawer = document.getElementById('orbital-inspector-drawer');
-  if (drawer) { drawer.classList.add('hidden'); drawer.classList.remove('flex'); }
-  orbSelectedNode = null;
-}
-
-// ============================================================================
-// MODO 2: CONSTELAÇÃO & FLUXOS (CABOS BÉZIER DINÂMICOS)
-// ============================================================================
-function setConstellationFilter(f) {
-  constellationFilter = f;
-  ['all','today','upcoming'].forEach(k => {
-    const btn = document.getElementById('c-filt-' + k);
-    if (!btn) return;
-    btn.className = k === f
-      ? 'px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30'
-      : 'px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white';
-  });
-  renderConstellationView();
-}
-
-function renderConstellationView() {
-  const servicesRow = document.getElementById('constellation-services-row');
-  const cardsGrid = document.getElementById('constellation-cards-grid');
-  if (!servicesRow || !cardsGrid) return;
-
-  const pool = (allHistoryData && allHistoryData.length) ? allHistoryData : allAppointments;
-  const now = new Date();
-  const todayStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
-  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const query = (document.getElementById('constellation-search')?.value || '').toLowerCase().trim();
-
-  let validApts = pool.filter(a => a.calendar_event_id !== 'blocked_time' && !(a.service || '').startsWith('🚫') && a.calendar_event_id !== 'cancelled_by_barber' && a.calendar_event_id !== 'cancelled_by_client');
-
-  if (constellationFilter === 'today') validApts = validApts.filter(a => a.date === todayStr);
-  else if (constellationFilter === 'upcoming') validApts = validApts.filter(a => parseBrDateToObj(a.date).getTime() >= todayMidnight);
-
-  if (query) {
-    validApts = validApts.filter(a =>
-      (a.profiles?.full_name || '').toLowerCase().includes(query) ||
-      (a.service || '').toLowerCase().includes(query) ||
-      (a.date || '').includes(query) ||
-      (a.time || '').includes(query)
-    );
-  }
-
-  const serviceKeys = Object.keys(servicesMap);
-  servicesRow.innerHTML = serviceKeys.map((sKey, idx) => {
-    const sMeta = servicesMap[sKey];
-    const count = validApts.filter(a => (a.service || '').toLowerCase() === sKey.toLowerCase()).length;
-    const isActive = activeConstellationService === sKey;
-    return `
-      <div id="c-service-node-${idx}" data-service="${sKey}"
-        onmouseenter="highlightConstellationService('${sKey}')"
-        onmouseleave="clearConstellationHighlight()"
-        onclick="toggleLockConstellationService('${sKey}')"
-        class="constellation-node hud-box rounded-2xl p-4 cursor-pointer border ${isActive ? 'active-node' : 'border-white/10'}">
-        <div class="flex items-center justify-between mb-2">
-          <span class="w-2.5 h-2.5 rounded-full" style="background:${sMeta.color}; box-shadow:0 0 12px ${sMeta.color}"></span>
-          <span class="text-[9px] font-black mono-font text-zinc-400">${count} conexões</span>
-        </div>
-        <p class="text-xs font-black text-white uppercase tracking-wider truncate">${sMeta.short}</p>
-        <p class="text-[10px] text-zinc-400 mono-font mt-1">R$ ${sMeta.price},00 · ${sMeta.duration}m</p>
-      </div>
-    `;
-  }).join('');
-
-  const displayList = validApts.slice(0, 18);
-  document.getElementById('constellation-cards-count').innerText = `${displayList.length} exibidos`;
-
-  if (!displayList.length) {
-    cardsGrid.innerHTML = `
-      <div class="col-span-full hud-box rounded-3xl p-10 text-center">
-        <p class="text-sm font-black text-white uppercase tracking-widest">Nenhuma conexão encontrada para este filtro</p>
-        <p class="text-xs text-zinc-400 mt-1">Altere o filtro acima para "Todos" ou crie um novo agendamento.</p>
-      </div>
-    `;
-    clearConstellationCables();
-    return;
-  }
-
-  cardsGrid.innerHTML = displayList.map(a => {
-    const cName = a.profiles?.full_name || 'Cliente';
-    const sTheme = getServiceTheme(a.service);
-    const isToday = a.date === todayStr;
-    return `
-      <div id="c-apt-card-${a.id}" data-service="${a.service}" data-apt-id="${a.id}"
-        onmouseenter="highlightConstellationCard('${a.id}', '${a.service}')"
-        onmouseleave="clearConstellationHighlight()"
-        onclick='openOrbitalInspector({kind:"appointment", apt:${JSON.stringify(a).replace(/'/g,"&apos;")}})'
-        class="constellation-card hud-box rounded-2xl p-4 cursor-pointer border border-white/10 flex flex-col justify-between gap-3">
-        <div>
-          <div class="flex items-center justify-between gap-2 mb-2">
-            <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-white/5 text-sky-300 mono-font">${a.date} · ${a.time}</span>
-            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded ${isToday ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-zinc-800 text-zinc-400'}">${isToday ? '● Hoje' : 'Sincronizado'}</span>
-          </div>
-          <h4 class="text-sm font-black text-white truncate">${cName}</h4>
-          <p class="text-[10px] font-bold uppercase tracking-wider mt-1" style="color:${sTheme.hex}">${a.service}</p>
-        </div>
-        <div class="pt-2.5 border-t border-white/5 flex items-center justify-between text-[10px] mono-font">
-          <span class="text-emerald-400 font-black">R$ ${parseFloat(a.price || 0).toFixed(2).replace('.',',')}</span>
-          <span class="text-sky-400 font-bold">Abrir Ficha →</span>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  setTimeout(() => {
-    if (activeConstellationService) highlightConstellationService(activeConstellationService);
-    else if (displayList[0]) highlightConstellationCard(displayList[0].id, displayList[0].service);
-  }, 60);
-}
-
-function toggleLockConstellationService(serviceName) {
-  if (activeConstellationService === serviceName) { activeConstellationService = null; clearConstellationHighlight(); }
-  else { activeConstellationService = serviceName; highlightConstellationService(serviceName); }
-}
-
-function highlightConstellationCard(aptId, serviceName) {
-  const stage = document.getElementById('constellation-stage');
-  const svg = document.getElementById('constellation-svg-layer');
-  if (!stage || !svg) return;
-
-  document.querySelectorAll('.constellation-card').forEach(el => el.classList.toggle('active-card', el.dataset.aptId === String(aptId)));
-  const serviceKeys = Object.keys(servicesMap);
-  const sIdx = serviceKeys.findIndex(k => k.toLowerCase() === (serviceName || '').toLowerCase());
-  document.querySelectorAll('.constellation-node').forEach((el, i) => el.classList.toggle('active-node', i === sIdx));
-
-  const cardEl = document.getElementById(`c-apt-card-${aptId}`);
-  const nodeEl = document.getElementById(`c-service-node-${sIdx >= 0 ? sIdx : 0}`);
-  if (!cardEl || !nodeEl) return;
-
-  const color = servicesMap[serviceKeys[sIdx]]?.color || '#38bdf8';
-  drawBezierCablesBetween(stage, svg, [nodeEl], [cardEl], color);
-}
-
-function highlightConstellationService(serviceName) {
-  const stage = document.getElementById('constellation-stage');
-  const svg = document.getElementById('constellation-svg-layer');
-  if (!stage || !svg) return;
-
-  const serviceKeys = Object.keys(servicesMap);
-  const sIdx = serviceKeys.findIndex(k => k.toLowerCase() === (serviceName || '').toLowerCase());
-  const nodeEl = document.getElementById(`c-service-node-${sIdx}`);
-  if (!nodeEl) return;
-
-  document.querySelectorAll('.constellation-node').forEach((el, i) => el.classList.toggle('active-node', i === sIdx));
-  const matchingCards = [];
-  document.querySelectorAll('.constellation-card').forEach(card => {
-    const match = (card.dataset.service || '').toLowerCase() === serviceName.toLowerCase();
-    card.classList.toggle('active-card', match);
-    if (match) matchingCards.push(card);
-  });
-
-  const color = servicesMap[serviceName]?.color || '#38bdf8';
-  drawBezierCablesBetween(stage, svg, [nodeEl], matchingCards, color);
-}
-
-function clearConstellationHighlight() {
-  if (activeConstellationService) { highlightConstellationService(activeConstellationService); return; }
-  document.querySelectorAll('.constellation-card').forEach(el => el.classList.remove('active-card'));
-  document.querySelectorAll('.constellation-node').forEach(el => el.classList.remove('active-node'));
-  clearConstellationCables();
-}
-
-function clearConstellationCables() {
-  const svg = document.getElementById('constellation-svg-layer');
-  if (svg) svg.innerHTML = '';
-}
-
-function drawBezierCablesBetween(stageEl, svgEl, topElements, bottomElements, color) {
-  const stageRect = stageEl.getBoundingClientRect();
-  let pathsHtml = '';
-  topElements.forEach(topEl => {
-    const tRect = topEl.getBoundingClientRect();
-    const x1 = tRect.left - stageRect.left + tRect.width / 2;
-    const y1 = tRect.bottom - stageRect.top;
-    bottomElements.forEach(botEl => {
-      const bRect = botEl.getBoundingClientRect();
-      const x2 = bRect.left - stageRect.left + bRect.width / 2;
-      const y2 = bRect.top - stageRect.top;
-      const cy1 = y1 + (y2 - y1) * 0.45, cy2 = y1 + (y2 - y1) * 0.55;
-      const d = `M ${x1} ${y1} C ${x1} ${cy1}, ${x2} ${cy2}, ${x2} ${y2}`;
-      pathsHtml += `
-        <path d="${d}" fill="none" stroke="${color}" stroke-width="5" stroke-opacity="0.14" />
-        <path d="${d}" fill="none" stroke="${color}" stroke-width="2" class="flow-cable-animated" />
-        <circle cx="${x1}" cy="${y1}" r="4" fill="${color}" />
-        <circle cx="${x2}" cy="${y2}" r="4" fill="${color}" />
-      `;
-    });
-  });
-  svgEl.innerHTML = pathsHtml;
 }
 
 // ============================================================================
@@ -2006,9 +1162,26 @@ function copySelectedDateSummary() {
 }
 
 // ============================================================================
-// AGENDAMENTO MANUAL, BLOQUEIOS, HISTÓRICO, CLIENTES E DASHBOARD
+// AGENDAMENTO MANUAL (COM AUTOCOMPLETAR), BLOQUEIOS, HISTÓRICO, CLIENTES E BI
 // ============================================================================
+function updateClientsDatalist() {
+  const dl = document.getElementById('existing-clients-datalist');
+  if (!dl) return;
+  dl.innerHTML = allClientsList.map(c => `<option value="${c.name}">${c.phone || ''}</option>`).join('');
+}
+
+function checkClientAutoFill(typedName) {
+  const cleanName = (typedName || '').trim().toLowerCase();
+  const match = allClientsList.find(c => c.name.toLowerCase() === cleanName);
+  if (match && match.phone) {
+    const phoneInput = document.getElementById('manual-phone');
+    phoneInput.value = match.phone;
+    maskAdminPhone(phoneInput);
+  }
+}
+
 function openManualModal(customIsoDate = null) {
+  updateClientsDatalist();
   document.getElementById('manual-name').value = '';
   document.getElementById('manual-phone').value = '';
   const now = new Date();
@@ -2320,10 +1493,6 @@ async function fetchHistoryData() {
       }
     });
     renderHistoryTable(); calculateDashboard(); renderClientsTable();
-    if (!document.getElementById('tab-orbita').classList.contains('hidden')) {
-      buildOrbitalUniverseData();
-      if (orbitalCurrentMode === 'constellation') renderConstellationView();
-    }
   } catch (err) { console.error('Falha ao buscar dados:', err); }
 }
 
@@ -2442,21 +1611,46 @@ function populateClientsUI(clients) {
   const tbody = document.getElementById('clients-table-body');
   if (!tbody) return;
   if (!clients.length) {
-    tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-zinc-500 font-bold uppercase tracking-widest text-[10px]">Nenhum cliente encontrado.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-zinc-500 font-bold uppercase tracking-widest text-[10px]">Nenhum cliente encontrado.</td></tr>`;
     return;
   }
+
+  const now = new Date();
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   let html = '';
+
   clients.forEach(c => {
     const cleanPhone = (c.phone || '').replace(/\D/g,'');
-    const whatsLink = cleanPhone ? `https://wa.me/55${cleanPhone}` : '#';
     const dateStr = `${String(c.lastVisit.getDate()).padStart(2,'0')}/${String(c.lastVisit.getMonth()+1).padStart(2,'0')}/${c.lastVisit.getFullYear()}`;
-    const whatsBtn = cleanPhone ? `<a href="${whatsLink}" target="_blank" class="inline-flex items-center justify-center gap-1.5 text-emerald-400 hover:text-zinc-950 text-[9px] uppercase font-black tracking-widest bg-emerald-500/10 hover:bg-emerald-500 px-3 py-1.5 rounded-lg transition-all border border-emerald-500/20">WhatsApp</a>` : `<span class="text-zinc-600 text-[9px] uppercase font-bold">Sem contato</span>`;
+    const visitMidnight = new Date(c.lastVisit.getFullYear(), c.lastVisit.getMonth(), c.lastVisit.getDate()).getTime();
+    const daysSince = Math.round((todayMidnight - visitMidnight) / 86400000);
+
+    let returnBadge = '';
+    let customMsg = `Olá ${c.name.split(' ')[0]}, tudo certo? Passando para falar da RB Barbearia!`;
+
+    if (daysSince < 0) {
+      returnBadge = `<span class="bg-sky-500/10 text-sky-400 border border-sky-500/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase">📅 Agendado</span>`;
+    } else if (daysSince <= 20) {
+      returnBadge = `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase">🟢 Em dia (${daysSince}d)</span>`;
+    } else if (daysSince <= 35) {
+      returnBadge = `<span class="bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase">🟡 Hora de voltar (${daysSince}d)</span>`;
+      customMsg = `Fala ${c.name.split(' ')[0]}, tudo tranquilo? Já faz uns ${daysSince} dias do teu último corte aqui na RB Barbearia. Bora garantir teu horário pra essa semana?`;
+    } else {
+      returnBadge = `<span class="bg-red-500/10 text-red-400 border border-red-500/30 px-2.5 py-1 rounded-md text-[9px] font-black uppercase">🔴 Sumido (${daysSince}d)</span>`;
+      customMsg = `Fala ${c.name.split(' ')[0]}, sumiu irmão! Faz ${daysSince} dias que não aparece aqui na RB Barbearia. Bora dar um talento no visual essa semana?`;
+    }
+
+    const whatsLink = cleanPhone ? `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(customMsg)}` : '#';
+    const whatsBtn = cleanPhone
+      ? `<a href="${whatsLink}" target="_blank" class="inline-flex items-center justify-center gap-1.5 text-emerald-400 hover:text-zinc-950 text-[9px] uppercase font-black tracking-widest bg-emerald-500/10 hover:bg-emerald-500 px-3 py-1.5 rounded-lg transition-all border border-emerald-500/20">Chamar WhatsApp</a>`
+      : `<span class="text-zinc-600 text-[9px] uppercase font-bold">Sem contato</span>`;
 
     html += `
       <tr class="hover:bg-zinc-800/40 transition-colors border-l-2 border-transparent hover:border-orange-500">
         <td class="px-5 py-4 font-black text-white capitalize">${c.name.toLowerCase()}</td>
         <td class="px-5 py-4 text-zinc-400 font-medium">${c.phone || '-'}</td>
         <td class="px-5 py-4 text-zinc-300 font-medium">${dateStr}</td>
+        <td class="px-5 py-4">${returnBadge}</td>
         <td class="px-5 py-4 text-emerald-400 font-black">R$ ${c.totalSpent.toFixed(2).replace('.',',')}</td>
         <td class="px-5 py-4 text-zinc-300 font-bold">${c.visits} <span class="text-[9px] text-zinc-500 font-medium">visitas</span></td>
         <td class="px-5 py-4 text-right">${whatsBtn}</td>
@@ -2678,7 +1872,7 @@ function generateCardHtml(item) {
   const isBlock = item.type === 'block';
   const clientName = item.profiles?.full_name || (isBlock ? 'Barbearia' : 'Cliente Não Id.');
   const cleanPhone = (item.profiles?.phone || '').replace(/\D/g,'');
-  const whatsLink = cleanPhone ? `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(`Olá ${clientName}, confirmando seu horário na RB Barbearia!`)}` : '#';
+  const whatsLink = cleanPhone ? `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(`Olá ${clientName}, confirmando seu horário de ${item.service || 'atendimento'} na RB Barbearia dia ${item.date \vert{}\vert{} ''} às ${item.time || ''}!`)}` : '#';
 
   if (isBlock) {
     const idsStr = (item.block_ids || [item.id]).join(',');
