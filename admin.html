@@ -765,14 +765,10 @@
 
     <div class="overflow-y-auto custom-scroll flex-1 pt-4 pb-2 space-y-4">
 
-      <div>
-
+      <div class="relative" id="manual-name-wrapper">
         <label class="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5">Nome do Cliente</label>
-
-        <input type="text" id="manual-name" list="existing-clients-datalist" oninput="checkClientAutoFill(this.value)" onblur="this.value = formatClientName(this.value)" placeholder="Digite ou selecione da lista" class="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-xl text-white outline-none focus:border-emerald-500 text-sm">
-
-        <datalist id="existing-clients-datalist"></datalist>
-
+        <input type="text" id="manual-name" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" onfocus="checkClientAutoFill(this.value)" oninput="checkClientAutoFill(this.value)" onblur="handleClientNameBlur(this)" placeholder="Digite ou selecione da lista" class="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-xl text-white outline-none focus:border-emerald-500 text-sm">
+        <div id="client-suggestions-dropdown" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl max-h-52 overflow-y-auto custom-scroll z-50 divide-y divide-zinc-800/80"></div>
       </div>
 
       <div>
@@ -3520,22 +3516,78 @@ function copySelectedDateSummary() {
 }
 
 function updateClientsDatalist() {
-  const dl = document.getElementById('existing-clients-datalist');
-  if (!dl) return;
-  dl.innerHTML = allClientsList.map(function(c) {
-    const ph = c.phone ? c.phone : '';
-    return '<option value="' + formatClientName(c.name) + '">' + ph + '</option>';
-  }).join('');
+  hideClientSuggestions();
+}
+
+function hideClientSuggestions() {
+  const drop = document.getElementById('client-suggestions-dropdown');
+  if (drop) drop.classList.add('hidden');
+}
+
+function handleClientNameBlur(inputEl) {
+  setTimeout(function() {
+    if (inputEl && inputEl.value) {
+      inputEl.value = formatClientName(inputEl.value);
+    }
+    hideClientSuggestions();
+  }, 200);
+}
+
+function selectSuggestedClient(name, phone) {
+  const nameInput = document.getElementById('manual-name');
+  const phoneInput = document.getElementById('manual-phone');
+  if (nameInput) nameInput.value = formatClientName(name);
+  if (phoneInput) {
+    phoneInput.value = phone || '';
+    if (phone) maskAdminPhone(phoneInput);
+  }
+  hideClientSuggestions();
 }
 
 function checkClientAutoFill(typedName) {
+  const drop = document.getElementById('client-suggestions-dropdown');
   const cleanName = (typedName ? typedName : '').trim().toLowerCase();
-  const match = allClientsList.find(function(c) { return c.name.toLowerCase() === cleanName; });
-  if (match && match.phone) {
+
+  const exactMatch = allClientsList.find(function(c) {
+    return c.name.toLowerCase() === cleanName;
+  });
+  if (exactMatch && exactMatch.phone) {
     const phoneInput = document.getElementById('manual-phone');
-    phoneInput.value = match.phone;
+    phoneInput.value = exactMatch.phone;
     maskAdminPhone(phoneInput);
   }
+
+  if (!drop) return;
+
+  const filtered = allClientsList.filter(function(c) {
+    if (!cleanName) return true;
+    const formatted = formatClientName(c.name).toLowerCase();
+    const ph = (c.phone ? c.phone : '').replace(/\D/g, '');
+    return formatted.includes(cleanName) || (ph && ph.includes(cleanName));
+  });
+
+  if (!filtered.length) {
+    drop.classList.add('hidden');
+    drop.innerHTML = '';
+    return;
+  }
+
+  drop.innerHTML = filtered.map(function(c) {
+    const fName = formatClientName(c.name);
+    const fPhone = c.phone ? c.phone : '';
+    const safeName = fName.replace(/'/g, "\\'");
+    const safePhone = fPhone.replace(/'/g, "\\'");
+    const phoneBadge = fPhone
+      ? '<span class="text-[10px] text-zinc-400 font-semibold">' + fPhone + '</span>'
+      : '<span class="text-[9px] text-zinc-600 uppercase font-bold">Sem Whats</span>';
+
+    return '<button type="button" onmousedown="event.preventDefault()" onclick="selectSuggestedClient(\'' + safeName + '\', \'' + safePhone + '\')" class="w-full px-4 py-3 text-left hover:bg-zinc-800/80 active:bg-emerald-500/20 flex items-center justify-between gap-2 transition-colors">'
+      + '<span class="text-xs font-black text-white truncate">' + fName + '</span>'
+      + phoneBadge
+      + '</button>';
+  }).join('');
+
+  drop.classList.remove('hidden');
 }
 
 function openManualModal(customIsoDate) {
