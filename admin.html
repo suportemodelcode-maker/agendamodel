@@ -5901,223 +5901,182 @@ function closeCancellationsModal() {
 
 
 
+let dashPaymentFilter = 'todos';
+
+function setDashPaymentFilter(payType) {
+  dashPaymentFilter = (dashPaymentFilter === payType && payType !== 'todos') ? 'todos' : payType;
+  const types = ['todos', 'Pix', 'Dinheiro', 'Cartão Débito', 'Cartão Crédito', 'Pendente'];
+  types.forEach(function(t) {
+    const btn = document.getElementById('pay-filter-' + t);
+    if (!btn) return;
+    if (t === dashPaymentFilter) {
+      btn.classList.add('border-orange-500', 'bg-zinc-900');
+      btn.style.boxShadow = '0 0 20px rgba(249,115,22,0.18)';
+    } else {
+      btn.classList.remove('border-orange-500', 'bg-zinc-900');
+      btn.style.boxShadow = '';
+    }
+  });
+  const badge = document.getElementById('dash-active-pay-badge');
+  if (badge) {
+    badge.innerText = 'Exibindo: ' + (dashPaymentFilter === 'todos' ? 'Todos' : (dashPaymentFilter === 'Pendente' ? 'Sem Baixa' : dashPaymentFilter));
+  }
+  calculateDashboard();
+}
+
 function calculateDashboard() {
-
   try {
-
     const now = new Date();
-
     now.setHours(23, 59, 59, 999);
-
     let startD;
-
     let endD;
-
     let chartTitle = '';
 
-
-
     if (dashFilter === 'hoje') {
-
       startD = new Date(now); startD.setHours(0, 0, 0, 0); endD = now; chartTitle = 'Receita: Hoje (Por Hora)';
-
     } else if (dashFilter === '7dias') {
-
       startD = new Date(now); startD.setDate(now.getDate() - 6); startD.setHours(0, 0, 0, 0); endD = now; chartTitle = 'Receita: Últimos 7 Dias';
-
     } else if (dashFilter === 'mes') {
-
       startD = new Date(now.getFullYear(), now.getMonth(), 1); endD = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59); chartTitle = 'Receita: Este Mês (Por Dia)';
-
     } else if (dashFilter === 'ano') {
-
       startD = new Date(now.getFullYear(), 0, 1); endD = new Date(now.getFullYear(), 11, 31, 23, 59, 59); chartTitle = 'Receita: Este Ano (Por Mês)';
-
     } else {
-
       const sEl = document.getElementById('dash-start');
-
       const eEl = document.getElementById('dash-end');
-
       const s = sEl ? sEl.value : '';
-
       const e = eEl ? eEl.value : '';
-
       if (!s ? true : !e) return;
-
       startD = new Date(s + 'T00:00:00');
-
       endD = new Date(e + 'T23:59:59');
-
       chartTitle = 'Receita: Período Personalizado';
-
     }
 
-
+    if (dashPaymentFilter !== 'todos') {
+      chartTitle += ' · [' + (dashPaymentFilter === 'Pendente' ? 'Sem Baixa' : dashPaymentFilter) + ']';
+    }
 
     const titleEl = document.getElementById('chart-title');
-
     if (titleEl) titleEl.innerText = chartTitle;
 
-
-
     window.currentPeriodCancellations = [];
-
     let revPeriodo = 0;
-
     let cutsPeriodo = 0;
-
     let canceladosPeriodo = 0;
-
     let aptsValidosTotal = 0;
-
     let aptsFuturos = 0;
-
     let revFutura = 0;
-
     const serviceCounter = {};
-
     const clientCounter = {};
 
+    const payStats = {
+      'todos': { val: 0, cnt: 0 },
+      'Pix': { val: 0, cnt: 0 },
+      'Dinheiro': { val: 0, cnt: 0 },
+      'Cartão Débito': { val: 0, cnt: 0 },
+      'Cartão Crédito': { val: 0, cnt: 0 },
+      'Pendente': { val: 0, cnt: 0 }
+    };
+
     let chartLabels = [];
-
     let chartMap = {};
-
     const diffDays = Math.ceil((endD - startD) / (1000 * 60 * 60 * 24));
 
-
-
     if (dashFilter === 'hoje') {
-
       for (let h = 8; h <= 21; h++) {
-
         const hs = pad2(h) + ':00';
-
         chartMap[hs] = 0;
-
         chartLabels.push(hs);
-
       }
-
     } else if (diffDays <= 31) {
-
       for (let d = new Date(startD); d <= endD; d.setDate(d.getDate() + 1)) {
-
         const label = pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1);
-
         chartMap[label] = 0;
-
         chartLabels.push(label);
-
       }
-
     } else {
-
       const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-
       for (let m = startD.getMonth(); m <= endD.getMonth() + (endD.getFullYear() - startD.getFullYear()) * 12; m++) {
-
         const ano = startD.getFullYear() + Math.floor(m / 12);
-
         const mName = meses[m % 12] + '/' + String(ano).slice(-2);
-
         chartMap[mName] = 0;
-
         chartLabels.push(mName);
-
       }
-
     }
 
-
-
     allHistoryData.forEach(function(a) {
-
       const aptDate = parseBrDateToObj(a.date);
-
       const isCancelled = isCancelledItem(a);
-
       const isNoShow = isNoShowItem(a);
-
       const isDone = isCompletedItem(a);
-
       const isBlock = isBlockItem(a);
-
       const price = parseFloat(a.price ? a.price : 0);
 
-
-
       if (!isCancelled && !isNoShow && !isBlock && !isDone) {
-
         const aptTime = timeToMinutes(a.time);
-
         const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
         const isPastDate = aptDate < todayDate;
-
         const isTodayPassed = aptDate.toDateString() === todayDate.toDateString() && aptTime <= now.getHours() * 60 + now.getMinutes();
-
         if (!isPastDate && !isTodayPassed) { aptsFuturos++; revFutura += price; }
-
       }
 
-
-
       if (aptDate >= startD && aptDate <= endD) {
-
         if (!isBlock) aptsValidosTotal++;
-
         if ((isCancelled || isNoShow) && !isBlock) {
-
           canceladosPeriodo++;
-
           window.currentPeriodCancellations.push(a);
-
         }
-
         if (!isCancelled && !isNoShow && !isBlock) {
-
           const aptTime = timeToMinutes(a.time);
-
           const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
           const isPastDate = aptDate < todayDate;
-
           const isTodayPassed = aptDate.toDateString() === todayDate.toDateString() && aptTime <= now.getHours() * 60 + now.getMinutes();
 
-
-
           if (isDone || isPastDate || isTodayPassed) {
+            const rawPay = isDone ? getPaymentMethod(a) : 'Pendente';
+            const payKey = payStats[rawPay] ? rawPay : 'Pendente';
 
-            revPeriodo += price;
+            payStats['todos'].val += price;
+            payStats['todos'].cnt += 1;
+            payStats[payKey].val += price;
+            payStats[payKey].cnt += 1;
 
-            cutsPeriodo++;
-
-            if (a.service) serviceCounter[a.service] = (serviceCounter[a.service] ? serviceCounter[a.service] : 0) + 1;
-
-            if (a.profiles && a.profiles.full_name) {
-
-              const name = formatClientName(a.profiles.full_name);
-
-              if (!clientCounter[name]) clientCounter[name] = { count: 0, rev: 0 };
-
-              clientCounter[name].
-              count++;
-              clientCounter[name].rev += price;
-            }
-            if (dashFilter === 'hoje' && a.time) {
-              const h = a.time.split(':')[0] + ':00';
-              if (chartMap[h] !== undefined) chartMap[h] += price;
-            } else if (diffDays <= 31) {
-              const label = pad2(aptDate.getDate()) + '/' + pad2(aptDate.getMonth() + 1);
-              if (chartMap[label] !== undefined) chartMap[label] += price;
-            } else {
-              const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-              const label = meses[aptDate.getMonth()] + '/' + String(aptDate.getFullYear()).slice(-2);
-              if (chartMap[label] !== undefined) chartMap[label] += price;
+            if (dashPaymentFilter === 'todos' || dashPaymentFilter === payKey) {
+              revPeriodo += price;
+              cutsPeriodo++;
+              if (a.service) serviceCounter[a.service] = (serviceCounter[a.service] ? serviceCounter[a.service] : 0) + 1;
+              if (a.profiles && a.profiles.full_name) {
+                const name = formatClientName(a.profiles.full_name);
+                if (!clientCounter[name]) clientCounter[name] = { count: 0, rev: 0 };
+                clientCounter[name].count++;
+                clientCounter[name].rev += price;
+              }
+              if (dashFilter === 'hoje' && a.time) {
+                const h = a.time.split(':')[0] + ':00';
+                if (chartMap[h] !== undefined) chartMap[h] += price;
+              } else if (diffDays <= 31) {
+                const label = pad2(aptDate.getDate()) + '/' + pad2(aptDate.getMonth() + 1);
+                if (chartMap[label] !== undefined) chartMap[label] += price;
+              } else {
+                const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+                const label = meses[aptDate.getMonth()] + '/' + String(aptDate.getFullYear()).slice(-2);
+                if (chartMap[label] !== undefined) chartMap[label] += price;
+              }
             }
           }
         }
+      }
+    });
+
+    const totalGeralVal = payStats['todos'].val;
+    ['todos', 'Pix', 'Dinheiro', 'Cartão Débito', 'Cartão Crédito', 'Pendente'].forEach(function(k) {
+      const valEl = document.getElementById('pay-val-' + k);
+      const cntEl = document.getElementById('pay-cnt-' + k);
+      const pctEl = document.getElementById('pay-pct-' + k);
+      if (valEl) valEl.innerText = 'R$ ' + payStats[k].val.toFixed(2).replace('.', ',');
+      if (cntEl) cntEl.innerText = payStats[k].cnt + (payStats[k].cnt === 1 ? ' atendimento' : ' atendimentos');
+      if (pctEl) {
+        const pct = k === 'todos' ? (totalGeralVal > 0 ? 100 : 0) : (totalGeralVal > 0 ? Math.round((payStats[k].val / totalGeralVal) * 100) : 0);
+        pctEl.innerText = pct + '%';
       }
     });
 
@@ -6216,7 +6175,6 @@ function calculateDashboard() {
     console.error('Erro no Dashboard:', err);
   }
 }
-
 function mergeBlocks(dayApts) {
   let merged = [];
   let currentBlock = null;
