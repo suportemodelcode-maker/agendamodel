@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -19,8 +20,6 @@
     .custom-scroll::-webkit-scrollbar-thumb:hover { background: #f97316; }
     input[type="date"]::-webkit-calendar-picker-indicator,
     input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(.8); cursor: pointer; }
-    .drag-scroll { cursor: grab; }
-    .drag-scroll:active { cursor: grabbing; }
     .no-select { user-select: none; }
     .glass { background: rgba(24,24,27,.62); border: 1px solid rgba(63,63,70,.75); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
     .glass-soft { background: rgba(24,24,27,.42); border: 1px solid rgba(63,63,70,.55); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
@@ -30,20 +29,71 @@
     @keyframes glow { 0% { box-shadow: 0 0 15px rgba(249,115,22,.08); } 100% { box-shadow: 0 0 35px rgba(249,115,22,.20); } }
     .wallet-card { animation: glow 4s infinite alternate; background: radial-gradient(circle at 85% 20%,rgba(249,115,22,.15),transparent 30%), linear-gradient(135deg,rgba(24,24,27,.95),rgba(9,9,11,.98)); border: 1px solid rgba(249,115,22,.20); backdrop-filter: blur(16px); }
     .card-bg-image { background-size: cover; background-position: center; background-repeat: no-repeat; }
-    .nav-active { background: linear-gradient(135deg,#27272a,#18181b) !important; border-color: rgba(249,115,22,.28) !important; box-shadow: inset 0 0 20px rgba(249,115,22,.04),0 8px 20px rgba(0,0,0,.2); color: white !important; }
+    .nav-active { background: linear-gradient(135deg,#27272a,#18181b) !important; border-color: rgba(249,115,22,.35) !important; box-shadow: inset 0 0 20px rgba(249,115,22,.06),0 8px 20px rgba(0,0,0,.25); color: white !important; }
+    .nav-active .nav-icon-svg { color: #f97316 !important; }
     .mobile-action { transition: transform .2s ease, border-color .2s ease, background .2s ease; }
     .mobile-action:active { transform: scale(.96); }
-    .pulse-ring { box-shadow: 0 0 0 0 rgba(16,185,129,.4); animation: pulseRing 2.2s infinite; }
-    @keyframes pulseRing { 70% { box-shadow: 0 0 0 7px rgba(16,185,129,0); } 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); } }
     .manual-time-option { transition: all 0.2s ease; }
     .manual-time-option.selected { border-color: #10b981; background: rgba(16, 185, 129, 0.1); color: #fff; }
     .manual-time-option.available:hover { border-color: #3f3f46; }
-    
-    @media (max-width: 767px) { 
-      .desktop-only { display:none !important; } 
-      .desktop-indicator { display: none !important; }
+
+    /* MENU LATERAL ANIMADO (EXPANSÍVEL AO PASSAR O MOUSE) */
+    @media (min-width: 768px) {
+      .sidebar-expandable {
+        width: 78px;
+        transition: width 0.32s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.32s ease, background-color 0.3s ease;
+      }
+      .sidebar-expandable:hover {
+        width: 256px;
+        box-shadow: 24px 0 60px rgba(0, 0, 0, 0.85);
+        background-color: rgba(9, 9, 11, 0.98);
+      }
+      .sidebar-label {
+        opacity: 0;
+        transform: translateX(-10px);
+        transition: opacity 0.22s ease, transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        white-space: nowrap;
+        pointer-events: none;
+      }
+      .sidebar-expandable:hover .sidebar-label {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      .mobile-only { display: none !important; }
     }
-    @media (min-width:768px) { .mobile-only { display:none !important; } }
+
+    @media (max-width: 767px) { 
+      .desktop-only { display: none !important; } 
+      .desktop-indicator { display: none !important; }
+      .sidebar-label { display: none !important; }
+    }
+
+    /* ESTILOS DO CALENDÁRIO INTERATIVO */
+    .cal-day {
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+    .cal-day:hover:not(.cal-day-empty) {
+      border-color: rgba(249, 115, 22, 0.5);
+      background: rgba(39, 39, 42, 0.75);
+      transform: translateY(-1px);
+    }
+    .cal-day.selected {
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+      color: #09090b !important;
+      font-weight: 900 !important;
+      border-color: #fb923c !important;
+      box-shadow: 0 8px 25px rgba(249, 115, 22, 0.35);
+    }
+    .cal-day.selected .cal-badge {
+      background: #09090b !important;
+      color: #f97316 !important;
+      border-color: transparent !important;
+    }
+    .cal-day.today:not(.selected) {
+      border-color: #f97316;
+      color: #fb923c;
+    }
   </style>
 </head>
 
@@ -132,7 +182,7 @@
   </div>
 </div>
 
-<!-- MODAL AGENDAMENTO MANUAL (NOVO) -->
+<!-- MODAL AGENDAMENTO MANUAL -->
 <div id="modal-manual-booking" class="hidden fixed inset-0 z-50 bg-zinc-950/85 backdrop-blur-md flex flex-col justify-end md:items-center md:justify-center p-0 md:p-4">
   <div class="bg-zinc-900 border border-zinc-700/60 md:rounded-[28px] rounded-t-[28px] p-6 w-full max-w-sm flex flex-col max-h-[90vh] shadow-2xl">
     <div class="flex justify-between items-center border-b border-zinc-800 pb-4 shrink-0">
@@ -167,7 +217,6 @@
       <div>
         <label class="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5">Horários Livres</label>
         <div id="manual-time-grid" class="grid grid-cols-4 gap-2">
-          <!-- Populado via JS -->
           <div class="col-span-4 text-center py-4 bg-zinc-950 border border-zinc-800 rounded-xl">
             <span class="text-xs text-zinc-600">Selecione o serviço e a data</span>
           </div>
@@ -200,48 +249,90 @@
 <!-- PAINEL PRINCIPAL -->
 <div id="main-panel" class="hidden w-full h-full flex flex-col md:flex-row overflow-hidden relative">
   
-  <aside class="fixed md:relative bottom-0 left-0 w-full md:w-[74px] h-[75px] md:h-full bg-zinc-950 border-t md:border-t-0 md:border-r border-zinc-800 flex flex-row md:flex-col items-center justify-around md:justify-start py-2 md:py-5 px-2 md:px-0 gap-1 md:gap-5 shrink-0 z-40 shadow-[0_-5px_20px_rgba(0,0,0,.3)] md:shadow-[5px_0_25px_rgba(0,0,0,.25)]">
-    <div class="hidden md:flex w-11 h-11 rounded-2xl overflow-hidden border border-orange-500/30 bg-zinc-950 shadow-[0_0_25px_rgba(249,115,22,.25)]">
-      <img src="./icone.png" alt="RB Barbearia" class="w-full h-full object-cover">
+  <!-- SIDEBAR EXPANSÍVEL COM ANIMAÇÃO AO PASSAR O MOUSE -->
+  <aside class="sidebar-expandable fixed md:relative bottom-0 left-0 w-full h-[75px] md:h-full bg-zinc-950 border-t md:border-t-0 md:border-r border-zinc-800/90 flex flex-row md:flex-col items-center md:items-stretch justify-around md:justify-between py-2 md:py-5 px-2 md:px-3 shrink-0 z-40 overflow-hidden">
+    
+    <!-- TOPO: LOGO + NOME -->
+    <div class="hidden md:flex items-center gap-3.5 px-1.5 mb-4 shrink-0">
+      <div class="w-11 h-11 rounded-2xl overflow-hidden border border-orange-500/30 bg-zinc-950 shadow-[0_0_25px_rgba(249,115,22,.25)] shrink-0">
+        <img src="./icone.png" alt="RB Barbearia" class="w-full h-full object-cover">
+      </div>
+      <div class="sidebar-label flex flex-col min-w-0">
+        <span class="text-xs font-black text-white uppercase tracking-wider leading-none">RB Barbearia</span>
+        <span class="text-[9px] font-bold text-orange-500 uppercase tracking-widest mt-1">Painel Pro</span>
+      </div>
     </div>
     
-    <nav class="flex flex-row md:flex-col gap-1 md:gap-2.5 w-full md:w-auto px-1 md:px-2.5 mt-0 md:mt-2 flex-1 md:flex-auto justify-around md:justify-start items-center">
-      <button onclick="switchTab('hoje')" id="nav-btn-hoje" class="w-12 h-12 md:w-full md:aspect-square rounded-2xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 relative transition-all group" title="Hoje">
+    <!-- NAVEGAÇÃO PRINCIPAL -->
+    <nav class="flex flex-row md:flex-col gap-1 md:gap-2 w-full flex-1 justify-around md:justify-start items-center md:items-stretch">
+      <button onclick="switchTab('hoje')" id="nav-btn-hoje" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 gap-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-hoje" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
-        <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+        <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+        <div class="sidebar-label text-left">
+          <p class="text-xs font-extrabold leading-none">Agenda de Hoje</p>
+          <p class="text-[9px] text-zinc-500 font-semibold mt-0.5">Visão operacional</p>
+        </div>
       </button>
-      <button onclick="switchTab('kanban')" id="nav-btn-kanban" class="w-12 h-12 md:w-full md:aspect-square rounded-2xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 relative transition-all group" title="Agenda">
+
+      <button onclick="switchTab('kanban')" id="nav-btn-kanban" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 gap-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-kanban" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
-        <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <div class="sidebar-label text-left">
+          <p class="text-xs font-extrabold leading-none">Calendário & Agenda</p>
+          <p class="text-[9px] text-zinc-500 font-semibold mt-0.5">Consulta por data</p>
+        </div>
       </button>
-      <button onclick="switchTab('historico')" id="nav-btn-historico" class="w-12 h-12 md:w-full md:aspect-square rounded-2xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 relative transition-all group" title="Histórico">
+
+      <button onclick="switchTab('historico')" id="nav-btn-historico" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 gap-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-historico" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
-        <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        <div class="sidebar-label text-left">
+          <p class="text-xs font-extrabold leading-none">Histórico Geral</p>
+          <p class="text-[9px] text-zinc-500 font-semibold mt-0.5">Todos os registros</p>
+        </div>
       </button>
-      <button onclick="switchTab('clientes')" id="nav-btn-clientes" class="w-12 h-12 md:w-full md:aspect-square rounded-2xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 relative transition-all group" title="Clientes">
+
+      <button onclick="switchTab('clientes')" id="nav-btn-clientes" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 gap-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-clientes" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
-        <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        <div class="sidebar-label text-left">
+          <p class="text-xs font-extrabold leading-none">Clientes</p>
+          <p class="text-[9px] text-zinc-500 font-semibold mt-0.5">Carteira & Fidelidade</p>
+        </div>
       </button>
-      <button onclick="switchTab('financeiro')" id="nav-btn-financeiro" class="w-12 h-12 md:w-full md:aspect-square rounded-2xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 relative transition-all group" title="Financeiro">
+
+      <button onclick="switchTab('financeiro')" id="nav-btn-financeiro" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 gap-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
         <div id="nav-ind-financeiro" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
-        <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div class="sidebar-label text-left">
+          <p class="text-xs font-extrabold leading-none">Inteligência & BI</p>
+          <p class="text-[9px] text-zinc-500 font-semibold mt-0.5">Financeiro & Métricas</p>
+        </div>
       </button>
     </nav>
-    <button onclick="switchTab('config')" id="nav-btn-config" class="w-12 h-12 md:w-[48px] md:aspect-square rounded-2xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 relative transition-all group md:mb-2 shrink-0" title="Configurações">
-      <div id="nav-ind-config" class="desktop-indicator hidden absolute left-[-12px] md:left-[-14px] top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
-      <svg class="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 001.065-2.572c1.756-.426 1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543-.826-3.31-2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-    </button>
+
+    <!-- RODAPÉ DA SIDEBAR: CONFIGURAÇÕES -->
+    <div class="md:pt-3 md:border-t md:border-zinc-800/80 shrink-0">
+      <button onclick="switchTab('config')" id="nav-btn-config" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 gap-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group shrink-0">
+        <div id="nav-ind-config" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
+        <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 001.065-2.572c1.756-.426 1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543-.826-3.31-2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <div class="sidebar-label text-left">
+          <p class="text-xs font-extrabold leading-none">Configurações</p>
+          <p class="text-[9px] text-zinc-500 font-semibold mt-0.5">Horários & Expediente</p>
+        </div>
+      </button>
+    </div>
   </aside>
 
-  <main class="flex-1 flex flex-col h-full bg-zinc-950 overflow-hidden relative pb-[75px] md:pb-0">
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="flex-1 flex flex-col h-full bg-zinc-950 overflow-hidden relative pb-[75px] md:pb-0">
     <header class="h-[72px] flex items-center justify-between px-4 md:px-8 border-b border-zinc-800/80 bg-zinc-950/85 backdrop-blur-xl shrink-0 z-20">
       <div class="flex flex-col min-w-0">
         <h1 class="text-lg md:text-xl font-black text-white tracking-wide truncate">Painel RB Barbearia</h1>
         <p id="header-date" class="text-[9px] md:text-[11px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5 truncate">Carregando data...</p>
       </div>
 
-      <div class="flex items-center gap-2 md:gap-5">
-        
+      <div class="flex items-center gap-2 md:gap-4">
         <button onclick="openManualModal()" class="hidden md:flex items-center gap-2 px-4 py-2 bg-emerald-950/40 border border-emerald-800/60 text-emerald-400 rounded-xl text-xs hover:bg-emerald-900/40 hover:text-emerald-300 transition-all font-black uppercase tracking-wider">
           <span>✨</span> Novo Agendamento
         </button>
@@ -274,7 +365,7 @@
         </div>
         <div class="flex gap-2">
           <button onclick="copyDaySummary()" class="mobile-action px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-[9px] uppercase font-black tracking-wider text-zinc-300 hover:text-white">📋 Resumo</button>
-          <button onclick="switchTab('kanban')" class="mobile-action px-3 py-2 bg-orange-500 text-zinc-950 rounded-xl text-[9px] uppercase font-black tracking-wider hover:bg-orange-400">Abrir agenda</button>
+          <button onclick="switchTab('kanban')" class="mobile-action px-3 py-2 bg-orange-500 text-zinc-950 rounded-xl text-[9px] uppercase font-black tracking-wider hover:bg-orange-400">Abrir Calendário</button>
         </div>
       </div>
 
@@ -315,15 +406,151 @@
       <div id="daily-view-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 items-start"></div>
     </main>
 
-    <!-- ABA KANBAN -->
-    <main id="tab-kanban" class="hidden flex-1 flex-col min-h-0 relative z-0">
-      <div class="flex items-center justify-between px-4 md:px-6 py-3 border-b border-zinc-800 bg-zinc-950/70 shrink-0">
-        <div>
-          <p class="text-[9px] text-orange-500 uppercase font-black tracking-[.25em]">Planejamento</p>
-          <h2 class="text-sm font-black text-white">Agenda dos próximos dias</h2>
+    <!-- ABA CALENDÁRIO & AGENDA (SUBSTITUI O ANTIGO KANBAN) -->
+    <main id="tab-kanban" class="hidden flex-1 flex-col min-h-0 p-4 md:p-8 overflow-y-auto lg:overflow-hidden custom-scroll relative z-0">
+      <div class="flex flex-col lg:flex-row gap-6 h-full min-h-0">
+        
+        <!-- COLUNA ESQUERDA: CALENDÁRIO INTERATIVO + RESUMO DA DATA -->
+        <div class="w-full lg:w-[360px] xl:w-[390px] shrink-0 flex flex-col gap-4 lg:overflow-y-auto custom-scroll pr-0 lg:pr-1">
+          
+          <!-- CARD DO CALENDÁRIO -->
+          <div class="bg-zinc-900/75 border border-zinc-800/90 rounded-3xl p-5 shadow-2xl backdrop-blur-xl">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <p class="text-[9px] text-orange-500 uppercase font-black tracking-[.25em]">Navegação</p>
+                <h3 id="cal-month-title" class="text-base font-black text-white capitalize mt-0.5">Outubro 2026</h3>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button onclick="changeCalendarMonth(-1)" class="w-8 h-8 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-orange-500/50 text-zinc-300 hover:text-white flex items-center justify-center transition-all" title="Mês anterior">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <button onclick="selectCalendarToday()" class="px-2.5 h-8 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:bg-orange-500 hover:text-zinc-950 text-[9px] font-black uppercase tracking-wider transition-all">
+                  Hoje
+                </button>
+                <button onclick="changeCalendarMonth(1)" class="w-8 h-8 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-orange-500/50 text-zinc-300 hover:text-white flex items-center justify-center transition-all" title="Próximo mês">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- CABEÇALHO DOS DIAS DA SEMANA -->
+            <div class="grid grid-cols-7 gap-1.5 text-center mb-2">
+              <span class="text-[9px] font-black uppercase text-zinc-600 py-1">Dom</span>
+              <span class="text-[9px] font-black uppercase text-zinc-400 py-1">Seg</span>
+              <span class="text-[9px] font-black uppercase text-zinc-400 py-1">Ter</span>
+              <span class="text-[9px] font-black uppercase text-zinc-400 py-1">Qua</span>
+              <span class="text-[9px] font-black uppercase text-zinc-400 py-1">Qui</span>
+              <span class="text-[9px] font-black uppercase text-zinc-400 py-1">Sex</span>
+              <span class="text-[9px] font-black uppercase text-orange-400 py-1">Sáb</span>
+            </div>
+
+            <!-- GRADE DE DIAS DO MÊS -->
+            <div id="calendar-days-grid" class="grid grid-cols-7 gap-1.5"></div>
+
+            <!-- LEGENDA RÁPIDA -->
+            <div class="flex items-center justify-between pt-4 mt-4 border-t border-zinc-800/80 text-[9px] text-zinc-500 font-bold uppercase tracking-wider">
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Com agendamentos</span>
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500"></span> Dia selecionado</span>
+            </div>
+          </div>
+
+          <!-- RESUMO DO DIA SELECIONADO -->
+          <div class="premium-card rounded-3xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+              <div>
+                <p class="text-[8px] text-orange-400 uppercase font-black tracking-[.22em]">Resumo da data</p>
+                <h4 id="cal-summary-date-label" class="text-sm font-black text-white mt-0.5">--/--/----</h4>
+              </div>
+              <span id="cal-summary-badge" class="text-[9px] font-black uppercase px-2.5 py-1 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-300">Dia Normal</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2.5">
+              <div class="bg-zinc-950/70 border border-zinc-800/80 rounded-2xl p-3">
+                <p class="text-[8px] text-zinc-500 uppercase font-black tracking-wider">Clientes</p>
+                <p id="cal-stat-cuts" class="text-lg font-black text-white mt-1">0</p>
+              </div>
+              <div class="bg-zinc-950/70 border border-zinc-800/80 rounded-2xl p-3">
+                <p class="text-[8px] text-zinc-500 uppercase font-black tracking-wider">Previsão</p>
+                <p id="cal-stat-rev" class="text-lg font-black text-emerald-400 mt-1">R$ 0</p>
+              </div>
+              <div class="bg-zinc-950/70 border border-zinc-800/80 rounded-2xl p-3">
+                <p class="text-[8px] text-zinc-500 uppercase font-black tracking-wider">Horários Livres</p>
+                <p id="cal-stat-free" class="text-lg font-black text-orange-400 mt-1">0</p>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center text-[9px] font-black uppercase tracking-wider mb-1.5">
+                <span class="text-zinc-400">Taxa de Ocupação</span>
+                <span id="cal-stat-occ-text" class="text-purple-400">0%</span>
+              </div>
+              <div class="h-2 bg-zinc-950 rounded-full overflow-hidden border border-zinc-800">
+                <div id="cal-stat-occ-bar" class="h-full bg-gradient-to-r from-orange-500 to-purple-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- AÇÕES DIRETA NA DATA SELECIONADA -->
+            <div class="grid grid-cols-2 gap-2.5 pt-1">
+              <button onclick="openManualModalForSelectedDate()" class="py-3 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 border border-emerald-500/30 font-black text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5">
+                <span>✨</span> Agendar Data
+              </button>
+              <button onclick="openBlockModalForSelectedDate()" class="py-3 px-3 rounded-xl bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/25 font-black text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5">
+                <span>🚫</span> Bloquear Data
+              </button>
+            </div>
+          </div>
+
         </div>
+
+        <!-- COLUNA DIREITA: AGENDA DETALHADA DA DATA CLICADA -->
+        <div class="flex-1 flex flex-col min-h-[420px] lg:min-h-0 bg-zinc-900/40 border border-zinc-800/90 rounded-3xl overflow-hidden shadow-2xl">
+          
+          <!-- TOPO DA AGENDA DO DIA SELECIONADO -->
+          <div class="p-4 md:p-6 border-b border-zinc-800/80 bg-zinc-950/60 flex flex-col xl:flex-row xl:items-center justify-between gap-4 shrink-0">
+            <div class="flex items-center gap-3">
+              <button onclick="stepSelectedDate(-1)" class="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-orange-500/40 flex items-center justify-center text-zinc-400 hover:text-white transition-all shrink-0" title="Dia anterior">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+              </button>
+              <div>
+                <div class="flex items-center gap-2">
+                  <p class="text-[9px] text-orange-500 uppercase font-black tracking-[.25em]">Agenda do Dia</p>
+                  <span id="selected-day-relative-tag" class="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-orange-500/15 text-orange-400 border border-orange-500/30">Hoje</span>
+                </div>
+                <h2 id="selected-day-full-title" class="text-base md:text-lg font-black text-white capitalize mt-0.5">Quarta-feira, 14 de Outubro</h2>
+              </div>
+              <button onclick="stepSelectedDate(1)" class="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-orange-500/40 flex items-center justify-center text-zinc-400 hover:text-white transition-all shrink-0" title="Próximo dia">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+
+            <!-- CONTROLES: BUSCA + ALTERNADOR (CARDS / GRADE DE HORÁRIOS) -->
+            <div class="flex flex-wrap items-center gap-2.5">
+              <div class="flex items-center bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-1.5 flex-1 sm:flex-initial">
+                <svg class="w-3.5 h-3.5 text-zinc-500 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input id="cal-day-search" oninput="renderSelectedDaySchedule()" placeholder="Filtrar cliente ou serviço..." class="bg-transparent outline-none text-xs text-white placeholder:text-zinc-600 w-full sm:w-44">
+              </div>
+
+              <div class="flex items-center bg-zinc-900 border border-zinc-800 p-1 rounded-xl">
+                <button onclick="setCalendarViewMode('cards')" id="btn-mode-cards" class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-orange-500 text-zinc-950 transition-all">
+                  🗂️ Cards
+                </button>
+                <button onclick="setCalendarViewMode('timeline')" id="btn-mode-timeline" class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all">
+                  🕒 Horários
+                </button>
+              </div>
+
+              <button onclick="copySelectedDateSummary()" class="px-3 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-xl text-[9px] uppercase font-black tracking-wider text-zinc-300 hover:text-white transition-all" title="Copiar resumo desta data">
+                📋 Copiar
+              </button>
+            </div>
+          </div>
+
+          <!-- LISTA DE AGENDAMENTOS / GRADE DE HORÁRIOS DA DATA -->
+          <div id="selected-day-schedule-container" class="flex-1 overflow-y-auto custom-scroll p-4 md:p-6"></div>
+
+        </div>
+
       </div>
-      <div id="kanban-board" class="flex-1 flex overflow-x-auto overflow-y-hidden custom-scroll items-start min-h-0 bg-zinc-950 p-4 md:p-6 gap-4 md:gap-6 drag-scroll"></div>
     </main>
 
     <!-- ABA HISTÓRICO -->
@@ -517,8 +744,8 @@
           <div class="grid grid-cols-2 gap-3">
             <button onclick="switchTab('kanban')" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-orange-500/40 text-left transition-all">
               <span class="text-xl">📅</span>
-              <p class="text-xs font-black text-white mt-3">Agenda</p>
-              <p class="text-[9px] text-zinc-500 mt-1">Ver horários</p>
+              <p class="text-xs font-black text-white mt-3">Calendário</p>
+              <p class="text-[9px] text-zinc-500 mt-1">Consultar datas</p>
             </button>
             <button onclick="openBlockModal()" class="p-4 rounded-2xl bg-zinc-950/70 border border-zinc-800 hover:border-red-500/40 text-left transition-all">
               <span class="text-xl">🚫</span>
@@ -539,7 +766,7 @@
         </div>
       </div>
     </main>
-  </main>
+  </div>
 </div>
 
 <script>
@@ -558,6 +785,14 @@ let todayAppointmentsCache = [];
 let allAppointments = [];
 let pollTimer = null;
 window.currentPeriodCancellations = [];
+
+// Estado do Calendário Interativo
+const initNow = new Date();
+let calCurrentYear = initNow.getFullYear();
+let calCurrentMonth = initNow.getMonth();
+let selectedCalendarDateStr = `${String(initNow.getDate()).padStart(2, '0')}/${String(initNow.getMonth() + 1).padStart(2, '0')}/${initNow.getFullYear()}`;
+let calendarViewMode = 'cards'; // 'cards' ou 'timeline'
+let prefillTimeSlot = null;
 
 // Variáveis Agendamento Manual
 const servicesMap = {
@@ -598,20 +833,8 @@ function maskAdminPhone(input) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const kanbanBoard = document.getElementById('kanban-board');
-  let isDown = false, startX, scrollLeft;
-  if (kanbanBoard) {
-    kanbanBoard.addEventListener('mousedown', e => {
-      if (e.target.tagName.toLowerCase() === 'button' || e.target.tagName.toLowerCase() === 'a' || e.target.closest('button')) return;
-      isDown = true; kanbanBoard.classList.add('no-select'); startX = e.pageX - kanbanBoard.offsetLeft; scrollLeft = kanbanBoard.scrollLeft;
-    });
-    kanbanBoard.addEventListener('mouseleave', () => { isDown = false; kanbanBoard.classList.remove('no-select'); });
-    kanbanBoard.addEventListener('mouseup', () => { isDown = false; kanbanBoard.classList.remove('no-select'); });
-    kanbanBoard.addEventListener('mousemove', e => {
-      if (!isDown) return; e.preventDefault(); const walk = ((e.pageX - kanbanBoard.offsetLeft) - startX) * 1.5; kanbanBoard.scrollLeft = scrollLeft - walk;
-    });
-  }
-  Chart.defaults.color = '#71717a'; Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.color = '#71717a';
+  Chart.defaults.font.family = "'Inter', sans-serif";
   updateHeaderDate();
   if (localStorage.getItem('rb_admin_logged') === 'true') { processLogin(); }
 });
@@ -649,13 +872,13 @@ function switchTab(tab) {
     if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
   });
   
-  // Limpa classes dos botões
   ['hoje','kanban','historico','clientes','financeiro','config'].forEach(id => {
     const btn = document.getElementById('nav-btn-' + id);
     const ind = document.getElementById('nav-ind-' + id);
-    if (btn) btn.className = btn.id === 'nav-btn-config' 
-        ? 'w-12 h-12 md:w-[48px] md:aspect-square rounded-2xl flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 relative transition-all group md:mb-2 shrink-0'
-        : 'w-12 h-12 md:w-full md:aspect-square rounded-2xl flex items-center justify-center text-zinc-500 hover:text-white hover:bg-zinc-800/80 relative transition-all group';
+    if (btn) {
+      btn.classList.remove('nav-active', 'text-white');
+      btn.classList.add('text-zinc-400');
+    }
     if (ind) ind.classList.add('hidden');
   });
 
@@ -663,9 +886,13 @@ function switchTab(tab) {
   if (activeTab) { activeTab.classList.remove('hidden'); activeTab.classList.add('flex'); }
   const activeBtn = document.getElementById('nav-btn-' + tab);
   const activeInd = document.getElementById('nav-ind-' + tab);
-  if (activeBtn) { activeBtn.classList.add('nav-active'); activeBtn.classList.remove('text-zinc-500', 'text-zinc-400'); activeBtn.classList.add('text-white'); }
+  if (activeBtn) {
+    activeBtn.classList.add('nav-active', 'text-white');
+    activeBtn.classList.remove('text-zinc-400');
+  }
   if (activeInd) activeInd.classList.remove('hidden');
 
+  if (tab === 'kanban') renderCalendarSection();
   if (tab === 'historico' || tab === 'financeiro' || tab === 'clientes') fetchHistoryData();
   if (tab === 'financeiro') setTimeout(calculateDashboard, 100);
 }
@@ -703,28 +930,406 @@ function add30Mins(timeStr) {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
+function brDateToIso(brDateStr) {
+  if (!brDateStr || !brDateStr.includes('/')) return '';
+  const [d, m, y] = brDateStr.split('/');
+  return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+// ------------------------------------
+// CALENDÁRIO INTERATIVO & AGENDA DO DIA
+// ------------------------------------
+
+function renderCalendarSection() {
+  renderCalendarGrid();
+  renderSelectedDaySchedule();
+}
+
+function changeCalendarMonth(delta) {
+  calCurrentMonth += delta;
+  if (calCurrentMonth < 0) {
+    calCurrentMonth = 11;
+    calCurrentYear--;
+  } else if (calCurrentMonth > 11) {
+    calCurrentMonth = 0;
+    calCurrentYear++;
+  }
+  renderCalendarGrid();
+}
+
+function selectCalendarToday() {
+  const now = new Date();
+  calCurrentYear = now.getFullYear();
+  calCurrentMonth = now.getMonth();
+  selectedCalendarDateStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+  renderCalendarSection();
+}
+
+function selectCalendarDate(dateStr) {
+  selectedCalendarDateStr = dateStr;
+  const dObj = parseBrDateToObj(dateStr);
+  calCurrentYear = dObj.getFullYear();
+  calCurrentMonth = dObj.getMonth();
+  renderCalendarSection();
+}
+
+function stepSelectedDate(daysDelta) {
+  const dObj = parseBrDateToObj(selectedCalendarDateStr);
+  dObj.setDate(dObj.getDate() + daysDelta);
+  const newStr = `${String(dObj.getDate()).padStart(2, '0')}/${String(dObj.getMonth() + 1).padStart(2, '0')}/${dObj.getFullYear()}`;
+  selectCalendarDate(newStr);
+}
+
+function setCalendarViewMode(mode) {
+  calendarViewMode = mode;
+  const btnCards = document.getElementById('btn-mode-cards');
+  const btnTimeline = document.getElementById('btn-mode-timeline');
+  if (mode === 'cards') {
+    btnCards.className = 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-orange-500 text-zinc-950 transition-all';
+    btnTimeline.className = 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all';
+  } else {
+    btnTimeline.className = 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-orange-500 text-zinc-950 transition-all';
+    btnCards.className = 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all';
+  }
+  renderSelectedDaySchedule();
+}
+
+function renderCalendarGrid() {
+  const grid = document.getElementById('calendar-days-grid');
+  const title = document.getElementById('cal-month-title');
+  if (!grid || !title) return;
+
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  title.innerText = `${meses[calCurrentMonth]} ${calCurrentYear}`;
+
+  const firstDayOfMonth = new Date(calCurrentYear, calCurrentMonth, 1).getDay();
+  const daysInMonth = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
+
+  const now = new Date();
+  const todayStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+  // Contabiliza agendamentos por dia para exibir indicadores no calendário
+  const countsMap = {};
+  const blocksMap = {};
+  allAppointments.forEach(a => {
+    if (!a.date) return;
+    const isBlock = a.calendar_event_id === 'blocked_time' || (a.service && a.service.startsWith('🚫'));
+    if (isBlock) {
+      blocksMap[a.date] = (blocksMap[a.date] || 0) + 1;
+    } else {
+      countsMap[a.date] = (countsMap[a.date] || 0) + 1;
+    }
+  });
+
+  let html = '';
+  for (let i = 0; i < firstDayOfMonth; i++) {
+    html += `<div class="cal-day-empty h-11 rounded-xl"></div>`;
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dStr = `${String(day).padStart(2, '0')}/${String(calCurrentMonth + 1).padStart(2, '0')}/${calCurrentYear}`;
+    const isSelected = dStr === selectedCalendarDateStr;
+    const isToday = dStr === todayStr;
+    const count = countsMap[dStr] || 0;
+    const hasBlock = (blocksMap[dStr] || 0) > 0;
+    const dayOfWeek = new Date(calCurrentYear, calCurrentMonth, day).getDay();
+    const isSunday = dayOfWeek === 0;
+
+    let badgeHtml = '';
+    if (count > 0) {
+      badgeHtml = `<span class="cal-badge text-[8px] font-black px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 leading-tight mt-0.5">${count}</span>`;
+    } else if (hasBlock) {
+      badgeHtml = `<span class="w-1.5 h-1.5 rounded-full bg-red-500 mt-1"></span>`;
+    }
+
+    html += `
+      <button type="button" onclick="selectCalendarDate('${dStr}')"
+        class="cal-day h-12 rounded-2xl border border-zinc-800/80 bg-zinc-950/80 flex flex-col items-center justify-center ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''} ${isSunday && !isSelected ? 'opacity-45' : ''}">
+        <span class="text-xs font-extrabold leading-none">${day}</span>
+        ${badgeHtml}
+      </button>
+    `;
+  }
+
+  grid.innerHTML = html;
+}
+
+function renderSelectedDaySchedule() {
+  const container = document.getElementById('selected-day-schedule-container');
+  if (!container) return;
+
+  const dObj = parseBrDateToObj(selectedCalendarDateStr);
+  const now = new Date();
+  const todayStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+  // Atualiza cabeçalhos da data selecionada
+  const fullTitle = document.getElementById('selected-day-full-title');
+  if (fullTitle) {
+    fullTitle.innerText = dObj.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  const summaryDateLabel = document.getElementById('cal-summary-date-label');
+  if (summaryDateLabel) summaryDateLabel.innerText = selectedCalendarDateStr;
+
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const selMidnight = new Date(dObj.getFullYear(), dObj.getMonth(), dObj.getDate()).getTime();
+  const diffDays = Math.round((selMidnight - todayMidnight) / 86400000);
+
+  let relLabel = `${selectedCalendarDateStr}`;
+  if (diffDays === 0) relLabel = 'Hoje';
+  else if (diffDays === 1) relLabel = 'Amanhã';
+  else if (diffDays === -1) relLabel = 'Ontem';
+  else if (diffDays > 1) relLabel = `Daqui a ${diffDays} dias`;
+  else if (diffDays < -1) relLabel = `Há ${Math.abs(diffDays)} dias`;
+
+  const relTag = document.getElementById('selected-day-relative-tag');
+  if (relTag) relTag.innerText = relLabel;
+
+  const summaryBadge = document.getElementById('cal-summary-badge');
+  if (summaryBadge) summaryBadge.innerText = relLabel;
+
+  // Filtra agendamentos da data selecionada
+  const dayAptsRaw = allAppointments
+    .filter(a => a.date === selectedCalendarDateStr)
+    .sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+
+  // Calcula métricas da data selecionada
+  let dayCuts = 0;
+  let dayRev = 0;
+  let occupiedIntervals = [];
+  let occupiedMinutes = 0;
+
+  dayAptsRaw.forEach(a => {
+    const isBlock = a.calendar_event_id === 'blocked_time' || (a.service && a.service.startsWith('🚫'));
+    const startMin = timeToMinutes(a.time);
+    let dur = 30;
+    const s = (a.service || '').toLowerCase();
+    if (!isBlock) {
+      if (s.includes('corte e barba') || s.includes('combo') || s.includes('completo')) dur = 60;
+      else if (s.includes('progressiva')) dur = 120;
+      else if (s.includes('sobrancelha')) dur = 20;
+      dayCuts++;
+      dayRev += parseFloat(a.price || 0);
+      occupiedMinutes += dur;
+    }
+    occupiedIntervals.push({ start: startMin, end: startMin + dur, type: isBlock ? 'block' : 'apt', data: a });
+  });
+
+  const openTime = document.getElementById('set-open')?.value || '09:00';
+  const closeTime = document.getElementById('set-close')?.value || '20:30';
+  const breakStart = document.getElementById('set-break-start')?.value || '';
+  const breakEnd = document.getElementById('set-break-end')?.value || '';
+
+  const openMin = timeToMinutes(openTime);
+  const closeMin = timeToMinutes(closeTime);
+  const bStartMin = breakStart ? timeToMinutes(breakStart) : -1;
+  const bEndMin = breakEnd ? timeToMinutes(breakEnd) : -1;
+
+  let freeSlotsCount = 0;
+  let totalWorkSlots = 0;
+  for (let t = openMin; t <= closeMin - 30; t += 30) {
+    const isBreak = (bStartMin >= 0 && bEndMin > bStartMin && t >= bStartMin && t < bEndMin);
+    if (isBreak) continue;
+    totalWorkSlots++;
+    const isBusy = occupiedIntervals.some(i => t < i.end && (t + 30) > i.start);
+    if (!isBusy) freeSlotsCount++;
+  }
+
+  const totalAvailableMins = totalWorkSlots * 30;
+  const occPercent = totalAvailableMins > 0 ? Math.min(100, Math.round((occupiedMinutes / totalAvailableMins) * 100)) : 0;
+
+  document.getElementById('cal-stat-cuts').innerText = dayCuts;
+  document.getElementById('cal-stat-rev').innerText = `R$ ${dayRev.toFixed(0)}`;
+  document.getElementById('cal-stat-free').innerText = freeSlotsCount;
+  document.getElementById('cal-stat-occ-text').innerText = `${occPercent}%`;
+  document.getElementById('cal-stat-occ-bar').style.width = `${occPercent}%`;
+
+  const searchQuery = (document.getElementById('cal-day-search')?.value || '').toLowerCase().trim();
+
+  // MODO 1: VISUALIZAÇÃO EM CARDS
+  if (calendarViewMode === 'cards') {
+    const merged = mergeBlocks(dayAptsRaw).filter(item => {
+      if (!searchQuery) return true;
+      const clientName = (item.profiles?.full_name || '').toLowerCase();
+      const serviceName = (item.service || '').toLowerCase();
+      const timeStr = (item.time || '').toLowerCase();
+      return clientName.includes(searchQuery) || serviceName.includes(searchQuery) || timeStr.includes(searchQuery);
+    });
+
+    if (!merged.length) {
+      container.innerHTML = `
+        <div class="h-full min-h-[280px] flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-zinc-800/60 rounded-3xl bg-zinc-950/40">
+          <div class="w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-2xl mb-3">📅</div>
+          <p class="text-sm font-black uppercase tracking-widest text-zinc-200">Agenda Livre em ${selectedCalendarDateStr}</p>
+          <p class="text-xs text-zinc-500 mt-1 max-w-xs">Não há clientes agendados para esta data ou filtro. Aproveite para encaixar um cliente ou alternar para a grade de horários.</p>
+          <div class="flex gap-2.5 mt-5">
+            <button onclick="openManualModalForSelectedDate()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-wider transition-all">
+              ✨ Agendar Cliente
+            </button>
+            <button onclick="setCalendarViewMode('timeline')" class="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-black text-[10px] uppercase tracking-wider transition-all">
+              🕒 Ver Horários Livres
+            </button>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    let html = `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-start">`;
+    merged.forEach(item => { html += generateCardHtml(item); });
+    html += `</div>`;
+    container.innerHTML = html;
+    return;
+  }
+
+  // MODO 2: GRADE DE HORÁRIOS (TIMELINE INTERATIVA DE 30 EM 30 MIN)
+  let timelineHtml = `<div class="space-y-2.5">`;
+  for (let t = openMin; t <= closeMin - 30; t += 30) {
+    const slotStr = `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+    const isBreak = (bStartMin >= 0 && bEndMin > bStartMin && t >= bStartMin && t < bEndMin);
+
+    // Verifica se há agendamento ou bloqueio cobrindo este horário
+    const matchingApt = occupiedIntervals.find(i => t >= i.start && t < i.end);
+
+    if (searchQuery) {
+      if (!matchingApt) continue;
+      const cName = (matchingApt.data.profiles?.full_name || '').toLowerCase();
+      const sName = (matchingApt.data.service || '').toLowerCase();
+      if (!cName.includes(searchQuery) && !sName.includes(searchQuery) && !slotStr.includes(searchQuery)) continue;
+    }
+
+    if (matchingApt) {
+      const a = matchingApt.data;
+      const isContinuation = t > matchingApt.start;
+      if (matchingApt.type === 'block') {
+        timelineHtml += `
+          <div class="flex items-center justify-between p-3.5 rounded-2xl bg-red-950/20 border border-red-900/40 border-l-4 border-l-red-500">
+            <div class="flex items-center gap-4">
+              <span class="text-xs font-black text-red-400 bg-red-500/10 px-3 py-1.5 rounded-xl border border-red-500/20">${slotStr}</span>
+              <div>
+                <p class="text-xs font-black text-zinc-200 uppercase tracking-wider">${a.service || '🚫 Horário Bloqueado'}</p>
+                <p class="text-[10px] text-zinc-500 font-semibold">Indisponível para agendamento</p>
+              </div>
+            </div>
+            <button onclick="deleteAppointment('${a.id}', true)" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-red-600 text-zinc-300 hover:text-white text-[9px] font-black uppercase tracking-wider border border-zinc-800 transition-all">
+              Liberar
+            </button>
+          </div>
+        `;
+      } else {
+        const clientName = a.profiles?.full_name || 'Cliente';
+        const cleanPhone = (a.profiles?.phone || '').replace(/\D/g, '');
+        const whatsLink = cleanPhone ? `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(`Olá ${clientName}, confirmando seu horário na RB Barbearia dia ${selectedCalendarDateStr} às ${a.time}!`)}` : '';
+        const sTheme = getServiceTheme(a.service);
+
+        timelineHtml += `
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-zinc-900/90 border border-zinc-800 border-l-4 ${sTheme.borderL} hover:border-zinc-700 transition-all">
+            <div class="flex items-center gap-4 min-w-0">
+              <span class="text-xs font-black text-white bg-zinc-950 px-3 py-2 rounded-xl border border-zinc-800 shrink-0">${slotStr}</span>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <p class="text-sm font-black text-white truncate">${clientName}</p>
+                  ${isContinuation ? `<span class="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">Em andamento (início ${a.time})</span>` : `<span class="text-[10px] font-black text-emerald-400">R$ ${parseFloat(a.price || 0).toFixed(2).replace('.', ',')}</span>`}
+                </div>
+                <p class="text-[10px] ${sTheme.text} font-bold uppercase tracking-widest mt-0.5 truncate">${a.service || ''}</p>
+              </div>
+            </div>
+            ${!isContinuation ? `
+              <div class="flex items-center gap-2 shrink-0">
+                ${whatsLink ? `<a href="${whatsLink}" target="_blank" class="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider transition-all">WhatsApp</a>` : ''}
+                <button onclick='openDetailsModal(${JSON.stringify(a).replace(/'/g,"&apos;")})' class="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[9px] font-black uppercase tracking-wider transition-all">Detalhes</button>
+                <button onclick="deleteAppointment('${a.id}', false)" class="px-3 py-1.5 rounded-xl bg-zinc-950 hover:bg-red-600 text-zinc-400 hover:text-white border border-zinc-800 text-[9px] font-black uppercase tracking-wider transition-all">Cancelar</button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+    } else if (isBreak) {
+      timelineHtml += `
+        <div class="flex items-center justify-between p-3 rounded-2xl bg-zinc-950/60 border border-zinc-800/50 opacity-60">
+          <div class="flex items-center gap-4">
+            <span class="text-xs font-bold text-zinc-500 bg-zinc-900 px-3 py-1.5 rounded-xl">${slotStr}</span>
+            <span class="text-[10px] font-black uppercase tracking-widest text-zinc-500">☕ Intervalo de Descanso</span>
+          </div>
+          <span class="text-[9px] text-zinc-600 font-bold uppercase">Pausa</span>
+        </div>
+      `;
+    } else {
+      timelineHtml += `
+        <div class="flex items-center justify-between p-3 rounded-2xl bg-zinc-950/40 border border-zinc-800/50 hover:border-emerald-500/40 hover:bg-zinc-900/40 transition-all group">
+          <div class="flex items-center gap-4">
+            <span class="text-xs font-bold text-zinc-400 group-hover:text-white bg-zinc-900 px-3 py-1.5 rounded-xl border border-zinc-800">${slotStr}</span>
+            <span class="text-xs font-semibold text-zinc-500 group-hover:text-zinc-300">Horário Livre</span>
+          </div>
+          <button onclick="openManualModalForSelectedDate('${slotStr}')" class="px-3 py-1.5 rounded-xl bg-emerald-500/10 group-hover:bg-emerald-500 text-emerald-400 group-hover:text-zinc-950 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider transition-all">
+            + Encaixar Cliente
+          </button>
+        </div>
+      `;
+    }
+  }
+  timelineHtml += `</div>`;
+  container.innerHTML = timelineHtml;
+}
+
+function openManualModalForSelectedDate(slotStr = null) {
+  prefillTimeSlot = slotStr;
+  openManualModal(brDateToIso(selectedCalendarDateStr));
+}
+
+function openBlockModalForSelectedDate() {
+  openBlockModal(brDateToIso(selectedCalendarDateStr));
+}
+
+function copySelectedDateSummary() {
+  const appointments = allAppointments
+    .filter(a => a.date === selectedCalendarDateStr && a.calendar_event_id !== 'blocked_time' && !(a.service || '').startsWith('🚫'))
+    .sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+  const revenue = appointments.reduce((sum, a) => sum + parseFloat(a.price || 0), 0);
+  let text = `RB BARBEARIA — AGENDA ${selectedCalendarDateStr}\n\nAtendimentos: ${appointments.length}\nPrevisão: R$ ${revenue.toFixed(2).replace('.', ',')}\n\n`;
+  if (!appointments.length) {
+    text += `Nenhum agendamento registrado para esta data.`;
+  } else {
+    appointments.forEach(a => {
+      text += `${a.time || '--:--'} — ${a.profiles?.full_name || 'Cliente'} — ${a.service || 'Serviço'} — R$ ${parseFloat(a.price || 0).toFixed(2).replace('.', ',')}\n`;
+    });
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => alert(`Resumo do dia ${selectedCalendarDateStr} copiado!`));
+  } else {
+    alert(text);
+  }
+}
+
 // ------------------------------------
 // AGENDAMENTO MANUAL NO ADMIN
 // ------------------------------------
 
-function openManualModal() {
+function openManualModal(customIsoDate = null) {
   document.getElementById('manual-name').value = '';
   document.getElementById('manual-phone').value = '';
-  document.getElementById('manual-service').value = '';
   const now = new Date();
-  const val = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-  document.getElementById('manual-date').value = val;
-  document.getElementById('manual-date').min = val;
-  
+  const todayIso = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const dateInput = document.getElementById('manual-date');
+  dateInput.min = todayIso;
+  dateInput.value = customIsoDate || todayIso;
+
   manualSelectedTime = null;
-  document.getElementById('manual-time-grid').innerHTML = `<div class="col-span-4 text-center py-4 bg-zinc-950 border border-zinc-800 rounded-xl"><span class="text-xs text-zinc-600">Selecione o serviço para ver horários</span></div>`;
-  updateManualBtn();
+  if (prefillTimeSlot) {
+    document.getElementById('manual-service').value = 'Corte Masculino';
+    fetchManualTimes();
+  } else {
+    document.getElementById('manual-service').value = '';
+    document.getElementById('manual-time-grid').innerHTML = `<div class="col-span-4 text-center py-4 bg-zinc-950 border border-zinc-800 rounded-xl"><span class="text-xs text-zinc-600">Selecione o serviço para ver horários</span></div>`;
+    updateManualBtn();
+  }
   
   document.getElementById('modal-manual-booking').classList.remove('hidden');
   document.getElementById('modal-manual-booking').classList.add('flex');
 }
 
 function closeManualModal() {
+  prefillTimeSlot = null;
   document.getElementById('modal-manual-booking').classList.add('hidden');
   document.getElementById('modal-manual-booking').classList.remove('flex');
 }
@@ -797,12 +1402,15 @@ async function fetchManualTimes() {
     if (isOccupied || isPassed) {
       html += `<div class="py-2.5 rounded-xl border border-white/5 bg-[#0e0e0e] text-center opacity-30 cursor-not-allowed"><span class="text-zinc-600 font-medium text-[10px] line-through">${slot}</span></div>`;
     } else {
-      html += `<button type="button" class="manual-time-option available py-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-center text-zinc-300 font-bold text-[10px]" data-time="${slot}" onclick="selectManualTime('${slot}', this)">${slot}</button>`;
+      const isPreselected = prefillTimeSlot === slot;
+      if (isPreselected) manualSelectedTime = slot;
+      html += `<button type="button" class="manual-time-option available py-2.5 rounded-xl border border-zinc-800 bg-zinc-900 text-center text-zinc-300 font-bold text-[10px] ${isPreselected ? 'selected' : ''}" data-time="${slot}" onclick="selectManualTime('${slot}', this)">${slot}</button>`;
     }
   });
 
   if (!slots.length) html = `<div class="col-span-4 text-center py-4 bg-zinc-950 border border-zinc-800 rounded-xl"><p class="text-[10px] text-zinc-500">Sem horários para o serviço neste dia.</p></div>`;
   grid.innerHTML = html;
+  updateManualBtn();
 }
 
 function selectManualTime(value, element) {
@@ -872,15 +1480,14 @@ async function saveManualBooking() {
   fetchHistoryData();
 }
 
-// ------------------------------------
-// FIM: AGENDAMENTO MANUAL
-// ------------------------------------
-
-function openBlockModal() {
+function openBlockModal(customIsoDate = null) {
   const now = new Date();
-  const val = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const todayIso = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
   const input = document.getElementById('block-date');
-  if (input) { input.value = val; input.min = val; }
+  if (input) {
+    input.min = todayIso;
+    input.value = customIsoDate || todayIso;
+  }
   document.getElementById('modal-block').classList.remove('hidden');
   document.getElementById('modal-block').classList.add('flex');
 }
@@ -1415,7 +2022,7 @@ function generateCardHtml(item) {
     const idsStr = (item.block_ids || [item.id]).join(',');
     const timeDisplay = item.time === item.end_time ? `Às ${item.time}` : `Das ${item.time} até ${add30Mins(item.end_time)}`;
     return `
-      <div class="agenda-card bg-red-950/25 border border-red-900/40 border-l-4 border-l-red-600 rounded-2xl p-4 relative shrink-0 mb-4 shadow-md backdrop-blur-sm w-full" data-search="bloqueio ${(item.service || '').toLowerCase()} ${timeDisplay.toLowerCase()}">
+      <div class="agenda-card bg-red-950/25 border border-red-900/40 border-l-4 border-l-red-600 rounded-2xl p-4 relative shrink-0 shadow-md backdrop-blur-sm w-full" data-search="bloqueio ${(item.service || '').toLowerCase()} ${timeDisplay.toLowerCase()}">
         <div class="flex items-center justify-between mb-2.5">
           <span class="text-[8px] font-black text-red-400 bg-red-500/10 px-2 py-1 rounded uppercase tracking-widest border border-red-500/20">🚫 Bloqueio</span>
           <button onclick="deleteAppointment('${idsStr}', true)" class="text-zinc-500 hover:text-red-400 text-[9px] font-black uppercase tracking-wider">Liberar</button>
@@ -1427,8 +2034,8 @@ function generateCardHtml(item) {
 
   const sTheme = getServiceTheme(item.service);
   return `
-    <div class="agenda-card card-bg-image rounded-2xl flex flex-col mb-4 shrink-0 transition-all transform hover:-translate-y-1 shadow-lg group w-full border border-zinc-800 ${sTheme.borderHover} relative overflow-hidden" data-search="${(clientName + ' ' + (item.service || '') + ' ' + (item.time || '')).toLowerCase()}" style="background-image:url('${sTheme.img}')">
-      <div class="absolute inset-0 bg-zinc-950/50 backdrop-blur-sm group-hover:bg-zinc-950/30 transition-all"></div>
+    <div class="agenda-card card-bg-image rounded-2xl flex flex-col shrink-0 transition-all transform hover:-translate-y-1 shadow-lg group w-full border border-zinc-800 ${sTheme.borderHover} relative overflow-hidden" data-search="${(clientName + ' ' + (item.service || '') + ' ' + (item.time || '')).toLowerCase()}" style="background-image:url('${sTheme.img}')">
+      <div class="absolute inset-0 bg-zinc-950/55 backdrop-blur-sm group-hover:bg-zinc-950/35 transition-all"></div>
       <div class="absolute left-0 top-0 bottom-0 w-1.5 ${sTheme.borderL} z-20"></div>
       <div class="relative z-10 p-4 w-full drop-shadow-md">
         <div class="flex items-center justify-between mb-3">
@@ -1446,32 +2053,24 @@ function generateCardHtml(item) {
 }
 
 async function loadAgendaData(silent = false) {
-  const board = document.getElementById('kanban-board');
-  const dailyContainer = document.getElementById('daily-view-container');
-  if (board && board.innerHTML === '' && !silent) board.innerHTML = `<div class="p-6 text-zinc-500 text-xs font-black uppercase tracking-widest">Sincronizando...</div>`;
-
   try {
     const { data: apts, error } = await sb.from('appointments').select(`id, service, date, time, price, calendar_event_id, user_id, profiles(full_name, phone)`).neq('calendar_event_id', 'cancelled_by_barber').neq('calendar_event_id', 'cancelled_by_client');
-    if (error) { if (board && !silent) board.innerHTML = `<div class="p-6 text-red-500 font-black uppercase">Falha na conexão com o servidor.</div>`; return; }
+    if (error) return;
 
     allAppointments = apts || [];
-    if (allAppointments) {
-      allAppointments.forEach(a => {
-        if (a.date && a.date.includes('/')) {
-          const p = a.date.split('/');
-          if (p.length === 3) a.date = `${String(p[0]).padStart(2,'0')}/${String(p[1]).padStart(2,'0')}/${p[2]}`;
-        }
-      });
-    }
+    allAppointments.forEach(a => {
+      if (a.date && a.date.includes('/')) {
+        const p = a.date.split('/');
+        if (p.length === 3) a.date = `${String(p[0]).padStart(2,'0')}/${String(p[1]).padStart(2,'0')}/${p[2]}`;
+      }
+    });
 
     renderBoards();
-
   } catch (err) { console.error('Erro no loadAgendaData:', err); }
 }
 
 function renderBoards() {
   const dailyContainer = document.getElementById('daily-view-container');
-  const kanbanContainer = document.getElementById('kanban-board');
   const now = new Date();
   const todayStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
 
@@ -1485,11 +2084,6 @@ function renderBoards() {
     }
   });
 
-  const elTotalCuts = document.getElementById('metric-total-cuts');
-  if (elTotalCuts) elTotalCuts.innerText = todayCuts;
-  const elTotalRev = document.getElementById('metric-total-revenue');
-  if (elTotalRev) elTotalRev.innerText = `R$ ${todayRevenue.toFixed(2).replace('.',',')}`;
-
   updateTodaySmartStats(todayAptsRaw, todayCuts, todayRevenue);
 
   let dailyHtml = '';
@@ -1502,51 +2096,7 @@ function renderBoards() {
   } else { mergedToday.forEach(item => { dailyHtml += generateCardHtml(item); }); }
   if (dailyContainer) dailyContainer.innerHTML = dailyHtml;
 
-  const dateSet = new Set();
-  allAppointments.forEach(a => dateSet.add(a.date));
-  dateSet.add(todayStr); 
-
-  const diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-  const sortedDates = Array.from(dateSet).sort((a,b) => parseBrDateToObj(a) - parseBrDateToObj(b));
-  
-  let kanbanHtml = '';
-
-  sortedDates.forEach(dStr => {
-    const dObj = parseBrDateToObj(dStr);
-    if (dObj < new Date(now.getFullYear(), now.getMonth(), now.getDate())) return; 
-
-    let dName = diasSemana[dObj.getDay()];
-    if (dStr === todayStr) dName = 'HOJE';
-    const dNumber = `${String(dObj.getDate()).padStart(2,'0')}/${String(dObj.getMonth()+1).padStart(2,'0')}`;
-
-    const dayAptsRaw = allAppointments.filter(a => a.date === dStr).sort((a,b) => timeToMinutes(a.time) - timeToMinutes(b.time));
-    const mergedApts = mergeBlocks(dayAptsRaw);
-    
-    let dayRev = 0, dayCuts = 0, cardsHtml = '';
-    
-    if (!mergedApts.length) {
-      cardsHtml = `<div class="p-5 text-center text-zinc-700 text-[9px] uppercase font-black tracking-widest">Agenda livre</div>`;
-    } else {
-      mergedApts.forEach(item => {
-        if (item.type !== 'block') { dayRev += parseFloat(item.price || 0); dayCuts++; }
-        cardsHtml += generateCardHtml(item);
-      });
-    }
-
-    kanbanHtml += `
-      <div class="w-[280px] shrink-0 bg-zinc-900/40 border border-zinc-800 rounded-3xl p-4 flex flex-col h-fit max-h-full">
-        <div class="flex justify-between items-center border-b border-zinc-800 pb-3 mb-3 shrink-0">
-          <div><span class="text-[13px] uppercase font-black text-white block tracking-widest">${dName}</span><span class="text-[9px] text-zinc-500 font-bold block mt-1 uppercase tracking-wider">${dayCuts} atend. · R$ ${dayRev.toFixed(2).replace('.',',')}</span></div>
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-zinc-300 bg-zinc-800 border border-zinc-700 text-sm">${dNumber.split('/')[0]}</div>
-        </div>
-        <div class="overflow-y-auto custom-scroll space-y-3 flex-1 pr-1 pb-2">
-          ${cardsHtml}
-        </div>
-      </div>
-    `;
-  });
-
-  if (kanbanContainer) kanbanContainer.innerHTML = kanbanHtml;
+  renderCalendarSection();
   filterAgendaCards();
 }
 
