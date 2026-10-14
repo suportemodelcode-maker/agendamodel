@@ -2784,155 +2784,94 @@ function checkAdmin(e) {
 
 
 async function processLogin() {
-
   const authScreen = document.getElementById('auth-screen');
-
   const mainPanel = document.getElementById('main-panel');
-
   if (authScreen) {
-
     authScreen.classList.add('hidden');
-
     authScreen.classList.remove('flex');
-
     authScreen.style.display = 'none';
-
   }
-
   if (mainPanel) {
-
     mainPanel.classList.remove('hidden');
-
     mainPanel.style.display = 'flex';
-
   }
-
   const sound = document.getElementById('notification-sound');
-
   if (sound) {
-
     sound.play().catch(function() {});
-
     sound.pause();
-
   }
-
   updateHeaderDate();
 
-  switchTab('hoje');
+  let savedTab = 'hoje';
+  try {
+    const stored = localStorage.getItem('rb_active_tab');
+    if (stored && document.getElementById('tab-' + stored)) {
+      savedTab = stored;
+    }
+  } catch (err) {}
+  switchTab(savedTab);
 
   if (sb) {
-
     await loadSettings();
-
     await loadAgendaData();
-
     fetchHistoryData();
-
     subscribeToRealtime();
-
     if (pollTimer) clearInterval(pollTimer);
-
     pollTimer = setInterval(function() { loadAgendaData(true); }, 4000);
-
   } else {
-
     renderBoards();
-
   }
-
 }
-
-
 
 function logoutAdmin() {
-
-  try { localStorage.removeItem('rb_admin_logged'); } catch (err) {}
-
+  try {
+    localStorage.removeItem('rb_admin_logged');
+    localStorage.removeItem('rb_active_tab');
+  } catch (err) {}
   if (pollTimer) clearInterval(pollTimer);
-
   window.location.reload();
-
 }
 
-
-
 document.addEventListener('DOMContentLoaded', function() {
-
   if (window.Chart) {
-
     Chart.defaults.color = '#71717a';
-
     Chart.defaults.font.family = "'Inter', sans-serif";
-
   }
-
   updateHeaderDate();
-
   ['set-open', 'set-close', 'set-break-start', 'set-break-end', 'block-start', 'block-end'].forEach(syncTimeDisplay);
-
   try {
-
     if (localStorage.getItem('rb_admin_logged') === 'true') {
-
       processLogin();
-
     }
-
   } catch (err) {}
-
 });
 
-
-
 function switchTab(tab) {
+  try { localStorage.setItem('rb_active_tab', tab); } catch (err) {}
 
   ['tab-hoje','tab-kanban','tab-historico','tab-clientes','tab-financeiro','tab-config'].forEach(function(id) {
-
     const el = document.getElementById(id);
-
     if (el) { el.classList.add('hidden'); el.classList.remove('flex'); }
-
   });
-
   
-
   ['hoje','kanban','historico','clientes','financeiro','config'].forEach(function(id) {
-
     const btn = document.getElementById('nav-btn-' + id);
-
     const ind = document.getElementById('nav-ind-' + id);
-
     if (btn) { btn.classList.remove('nav-active', 'text-white'); btn.classList.add('text-zinc-400'); }
-
     if (ind) ind.classList.add('hidden');
-
   });
-
-
 
   const activeTab = document.getElementById('tab-' + tab);
-
   if (activeTab) { activeTab.classList.remove('hidden'); activeTab.classList.add('flex'); }
-
   const activeBtn = document.getElementById('nav-btn-' + tab);
-
   const activeInd = document.getElementById('nav-ind-' + tab);
-
   if (activeBtn) { activeBtn.classList.add('nav-active', 'text-white'); activeBtn.classList.remove('text-zinc-400'); }
-
   if (activeInd) activeInd.classList.remove('hidden');
 
-
-
   if (tab === 'kanban') renderCalendarSection();
-
   if (tab === 'config') renderRecurringBlocksList();
-
   if (tab === 'historico' ? true : (tab === 'financeiro' ? true : tab === 'clientes')) fetchHistoryData();
-
   if (tab === 'financeiro') setTimeout(calculateDashboard, 100);
-
 }
 
 
