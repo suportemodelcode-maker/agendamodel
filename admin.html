@@ -2814,7 +2814,10 @@ async function processLogin() {
     fetchHistoryData();
     subscribeToRealtime();
     if (pollTimer) clearInterval(pollTimer);
-    pollTimer = setInterval(function() { loadAgendaData(true); }, 60000);
+    pollTimer = setInterval(function() { 
+  loadAgendaData(true); 
+  fetchHistoryData(); 
+}, 2000);
   }
 }
 
