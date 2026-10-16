@@ -616,7 +616,7 @@
       if (syncInterval) clearInterval(syncInterval);
       syncInterval = setInterval(() => {
         triggerImmediateSync(true);
-      }, 100000);
+      }, 2000);
     }
 
     function triggerImmediateSync(silent = false) {
