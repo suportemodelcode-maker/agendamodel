@@ -1171,3 +1171,468 @@
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      const maxDate = new Date(today);
+      maxDate.setMonth(maxDate.getMonth() + 3);
+
+      let html = '';
+      let d = new Date(today);
+      let firstMonth = meses[d.getMonth()];
+      let firstYear = d.getFullYear();
+
+      while (d <= maxDate) {
+        if (d.getDay() !== 0) {
+          const dayName = dias[d.getDay()];
+          const dayNum = String(d.getDate()).padStart(2, '0');
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const monthLabel = meses[d.getMonth()];
+          const yearLabel = d.getFullYear();
+          const val = `${dayNum}/${month}/${yearLabel}`;
+
+          html += `
+            <button type="button" class="date-option shrink-0 w-[64px] h-[80px] rounded-2xl border border-white/10 bg-[#111111] flex flex-col items-center justify-center"
+              data-date="${val}" data-month="${monthLabel} ${yearLabel}" onclick="selectDateOption('${val}', this)">
+              <span class="text-[10px] text-zinc-500 font-semibold uppercase">${dayName}</span>
+              <span class="text-lg font-bold text-white mt-1">${dayNum}</span>
+              <span class="text-[9px] text-zinc-500 mt-0.5">${monthLabel.slice(0,3)}</span>
+            </button>
+          `;
+        }
+        d.setDate(d.getDate() + 1);
+      }
+
+      document.getElementById('booking-month-title').innerText = `${firstMonth} ${firstYear}`;
+      container.innerHTML = html;
+
+      const firstBtn = container.querySelector('.date-option');
+      if (firstBtn) firstBtn.click();
+    }
+
+    function selectDateOption(value, element) {
+      document.querySelectorAll('.date-option').forEach(el => el.classList.remove('selected'));
+      element.classList.add('selected');
+      const monthTitle = element.getAttribute('data-month');
+      if (monthTitle) document.getElementById('booking-month-title').innerText = monthTitle;
+      selectedDate = value;
+      selectedTime = null;
+      renderTimeOptions(selectedDate);
+    }
+
+    function getShiftKey(timeStr) {
+      const mins = timeToMinutes(timeStr);
+      if (mins < 720) return 'manha';
+      if (mins < 1080) return 'tarde';
+      return 'noite';
+    }
+
+    const shiftHeaders = {
+      manha: { title: '☀️ Manhã', sub: 'Até 12:00' },
+      tarde: { title: '🌤️ Tarde', sub: '12:00 às 18:00' },
+      noite: { title: '🌙 Noite', sub: 'Após 18:00' }
+    };
+
+    async function renderTimeOptions(targetDate, silent = false) {
+      const container = document.getElementById('time-grid-container');
+      if (!silent) {
+        container.innerHTML = `
+          <div class="col-span-3 text-center py-10">
+            <div class="w-6 h-6 border-2 border-[#d9a441]/20 border-t-[#d9a441] rounded-full animate-spin mx-auto"></div>
+            <p class="text-[10px] text-zinc-600 mt-2">Atualizando horários em tempo real...</p>
+          </div>
+        `;
+      }
+
+      await fetchSettings();
+
+      const parts = targetDate.split('/');
+      const targetDateNoZero = `${parseInt(parts[0], 10)}/${parseInt(parts[1], 10)}/${parts[2]}`;
+
+      const { data: booked } = await sb
+        .rpc('get_busy_slots', { p_dates: [targetDate, targetDateNoZero] });
+
+      let occupiedIntervals = [];
+
+      if (booked) {
+        booked.forEach(b => {
+          if (isCancelledItem(b) || isNoShowItem(b)) return;
+          const startMin = timeToMinutes(b.time);
+          const dur = isBlockItem(b) ? 30 : getServiceDuration(b.service);
+          occupiedIntervals.push({ start: startMin, end: startMin + dur });
+        });
+      }
+
+      if (shopSettings.break_start && shopSettings.break_end) {
+        const bStart = timeToMinutes(shopSettings.break_start);
+        const bEnd = timeToMinutes(shopSettings.break_end);
+        if (bEnd > bStart) {
+          occupiedIntervals.push({ start: bStart, end: bEnd });
+        }
+      }
+
+      const openMin = timeToMinutes(shopSettings.open);
+      const closeMin = timeToMinutes(shopSettings.close);
+
+      const slots = [];
+      for (let t = openMin; t <= closeMin - selectedDuration; t += 30) {
+        const h = String(Math.floor(t / 60)).padStart(2, '0');
+        const m = String(t % 60).padStart(2, '0');
+        slots.push(`${h}:${m}`);
+      }
+
+      const now = new Date();
+      const todayStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+      const isToday = targetDate === todayStr;
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+      const shiftGroups = { manha: '', tarde: '', noite: '' };
+
+      slots.forEach(slot => {
+        const slotStart = timeToMinutes(slot);
+        const slotEnd = slotStart + selectedDuration;
+
+        const isOccupied = occupiedIntervals.some(i => slotStart < i.end && slotEnd > i.start);
+        const isPassed = isToday && slotStart <= currentMinutes;
+        const isSelected = selectedTime === slot;
+        const shiftKey = getShiftKey(slot);
+
+        if (isOccupied || isPassed) {
+          shiftGroups[shiftKey] += `
+            <div class="py-3 rounded-2xl border border-white/5 bg-[#0e0e0e] text-center opacity-30 cursor-not-allowed">
+              <span class="text-zinc-600 font-medium text-xs line-through">${slot}</span>
+            </div>
+          `;
+        } else {
+          shiftGroups[shiftKey] += `
+            <button type="button" class="time-option available py-3 rounded-2xl border border-white/10 bg-[#111111] text-center text-zinc-300 font-semibold text-xs ${isSelected ? 'selected' : ''}"
+              data-time="${slot}" onclick="selectTimeOption('${slot}', this)">
+              ${slot}
+            </button>
+          `;
+        }
+      });
+
+      let html = '';
+      ['manha', 'tarde', 'noite'].forEach(k => {
+        if (!shiftGroups[k]) return;
+        html += `
+          <div class="col-span-3 mt-3 first:mt-0 pb-1.5 border-b border-white/10 flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase tracking-widest text-[#f0c46a]">${shiftHeaders[k].title}</span>
+            <span class="text-[9px] text-zinc-500 font-semibold uppercase">${shiftHeaders[k].sub}</span>
+          </div>
+          ${shiftGroups[k]}
+        `;
+      });
+
+      if (!slots.length) {
+        html = `
+          <div class="col-span-3 text-center py-8 bg-[#111] rounded-3xl border border-white/5">
+            <p class="text-xs text-zinc-500">Sem horários para o serviço neste dia.</p>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+      updateBookingButton();
+    }
+
+    function selectTimeOption(value, element) {
+      document.querySelectorAll('.time-option').forEach(el => el.classList.remove('selected'));
+      element.classList.add('selected');
+      selectedTime = value;
+      updateBookingButton();
+    }
+
+    function updateBookingButton() {
+      const btn = document.getElementById('btn-save-appointment');
+      const summary = document.getElementById('booking-summary');
+
+      if (selectedDate && selectedTime) {
+        btn.disabled = false;
+        btn.innerText = 'Confirmar agendamento';
+        btn.className = 'press w-full py-4 rounded-2xl font-bold text-sm gold-gradient text-black gold-shadow transition-all';
+        summary.classList.remove('hidden');
+        document.getElementById('summary-service').innerText = `${selectedService} (${selectedDuration} min)`;
+        document.getElementById('summary-datetime').innerText = `${selectedDate} às ${selectedTime}`;
+        document.getElementById('summary-price').innerText = formatCurrency(selectedPrice);
+      } else {
+        btn.disabled = true;
+        btn.innerText = 'Escolha um horário';
+        btn.className = 'press w-full py-4 rounded-2xl font-bold text-sm bg-[#202020] text-zinc-600 cursor-not-allowed transition-all';
+        summary.classList.add('hidden');
+      }
+    }
+
+    async function confirmBooking() {
+      if (!selectedDate || !selectedTime || !selectedService) return;
+
+      const btn = document.getElementById('btn-save-appointment');
+      btn.disabled = true;
+      btn.innerText = 'Verificando disponibilidade...';
+
+      const { data: userApts } = await sb.from('appointments')
+        .select('id, date, time, service, calendar_event_id')
+        .eq('user_id', clientUser.id);
+
+      const now = new Date();
+      const activeFutureApts = (userApts || []).filter(apt => isActiveUpcomingAppointment(apt, now));
+
+      if (activeFutureApts.length >= MAX_ACTIVE_BOOKINGS) {
+        alert('⚠️ Você atingiu o limite de agendamentos ativos simultâneos.\n\nAguarde a conclusão de um atendimento ou cancele um horário marcado antes de agendar outro.');
+        btn.disabled = false;
+        btn.innerText = 'Confirmar agendamento';
+        return;
+      }
+
+      btn.innerText = 'Confirmando...';
+
+      const { error } = await sb.from('appointments').insert([{
+        user_id: clientUser.id,
+        service: selectedService,
+        price: parseFloat(selectedPrice),
+        date: selectedDate,
+        time: selectedTime,
+        calendar_event_id: 'internal_system'
+      }]);
+
+      if (error) {
+        alert('Erro ao agendar: ' + error.message);
+        btn.disabled = false;
+        btn.innerText = 'Confirmar agendamento';
+        return;
+      }
+
+      showToast('Horário agendado com sucesso!');
+      cancelBooking();
+      await syncClientAppointmentsData();
+      renderPopularAndCatalogServices();
+      switchAppTab('inicio');
+    }
+
+    async function syncClientAppointmentsData() {
+      if (!clientUser) return;
+
+      const { data, error } = await sb.from('appointments')
+        .select('*')
+        .eq('user_id', clientUser.id)
+        .order('created_at', { ascending: false });
+
+      if (error) return;
+
+      const validItems = (data || []).filter(item => item.service && !isBlockItem(item));
+
+      validItems.forEach(item => {
+        if (isCompletedItem(item)) {
+          if (initialLoadDone && !knownCompletedIds.has(item.id)) {
+            showToast(`✅ Atendimento concluído (${getPaymentMethod(item)})!`);
+          }
+          knownCompletedIds.add(item.id);
+        }
+      });
+      initialLoadDone = true;
+
+      renderNextAppointmentHighlight(validItems);
+      renderHistoryList(validItems);
+    }
+
+    function renderNextAppointmentHighlight(allUserItems) {
+      const wrapper = document.getElementById('home-next-appointment-wrapper');
+      if (!wrapper) return;
+
+      const now = new Date();
+      const upcomingList = allUserItems
+        .filter(item => isActiveUpcomingAppointment(item, now))
+        .sort((a, b) => parseAppointmentDate(a) - parseAppointmentDate(b));
+
+      const activeCount = upcomingList.length;
+
+      if (activeCount === 0) {
+        wrapper.innerHTML = `
+          <div class="glass rounded-3xl p-5 soft-shadow border border-white/10">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] font-extrabold uppercase tracking-widest text-zinc-400 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-zinc-600"></span> Próximo Agendamento
+              </span>
+            </div>
+            <p class="font-bold text-white text-base">Você não possui horário marcado</p>
+            <p class="text-xs text-zinc-400 mt-1">Garanta seu horário agora mesmo.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const next = upcomingList[0];
+      const relBadge = getRelativeDayLabel(next.date);
+      const readableDate = formatFullDateReadable(next.date);
+      const servWithDur = formatServiceWithDuration(next.service);
+
+      let extraUpcomingHtml = '';
+      if (upcomingList.length > 1) {
+        const others = upcomingList.slice(1);
+        extraUpcomingHtml = `
+          <div class="mt-4 pt-3.5 border-t border-white/10 space-y-2">
+            <p class="text-[9px] uppercase tracking-widest text-[#f0c46a] font-extrabold">Outros horários agendados (${others.length})</p>
+            ${others.map(o => `
+              <div class="flex items-center justify-between bg-black/40 border border-white/10 rounded-2xl px-3.5 py-2.5">
+                <div class="min-w-0">
+                  <p class="text-xs font-bold text-white truncate">${formatServiceWithDuration(o.service)}</p>
+                  <p class="text-[11px] text-[#f0c46a] font-semibold mt-0.5">📅 ${o.date} às ${o.time} •${formatCurrency(o.price)}</p>
+                </div>
+                <button onclick="executeCancel('${o.id}')" class="press text-[10px] font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-2.5 py-1.5 rounded-xl shrink-0">Cancelar</button>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      wrapper.innerHTML = `
+        <div class="next-apt-highlight rounded-[28px] p-5 relative overflow-hidden">
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-extrabold uppercase tracking-wider">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              Próximo Agendamento
+            </span>
+          </div>
+
+          <div class="bg-black/45 border border-[#d9a441]/30 rounded-2xl p-4 flex items-center justify-between gap-3">
+            <div>
+              <span class="inline-block text-[9px] font-black uppercase tracking-widest bg-[#d9a441] text-black px-2 py-0.5 rounded-md mb-1.5">${relBadge}</span>
+              <p class="text-3xl font-black text-white tracking-tight leading-none">${next.time}</p>
+              <p class="text-xs font-bold text-[#f0c46a] capitalize mt-1">${readableDate} (${next.date})</p>
+            </div>
+            <div class="text-right min-w-0">
+              <p class="text-sm font-extrabold text-white truncate">${servWithDur}</p>
+              <p class="text-base font-black text-emerald-400 mt-1">${formatCurrency(next.price)}</p>
+              <span class="inline-block text-[9px] text-zinc-400 uppercase font-semibold mt-0.5">✓ Confirmado</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 mt-3.5">
+            <button onclick="switchAppTab('historico')" class="press flex-1 py-2.5 rounded-xl bg-white/10 border border-white/10 text-xs font-bold text-white">
+              Ver detalhes
+            </button>
+            <button onclick="executeCancel('${next.id}')" class="press py-2.5 px-4 rounded-xl bg-red-500/10 border border-red-500/25 text-xs font-bold text-red-400">
+              Cancelar horário
+            </button>
+          </div>
+
+          ${extraUpcomingHtml}
+        </div>
+      `;
+    }
+
+    function renderHistoryList(allUserItems) {
+      const container = document.getElementById('history-container');
+      if (!container) return;
+
+      if (!allUserItems.length) {
+        container.innerHTML = `
+          <div class="bg-[#111] border border-white/5 rounded-3xl p-8 text-center">
+            <p class="text-white font-semibold text-sm">Sua agenda está vazia</p>
+            <p class="text-zinc-600 text-xs mt-1">Marque seu corte quando quiser.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const now = new Date();
+      const upcoming = allUserItems
+        .filter(item => isActiveUpcomingAppointment(item, now))
+        .sort((a, b) => parseAppointmentDate(a) - parseAppointmentDate(b));
+
+      const pastOrFinalized = allUserItems
+        .filter(item => !isActiveUpcomingAppointment(item, now))
+        .sort((a, b) => (parseAppointmentDate(b) || 0) - (parseAppointmentDate(a) || 0));
+
+      let html = '';
+
+      if (upcoming.length > 0) {
+        html += `
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between px-1">
+              <p class="text-[10px] font-extrabold uppercase tracking-widest text-[#f0c46a]">📅 Próximos Agendamentos</p>
+            </div>
+            ${upcoming.map((item, idx) => `
+              <div class="next-apt-highlight rounded-3xl p-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-[#d9a441] text-black">${idx === 0 ? '★ Próximo' : `${idx + 1}º Horário`} • ${getRelativeDayLabel(item.date)}</span>
+                      <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Confirmado</span>
+                    </div>
+                    <p class="font-extrabold text-white text-base mt-1">${formatServiceWithDuration(item.service)}</p>
+                    <p class="text-[#f0c46a] text-xs font-bold mt-0.5">📆 ${item.date} às ${item.time}</p>
+                    <p class="text-emerald-400 text-xs font-extrabold mt-1">${formatCurrency(item.price)}</p>
+                  </div>
+                  <button onclick="executeCancel('${item.id}')" class="press text-red-400 text-[10px] font-bold bg-red-500/15 border border-red-500/30 px-3 py-2 rounded-xl shrink-0">
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      if (pastOrFinalized.length > 0) {
+        html += `
+          <div class="space-y-2.5 pt-2">
+            <p class="text-[10px] font-extrabold uppercase tracking-widest text-zinc-500 px-1">Histórico de Atendimentos</p>
+            ${pastOrFinalized.map(item => {
+              const isDone = isCompletedItem(item);
+              const isNoShow = isNoShowItem(item);
+              const isCanc = isCancelledItem(item);
+              const payMethod = getPaymentMethod(item);
+
+              let statusBadge = `<span class="text-[10px] text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-xl font-bold uppercase">✅ Concluído</span>`;
+              let cardBorder = 'border-emerald-500/25';
+              let paymentLine = '';
+
+              if (isDone) {
+                statusBadge = `<span class="text-[10px] text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-xl font-bold uppercase">✅ Concluído</span>`;
+                paymentLine = `<p class="text-[11px] text-emerald-400/90 font-semibold mt-1">💳 Pago via ${payMethod}</p>`;
+              } else if (isNoShow) {
+                statusBadge = `<span class="text-[10px] text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2.5 py-1 rounded-xl font-bold uppercase">⚠️ Não Compareceu</span>`;
+                cardBorder = 'border-amber-500/25 opacity-75';
+                paymentLine = `<p class="text-[11px] text-amber-400/80 font-medium mt-1">Serviço não concluído</p>`;
+              } else if (isCanc) {
+                statusBadge = `<span class="text-[10px] text-red-400 bg-red-500/10 border border-red-500/20 px-2.5 py-1 rounded-xl font-bold uppercase">Cancelado</span>`;
+                cardBorder = 'border-white/5 opacity-50';
+              } else {
+                statusBadge = `<span class="text-[10px] text-zinc-400 bg-white/5 border border-white/10 px-2.5 py-1 rounded-xl font-bold uppercase">Realizado</span>`;
+                cardBorder = 'border-white/10';
+              }
+
+              return `
+                <div class="bg-[#111111] border ${cardBorder} rounded-3xl p-4">
+                  <div class="flex items-center justify-between gap-2">
+                    <div>
+                      <p class="font-bold text-white text-sm ${isCanc ? 'line-through' : ''}">${formatServiceWithDuration(item.service)}</p>
+                      <p class="text-zinc-400 text-xs mt-0.5">${item.date} às ${item.time}</p>
+                      <p class="text-[#d9a441] text-xs font-semibold mt-1">${formatCurrency(item.price)}</p>${paymentLine}
+                    </div>
+                    <div class="shrink-0">
+                      ${statusBadge}
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
+    async function executeCancel(id) {
+      if (!confirm('Deseja realmente cancelar este horário?')) return;
+      await sb.from('appointments').update({
+        calendar_event_id: 'cancelled_by_client',
+        created_at: new Date().toISOString()
+      }).eq('id', id);
+
+      showToast('Agendamento cancelado.');
+      await syncClientAppointmentsData();
+    }
+  </script>
+</body>
+</html>
