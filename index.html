@@ -1018,9 +1018,10 @@ window.addEventListener('DOMContentLoaded', async () => {
 
       btn.innerText = 'Confirmando...';
 
-      const { error } = await sb.from('appointments').insert([{
+const { error } = await sb.from('appointments').insert([{
         user_id: clientUser.id,
         service: selectedService,
+        price: parseFloat(selectedPrice),
         date: selectedDate,
         time: selectedTime,
         calendar_event_id: 'internal_system'
