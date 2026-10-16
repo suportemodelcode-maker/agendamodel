@@ -2875,18 +2875,18 @@ function switchTab(tab) {
 function subscribeToRealtime() {
   if (!sb) return;
   
-  // Remove canais antigos para não duplicar
   sb.removeAllChannels();
 
+  // Escuta as mudanças na tabela original e recarrega os dados da View
   sb.channel('admin-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, payload => {
-        // Quando cair um agendamento novo, força o painel a puxar os dados completos da View segura
-        loadAgendaData(true);
-        fetchHistoryData();
+        setTimeout(() => {
+          loadAgendaData(true);
+          fetchHistoryData();
+        }, 500); // Dá meio segundo para o banco gravar antes de ler a View
     })
     .subscribe();
 }
-
 
 
 function timeToMinutes(tStr) {
@@ -5762,29 +5762,28 @@ function generateCardHtml(item) {
 async function loadAgendaData(silent) {
   if (!sb) return;
   try {
-    // 1. A busca no banco fica limpa, apenas trazendo os dados
+    // 1. Puxa os dados da View segura
     const res = await sb.from('admin_dashboard_view')
       .select('*')
       .neq('calendar_event_id', 'cancelled_by_barber')
       .neq('calendar_event_id', 'cancelled_by_client');
       
-    if (res.error) return;
+    if (res.error) throw res.error;
     
     allAppointments = res.data ? res.data : [];
     
+    // 2. Garante que os nomes sejam formatados corretamente
     allAppointments.forEach(function(a) {
-      // 2. O TRUQUE ENTRA AQUI DENTRO DO LOOP!
+      // Reconstrói o objeto profiles que o resto do HTML espera encontrar
       a.profiles = {
-        full_name: a.full_name,
-        phone: a.phone
+        full_name: a.full_name ? formatClientName(a.full_name) : 'Cliente Não Id.',
+        phone: a.phone || ''
       };
 
+      // Formata a data se necessário
       if (a.date && a.date.includes('/')) {
         const p = a.date.split('/');
         if (p.length === 3) a.date = pad2(p[0]) + '/' + pad2(p[1]) + '/' + p[2];
-      }
-      if (a.profiles && a.profiles.full_name) {
-        a.profiles.full_name = formatClientName(a.profiles.full_name);
       }
     });
     
