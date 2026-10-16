@@ -223,15 +223,13 @@
 
     <p class="text-[11px] text-zinc-500 mt-2 mb-8 font-medium">Gestão inteligente da sua barbearia</p>
 
-    <div id="login-form">
-
-      <input type="password" id="admin-pass" placeholder="SENHA" onkeydown="if(event.key==='Enter'){event.preventDefault();checkAdmin(event);}" class="w-full py-4 px-4 rounded-2xl bg-zinc-950 border border-zinc-700 text-white focus:border-orange-500 outline-none mb-3 text-center tracking-widest font-bold transition-all placeholder:text-zinc-600">
-
-      <button type="button" onclick="checkAdmin(event)" class="w-full py-4 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-black font-black uppercase tracking-widest rounded-2xl shadow-[0_0_25px_rgba(249,115,22,.18)] transition-all transform hover:scale-[1.01]">
-
+<div id="login-form" class="space-y-3">
+      <input type="email" id="admin-email" placeholder="E-MAIL DO ADMIN" class="w-full py-4 px-4 rounded-2xl bg-zinc-950 border border-zinc-700 text-white focus:border-orange-500 outline-none text-center font-bold transition-all placeholder:text-zinc-600">
+      <input type="password" id="admin-pass" placeholder="SENHA" onkeydown="if(event.key==='Enter'){event.preventDefault();checkAdmin(event);}" class="w-full py-4 px-4 rounded-2xl bg-zinc-950 border border-zinc-700 text-white focus:border-orange-500 outline-none text-center tracking-widest font-bold transition-all placeholder:text-zinc-600">
+      <button type="button" id="btn-admin-login" onclick="checkAdmin(event)" class="w-full py-4 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-black font-black uppercase tracking-widest rounded-2xl shadow-[0_0_25px_rgba(249,115,22,.18)] transition-all transform hover:scale-[1.01]">
         Entrar
-
       </button>
+    </div>
 
     </div>
 
@@ -1971,7 +1969,6 @@
 
 <script>
 
-const ADMIN_PASSWORD = "rb";
 
 const SUPABASE_URL = 'https://cifrmupwumffzrcqwfjv.supabase.co';
 
@@ -2753,31 +2750,35 @@ function closeTimePickerModal() {
 
 
 
-function checkAdmin(e) {
-
+async function checkAdmin(e) {
   if (e && e.preventDefault) e.preventDefault();
+  if (!sb) return alert('Erro ao conectar ao servidor.');
 
-  const passInput = document.getElementById('admin-pass');
+  const email = (document.getElementById('admin-email')?.value || '').trim();
+  const password = (document.getElementById('admin-pass')?.value || '').trim();
+  const btn = document.getElementById('btn-admin-login');
 
-  const typedPass = (passInput ? passInput.value : '').trim().toLowerCase();
+  if (!email || !password) return alert('Preencha e-mail e senha.');
 
-  if (typedPass === ADMIN_PASSWORD) {
+  if (btn) { btn.disabled = true; btn.innerText = 'Autenticando...'; }
 
-    try { localStorage.setItem('rb_admin_logged', 'true'); } catch (err) {}
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
 
-    processLogin();
+  if (btn) { btn.disabled = false; btn.innerText = 'Entrar'; }
 
-  } else {
-
-    alert('Senha incorreta.');
-
+  if (error || !data.session) {
+    return alert('Acesso negado: E-mail ou senha incorretos.');
   }
 
+  const { data: isAdm } = await sb.rpc('is_admin');
+  if (!isAdm) {
+    await sb.auth.signOut();
+    return alert('Esta conta não possui permissão de Administrador.');
+  }
+
+  processLogin();
   return false;
-
 }
-
-
 
 async function processLogin() {
   const authScreen = document.getElementById('auth-screen');
@@ -2813,35 +2814,34 @@ async function processLogin() {
     fetchHistoryData();
     subscribeToRealtime();
     if (pollTimer) clearInterval(pollTimer);
-    pollTimer = setInterval(function() { loadAgendaData(true); }, 4000);
-  } else {
-    renderBoards();
+    pollTimer = setInterval(function() { loadAgendaData(true); }, 60000);
   }
 }
 
-function logoutAdmin() {
-  try {
-    localStorage.removeItem('rb_admin_logged');
-    localStorage.removeItem('rb_active_tab');
-  } catch (err) {}
+async function logoutAdmin() {
+  try { localStorage.removeItem('rb_active_tab'); } catch (err) {}
   if (pollTimer) clearInterval(pollTimer);
+  if (sb) await sb.auth.signOut();
   window.location.reload();
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
   if (window.Chart) {
     Chart.defaults.color = '#71717a';
     Chart.defaults.font.family = "'Inter', sans-serif";
   }
   updateHeaderDate();
   ['set-open', 'set-close', 'set-break-start', 'set-break-end', 'block-start', 'block-end'].forEach(syncTimeDisplay);
-  try {
-    if (localStorage.getItem('rb_admin_logged') === 'true') {
-      processLogin();
-    }
-  } catch (err) {}
-});
 
+  if (sb) {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      const { data: isAdm } = await sb.rpc('is_admin');
+      if (isAdm) processLogin();
+      else await sb.auth.signOut();
+    }
+  }
+});
 function switchTab(tab) {
   try { localStorage.setItem('rb_active_tab', tab); } catch (err) {}
 

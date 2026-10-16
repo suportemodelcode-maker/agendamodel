@@ -616,7 +616,7 @@
       if (syncInterval) clearInterval(syncInterval);
       syncInterval = setInterval(() => {
         triggerImmediateSync(true);
-      }, 3500);
+      }, 60000);
     }
 
     function triggerImmediateSync(silent = false) {
@@ -628,23 +628,17 @@
       }
     }
 
-    window.addEventListener('DOMContentLoaded', async () => {
+window.addEventListener('DOMContentLoaded', async () => {
       await fetchSettings();
-      const savedSession = localStorage.getItem('rb_client_session');
-      if (savedSession) {
-        try {
-          clientUser = JSON.parse(savedSession);
-          clientUser.name = formatClientName(clientUser.name);
-          enterApp();
-          return;
-        } catch (e) {
-          localStorage.removeItem('rb_client_session');
-        }
+
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        localStorage.removeItem('rb_client_session');
       }
 
-      sb.auth.onAuthStateChange(async (event, session) => {
-        if (session && session.user && !clientUser) {
-          const u = session.user;
+      sb.auth.onAuthStateChange(async (event, currentSession) => {
+        if (currentSession && currentSession.user && !clientUser) {
+          const u = currentSession.user;
           const name = formatClientName(u.user_metadata?.full_name || 'Cliente');
           const avatar = u.user_metadata?.avatar_url || null;
           let phone = u.phone || u.user_metadata?.typed_phone || '';
@@ -669,24 +663,24 @@
     async function unifyAndEnterApp(authId, rawName, email, phone, avatarUrlFromAuth) {
       const name = formatClientName(rawName);
       const cleanPhone = phone.replace(/\D/g, '');
-      const { data: existingProfile } = await sb.from('profiles').select('*').eq('phone', cleanPhone).maybeSingle();
 
-      let finalUserId = authId;
-      let finalAvatar = avatarUrlFromAuth;
+      const { data: unified, error } = await sb.rpc('unify_client_profile', {
+        p_name: name,
+        p_phone: cleanPhone,
+        p_avatar: avatarUrlFromAuth
+      });
 
-      if (existingProfile) {
-        finalUserId = existingProfile.id;
-        finalAvatar = existingProfile.avatar_url || avatarUrlFromAuth;
-      } else {
-        await sb.from('profiles').upsert([{ id: authId, full_name: name, phone: cleanPhone, avatar_url: avatarUrlFromAuth }]);
+      if (error) {
+        alert('Erro ao validar perfil: ' + error.message);
+        return;
       }
 
       clientUser = {
-        id: finalUserId,
-        name: formatClientName(existingProfile ? (existingProfile.full_name || name) : name),
+        id: unified.id,
+        name: formatClientName(unified.name || name),
         email: email || '',
         phone: cleanPhone,
-        avatar_url: finalAvatar
+        avatar_url: unified.avatar_url
       };
 
       localStorage.setItem('rb_client_session', JSON.stringify(clientUser));
@@ -1027,7 +1021,6 @@
       const { error } = await sb.from('appointments').insert([{
         user_id: clientUser.id,
         service: selectedService,
-        price: parseFloat(selectedPrice),
         date: selectedDate,
         time: selectedTime,
         calendar_event_id: 'internal_system'
