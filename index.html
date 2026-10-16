@@ -660,33 +660,38 @@ window.addEventListener('DOMContentLoaded', async () => {
       });
     });
 
-    async function unifyAndEnterApp(authId, rawName, email, phone, avatarUrlFromAuth) {
-      const name = formatClientName(rawName);
-      const cleanPhone = phone.replace(/\D/g, '');
+async function unifyAndEnterApp(authId, rawName, email, phone, avatarUrlFromAuth) {
+  const name = formatClientName(rawName);
+  const cleanPhone = phone.replace(/\D/g, '');
+  
+  // Busca se já existe um perfil com esse telefone
+  const { data: existingProfile } = await sb.from('profiles').select('*').eq('phone', cleanPhone).maybeSingle();
 
-      const { data: unified, error } = await sb.rpc('unify_client_profile', {
-        p_name: name,
-        p_phone: cleanPhone,
-        p_avatar: avatarUrlFromAuth
-      });
+  let finalUserId = authId;
+  let finalAvatar = avatarUrlFromAuth;
 
-      if (error) {
-        alert('Erro ao validar perfil: ' + error.message);
-        return;
-      }
+  if (existingProfile) {
+    finalUserId = existingProfile.id;
+    finalAvatar = existingProfile.avatar_url || avatarUrlFromAuth;
+    // Atualiza apenas os dados do perfil sem mexer em agendamentos
+    await sb.from('profiles').update({ full_name: name, avatar_url: finalAvatar }).eq('id', finalUserId);
+  } else {
+    // Insere o novo perfil de forma segura
+    await sb.from('profiles').upsert([{ id: authId, full_name: name, phone: cleanPhone, avatar_url: avatarUrlFromAuth }]);
+  }
 
-      clientUser = {
-        id: unified.id,
-        name: formatClientName(unified.name || name),
-        email: email || '',
-        phone: cleanPhone,
-        avatar_url: unified.avatar_url
-      };
+  clientUser = {
+    id: finalUserId,
+    name: formatClientName(existingProfile ? (existingProfile.full_name || name) : name),
+    email: email || '',
+    phone: cleanPhone,
+    avatar_url: finalAvatar
+  };
 
-      localStorage.setItem('rb_client_session', JSON.stringify(clientUser));
-      document.getElementById('modal-mandatory-phone').classList.add('hidden');
-      enterApp();
-    }
+  localStorage.setItem('rb_client_session', JSON.stringify(clientUser));
+  document.getElementById('modal-mandatory-phone').classList.add('hidden');
+  enterApp();
+}
 
     async function submitMandatoryPhone() {
       const nameInput = formatClientName(document.getElementById('mandatory-name-input').value.trim());
