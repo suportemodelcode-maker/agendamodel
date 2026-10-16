@@ -877,10 +877,8 @@ window.addEventListener('DOMContentLoaded', async () => {
       const parts = targetDate.split('/');
       const targetDateNoZero = `${parseInt(parts[0], 10)}/${parseInt(parts[1], 10)}/${parts[2]}`;
 
-      const { data: booked } = await sb
-        .from('appointments')
-        .select('service, time, calendar_event_id')
-        .in('date', [targetDate, targetDateNoZero]);
+const { data: booked } = await sb
+        .rpc('get_busy_slots', { p_dates: [targetDate, targetDateNoZero] });
 
       let occupiedIntervals = [];
 
