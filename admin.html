@@ -5775,10 +5775,23 @@ function generateCardHtml(item) {
 async function loadAgendaData(silent) {
   if (!sb) return;
   try {
-    const res = await sb.from('admin_dashboard_view').select('*')(a.profiles = { full_name: a.full_name, phone: a.phone };)').neq('calendar_event_id', 'cancelled_by_barber').neq('calendar_event_id', 'cancelled_by_client');
+    // 1. A busca no banco fica limpa, apenas trazendo os dados
+    const res = await sb.from('admin_dashboard_view')
+      .select('*')
+      .neq('calendar_event_id', 'cancelled_by_barber')
+      .neq('calendar_event_id', 'cancelled_by_client');
+      
     if (res.error) return;
+    
     allAppointments = res.data ? res.data : [];
+    
     allAppointments.forEach(function(a) {
+      // 2. O TRUQUE ENTRA AQUI DENTRO DO LOOP!
+      a.profiles = {
+        full_name: a.full_name,
+        phone: a.phone
+      };
+
       if (a.date && a.date.includes('/')) {
         const p = a.date.split('/');
         if (p.length === 3) a.date = pad2(p[0]) + '/' + pad2(p[1]) + '/' + p[2];
@@ -5787,6 +5800,7 @@ async function loadAgendaData(silent) {
         a.profiles.full_name = formatClientName(a.profiles.full_name);
       }
     });
+    
     renderBoards();
   } catch (err) {
     console.error('Erro no loadAgendaData:', err);
