@@ -2877,13 +2877,13 @@ function subscribeToRealtime() {
   
   sb.removeAllChannels();
 
-  // Escuta as mudanças na tabela original e recarrega os dados da View
-  sb.channel('admin-changes')
+  sb.channel('admin-updates')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, payload => {
+        // Ao invés de tentar atualizar um por um, pede pro banco trazer tudo fresquinho
         setTimeout(() => {
           loadAgendaData(true);
           fetchHistoryData();
-        }, 500); // Dá meio segundo para o banco gravar antes de ler a View
+        }, 500);
     })
     .subscribe();
 }
@@ -4629,21 +4629,12 @@ function parseBrDateToObj(dateStr) {
 async function fetchHistoryData() {
   if (!sb) return;
   try {
-    // 1. Busca da View segura em vez da tabela bloqueada
-    const res = await sb.from('admin_dashboard_view').select('*').order('created_at', { ascending: false });
+    const { data: resData, error } = await sb.rpc('get_admin_agenda');
+    if (error) throw error;
     
-    if (res.error) throw res.error;
-    
-    allHistoryData = res.data ? res.data : [];
+    allHistoryData = resData || [];
     
     allHistoryData.forEach(function(a) {
-      
-      // 2. RECRIAMOS A ESTRUTURA PROFILES AQUI PARA NÃO QUEBRAR O RESTO DO PAINEL
-      a.profiles = {
-        full_name: a.full_name,
-        phone: a.phone
-      };
-
       if (a.date && a.date.includes('/')) {
         const p = a.date.split('/');
         if (p.length === 3) a.date = pad2(p[0]) + '/' + pad2(p[1]) + '/' + p[2];
@@ -5762,28 +5753,23 @@ function generateCardHtml(item) {
 async function loadAgendaData(silent) {
   if (!sb) return;
   try {
-    // 1. Puxa os dados da View segura
-    const res = await sb.from('admin_dashboard_view')
-      .select('*')
-      .neq('calendar_event_id', 'cancelled_by_barber')
-      .neq('calendar_event_id', 'cancelled_by_client');
-      
-    if (res.error) throw res.error;
+    // Busca direto da função segura
+    const { data: resData, error } = await sb.rpc('get_admin_agenda');
+    if (error) throw error;
     
-    allAppointments = res.data ? res.data : [];
+    // Filtra os cancelados para a visualização do dia
+    allAppointments = (resData || []).filter(a => 
+      a.calendar_event_id !== 'cancelled_by_barber' && 
+      a.calendar_event_id !== 'cancelled_by_client'
+    );
     
-    // 2. Garante que os nomes sejam formatados corretamente
     allAppointments.forEach(function(a) {
-      // Reconstrói o objeto profiles que o resto do HTML espera encontrar
-      a.profiles = {
-        full_name: a.full_name ? formatClientName(a.full_name) : 'Cliente Não Id.',
-        phone: a.phone || ''
-      };
-
-      // Formata a data se necessário
       if (a.date && a.date.includes('/')) {
         const p = a.date.split('/');
         if (p.length === 3) a.date = pad2(p[0]) + '/' + pad2(p[1]) + '/' + p[2];
+      }
+      if (a.profiles && a.profiles.full_name) {
+        a.profiles.full_name = formatClientName(a.profiles.full_name);
       }
     });
     
