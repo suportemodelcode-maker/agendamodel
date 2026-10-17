@@ -99,48 +99,83 @@
 
 <body class="antialiased select-none">
 
-  <div id="toast-msg" class="hidden fixed top-6 left-1/2 -translate-x-1/2 z-[100] bg-[#181818] border border-emerald-500/30 text-white text-xs font-semibold px-5 py-3 rounded-full shadow-2xl"></div>
+  <!-- TOAST FLUTUANTE -->
+  <div id="toast-msg" class="hidden fixed top-6 left-1/2 -translate-x-1/2 z-[120] bg-[#181818] border border-[#d9a441]/40 text-white text-xs font-semibold px-5 py-3 rounded-full shadow-2xl whitespace-nowrap"></div>
 
-  <!-- MODAL WHATSAPP OBRIGATÓRIO (Para quem loga via Google/Redes) -->
-  <div id="modal-mandatory-phone" class="hidden fixed inset-0 z-[90] modal-backdrop flex flex-col justify-end">
-    <div class="bg-[#111111] rounded-t-[30px] p-6 border-t border-white/10 space-y-5">
-      <div class="flex items-center gap-3">
-        <div class="w-11 h-11 rounded-2xl gold-gradient flex items-center justify-center text-black font-bold">RB</div>
-        <div>
-          <p class="text-white font-bold">Último passo!</p>
-          <p class="text-zinc-500 text-xs mt-0.5">Complete seu cadastro</p>
-        </div>
+  <!-- MODAL DE AVISO / CONFIRMAÇÃO PERSONALIZADO DO APP (Substitui o alert do navegador) -->
+  <div id="custom-app-modal" class="hidden fixed inset-0 z-[130] modal-backdrop flex items-center justify-center p-6">
+    <div class="bg-[#121212] border border-[#d9a441]/30 rounded-[28px] p-6 w-full max-w-xs soft-shadow animate-fade-up text-center">
+      <div id="custom-modal-icon" class="w-12 h-12 rounded-2xl bg-[#d9a441]/15 border border-[#d9a441]/30 flex items-center justify-center mx-auto mb-4 text-[#f0c46a]">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>
       </div>
-      <p class="text-sm text-zinc-400">Precisamos do seu WhatsApp para confirmar seus horários.</p>
+      <h3 id="custom-modal-title" class="display-font text-xl text-white font-bold">Aviso</h3>
+      <p id="custom-modal-message" class="text-xs text-zinc-400 mt-2 leading-relaxed"></p>
+      <div class="flex items-center gap-2.5 mt-6">
+        <button id="custom-modal-cancel" type="button" class="hidden press flex-1 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-zinc-300 font-bold text-xs">
+          Cancelar
+        </button>
+        <button id="custom-modal-ok" type="button" class="press flex-1 py-3.5 rounded-2xl gold-gradient text-black font-bold text-xs gold-shadow">
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL WHATSAPP OBRIGATÓRIO (Para novos acessos) -->
+  <div id="modal-mandatory-phone" class="hidden fixed inset-0 z-[90] modal-backdrop flex flex-col justify-end">
+    <div class="bg-[#111111] rounded-t-[30px] p-6 border-t border-white/10 space-y-5 max-w-md mx-auto w-full">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl gold-gradient flex items-center justify-center text-black font-bold">RB</div>
+          <div>
+            <p class="text-white font-bold">Complete seu acesso</p>
+            <p class="text-zinc-500 text-xs mt-0.5">Identificação rápida</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeMandatoryModal()" class="text-zinc-500 text-xs font-semibold px-2 py-1">Fechar</button>
+      </div>
+      <p class="text-xs text-zinc-400">Informe seu WhatsApp e como prefere ser chamado para vincular seus agendamentos.</p>
       <div class="space-y-4">
         <div>
-          <label class="text-[10px] text-zinc-500 uppercase font-bold tracking-[0.16em] mb-2 block">Nome e Sobrenome</label>
-          <input type="text" id="mandatory-name-input" placeholder="Ex: João Silva" onblur="this.value = formatClientName(this.value)" class="w-full px-4 py-3.5 bg-[#090909] border border-white/10 rounded-2xl text-white outline-none focus:border-[#d9a441] text-sm">
+          <label class="text-[10px] text-zinc-500 uppercase font-bold tracking-[0.16em] mb-2 block">WhatsApp com DDD</label>
+          <input type="tel" id="mandatory-phone-input" placeholder="(51) 99999-9999" oninput="maskPhone(this); checkExistingPhoneOnModal(this.value)" class="w-full px-4 py-3.5 bg-[#090909] border border-white/10 rounded-2xl text-white outline-none focus:border-[#d9a441] text-sm">
         </div>
         <div>
-          <label class="text-[10px] text-zinc-500 uppercase font-bold tracking-[0.16em] mb-2 block">WhatsApp</label>
-          <input type="text" id="mandatory-phone-input" placeholder="(51) 99999-9999" oninput="maskPhone(this)" class="w-full px-4 py-3.5 bg-[#090909] border border-white/10 rounded-2xl text-white outline-none focus:border-[#d9a441] text-sm">
+          <label class="text-[10px] text-zinc-500 uppercase font-bold tracking-[0.16em] mb-2 block">Seu Nome</label>
+          <input type="text" id="mandatory-name-input" placeholder="Ex: Bruno" onblur="this.value = formatClientName(this.value)" class="w-full px-4 py-3.5 bg-[#090909] border border-white/10 rounded-2xl text-white outline-none focus:border-[#d9a441] text-sm">
         </div>
       </div>
-      <button onclick="submitMandatoryPhone()" class="press w-full py-4 rounded-2xl font-bold text-black gold-gradient gold-shadow text-sm">Salvar e entrar</button>
+      <button id="btn-submit-mandatory" onclick="submitMandatoryPhone()" class="press w-full py-4 rounded-2xl font-bold text-black gold-gradient gold-shadow text-sm">Salvar e entrar</button>
     </div>
   </div>
 
   <!-- LOGIN SEGURO -->
   <div id="view-login" class="flex flex-col justify-center min-h-screen p-6 z-40 bg-[#090909] absolute inset-0 overflow-y-auto">
-    <div class="max-w-md w-full mx-auto">
-      <div class="text-center mb-9">
-        <div class="relative w-28 h-28 rounded-full mx-auto mb-7 overflow-hidden border border-[#d9a441]/40 shadow-2xl bg-[#111]">
+    <div class="max-w-md w-full mx-auto py-6">
+      <div class="text-center mb-7">
+        <div class="relative w-24 h-24 rounded-full mx-auto mb-5 overflow-hidden border border-[#d9a441]/40 shadow-2xl bg-[#111]">
           <img src="./icone.png" alt="RB Barbearia" class="relative w-full h-full object-cover">
         </div>
-        <p class="gold-text text-[10px] uppercase tracking-[0.35em] font-bold mb-3">RB Barbearia</p>
-        <h1 class="display-font text-3xl text-white mb-3">Seu estilo começa aqui.</h1>
+        <p class="gold-text text-[10px] uppercase tracking-[0.35em] font-bold mb-2">RB Barbearia</p>
+        <h1 class="display-font text-3xl text-white mb-2">Seu estilo começa aqui.</h1>
         <p class="text-zinc-500 text-[13px] leading-relaxed max-w-xs mx-auto">Agende seu horário em tempo real e de forma 100% segura.</p>
       </div>
 
-      <div id="last-login-badge" class="hidden mx-auto mb-6 bg-[#d9a441]/10 border border-[#d9a441]/20 text-[#e5b95c] px-4 py-2 rounded-full text-xs font-semibold items-center justify-center gap-2 w-fit">
-        <span class="w-1.5 h-1.5 bg-[#d9a441] rounded-full"></span>
-        <span id="last-login-text">Último acesso: --</span>
+      <!-- ACESSO RÁPIDO POR WHATSAPP CADASTRADO -->
+      <div class="bg-[#121212] border border-[#d9a441]/25 rounded-3xl p-4 mb-5 soft-shadow">
+        <label class="text-[10px] text-[#f0c46a] uppercase font-bold tracking-[0.16em] mb-2 block">Já tem cadastro? Entre com seu WhatsApp</label>
+        <div class="flex gap-2">
+          <input type="tel" id="login-whatsapp-input" placeholder="(51) 99999-9999" oninput="maskPhone(this)" class="flex-1 min-w-0 px-4 py-3.5 bg-[#090909] border border-white/10 rounded-2xl text-white outline-none focus:border-[#d9a441] text-sm">
+          <button id="btn-whatsapp-login" type="button" onclick="signInWithPhoneDirect()" class="press px-5 py-3.5 rounded-2xl gold-gradient text-black font-bold text-xs shrink-0 gold-shadow">
+            Entrar
+          </button>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 my-4">
+        <div class="h-px bg-white/10 flex-1"></div>
+        <span class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">ou acesse com</span>
+        <div class="h-px bg-white/10 flex-1"></div>
       </div>
 
       <div class="space-y-3">
@@ -160,7 +195,7 @@
         </button>
       </div>
 
-      <div class="mt-10 text-center">
+      <div class="mt-8 text-center">
         <a href="https://wa.me/5551995738595?text=Ol%C3%A1%2C%20estou%20tentando%20acessar%20o%20app%20mas%20tive%20dificuldade.%20Pode%20me%20ajudar%20a%20agendar%3F" target="_blank" class="inline-flex flex-col items-center gap-1.5 transition-colors group">
           <span class="text-zinc-500 text-[11px]">Não consegue acessar?</span>
           <span class="text-[#d9a441] text-xs font-bold flex items-center gap-1.5 group-hover:text-white transition-colors">
@@ -184,8 +219,8 @@
           <div class="absolute inset-0 hero-overlay"></div>
           <div class="absolute inset-x-0 top-0 safe-top px-5">
             <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <img id="header-avatar" src="./icone.png" class="w-11 h-11 rounded-full object-cover border border-white/20" alt="Perfil">
+              <div onclick="switchAppTab('perfil')" class="flex items-center gap-3 cursor-pointer">
+                <img id="header-avatar" src="./icone.png" onerror="this.src='./icone.png'" class="w-11 h-11 rounded-full object-cover border border-[#d9a441]/50 bg-[#111]" alt="Perfil">
                 <div>
                   <p class="text-[10px] text-zinc-400 uppercase tracking-widest">RB Barbearia</p>
                   <p id="home-greeting-name" class="font-semibold text-white text-sm mt-0.5">Olá!</p>
@@ -207,7 +242,7 @@
           <div id="home-next-appointment-wrapper"></div>
         </div>
 
-        <!-- BOTÃO AGENDAR NOVO (Sem menção ao limite de 3 agendamentos) -->
+        <!-- BOTÃO AGENDAR NOVO -->
         <div class="px-5 mt-4">
           <button onclick="switchAppTab('servicos')" class="press gold-gradient gold-shadow rounded-2xl w-full p-4 flex items-center justify-between text-black">
             <div class="flex items-center gap-3">
@@ -223,7 +258,7 @@
           </button>
         </div>
 
-        <!-- SERVIÇOS CAROUSEL (Ordenado pelos mais agendados + rolagem lateral) -->
+        <!-- SERVIÇOS CAROUSEL -->
         <div class="px-5 mt-8">
           <div class="flex items-end justify-between mb-4">
             <div>
@@ -241,69 +276,11 @@
             </div>
           </div>
 
-          <div id="home-services-carousel" class="carousel-drag flex gap-3.5 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2">
-            <!-- Pré-carregado com todos os 5 serviços e reordenado dinamicamente pelo ranking do painel -->
-            <button onclick="startBooking('Corte Masculino', 40, 30)" class="press shrink-0 w-[175px] text-left">
-              <div class="relative h-[215px] rounded-3xl overflow-hidden border border-white/10 bg-[#111]">
-                <img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600&auto=format&fit=crop&q=80" class="absolute inset-0 w-full h-full object-cover pointer-events-none">
-                <div class="absolute inset-0 hero-overlay"></div>
-                <span class="absolute top-3 left-3 text-[9px] font-extrabold bg-black/70 border border-[#d9a441]/40 text-[#f0c46a] px-2.5 py-0.5 rounded-full uppercase">★ 1º Top</span>
-                <div class="absolute bottom-0 left-0 right-0 p-4">
-                  <p class="font-bold text-white text-sm truncate">Corte Masculino</p>
-                  <p class="text-[#e7b85e] text-xs font-semibold mt-0.5">R$ 40,00 • 30m</p>
-                </div>
-              </div>
-            </button>
-
-            <button onclick="startBooking('Corte e Barba', 65, 60)" class="press shrink-0 w-[175px] text-left">
-              <div class="relative h-[215px] rounded-3xl overflow-hidden border border-[#d9a441]/30 bg-[#111]">
-                <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=600&auto=format&fit=crop&q=80" class="absolute inset-0 w-full h-full object-cover pointer-events-none">
-                <div class="absolute inset-0 hero-overlay"></div>
-                <span class="absolute top-3 left-3 text-[9px] font-extrabold bg-[#d9a441] text-black px-2.5 py-0.5 rounded-full uppercase">Combo</span>
-                <div class="absolute bottom-0 left-0 right-0 p-4">
-                  <p class="font-bold text-white text-sm truncate">Corte e Barba</p>
-                  <p class="text-[#e7b85e] text-xs font-semibold mt-0.5">R$ 65,00 • 60m</p>
-                </div>
-              </div>
-            </button>
-
-            <button onclick="startBooking('Barba', 30, 30)" class="press shrink-0 w-[175px] text-left">
-              <div class="relative h-[215px] rounded-3xl overflow-hidden border border-white/10 bg-[#111]">
-                <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&auto=format&fit=crop&q=80" class="absolute inset-0 w-full h-full object-cover pointer-events-none">
-                <div class="absolute inset-0 hero-overlay"></div>
-                <div class="absolute bottom-0 left-0 right-0 p-4">
-                  <p class="font-bold text-white text-sm truncate">Barba Completa</p>
-                  <p class="text-[#e7b85e] text-xs font-semibold mt-0.5">R$ 30,00 • 30m</p>
-                </div>
-              </div>
-            </button>
-
-            <button onclick="startBooking('Sobrancelha', 15, 20)" class="press shrink-0 w-[175px] text-left">
-              <div class="relative h-[215px] rounded-3xl overflow-hidden border border-white/10 bg-[#111]">
-                <img src="./sobrancelha.jpeg" onerror="this.src='https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600&auto=format&fit=crop&q=80'" class="absolute inset-0 w-full h-full object-cover pointer-events-none">
-                <div class="absolute inset-0 hero-overlay"></div>
-                <div class="absolute bottom-0 left-0 right-0 p-4">
-                  <p class="font-bold text-white text-sm truncate">Sobrancelha</p>
-                  <p class="text-[#e7b85e] text-xs font-semibold mt-0.5">R$ 15,00 • 20m</p>
-                </div>
-              </div>
-            </button>
-
-            <button onclick="startBooking('Progressiva feminina orgânica', 180, 120)" class="press shrink-0 w-[175px] text-left">
-              <div class="relative h-[215px] rounded-3xl overflow-hidden border border-white/10 bg-[#111]">
-                <img src="./progressiva.jpg" onerror="this.src='https://images.unsplash.com/photo-1560869713-7d0a29430803?w=600&auto=format&fit=crop&q=80'" class="absolute inset-0 w-full h-full object-cover pointer-events-none">
-                <div class="absolute inset-0 hero-overlay"></div>
-                <div class="absolute bottom-0 left-0 right-0 p-4">
-                  <p class="font-bold text-white text-sm truncate">Progressiva Orgânica</p>
-                  <p class="text-[#e7b85e] text-xs font-semibold mt-0.5">R$ 180,00 • 120m</p>
-                </div>
-              </div>
-            </button>
-          </div>
+          <div id="home-services-carousel" class="carousel-drag flex gap-3.5 overflow-x-auto no-scrollbar -mx-5 px-5 pb-2"></div>
         </div>
       </section>
 
-      <!-- ABA SERVIÇOS (Com imagens grandes de demonstração e sem texto de limite de 3) -->
+      <!-- ABA SERVIÇOS -->
       <section id="tab-content-servicos" class="hidden px-5 pt-7 animate-fade-up">
         <div class="mb-6">
           <p class="text-[10px] uppercase tracking-[0.28em] text-[#d9a441] font-bold">Catálogo</p>
@@ -311,89 +288,7 @@
           <p class="text-xs text-zinc-500 mt-1">Selecione o serviço desejado para escolher o dia e o horário.</p>
         </div>
 
-        <div id="services-catalog-container" class="space-y-5 pb-10">
-          <!-- Cartões com imagem grande de demonstração -->
-          <div onclick="startBooking('Corte Masculino', 40, 30)" class="service-card cursor-pointer bg-[#111111] border border-white/10 rounded-[28px] overflow-hidden soft-shadow">
-            <div class="relative h-48 w-full overflow-hidden bg-[#181818]">
-              <img src="https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=800&auto=format&fit=crop&q=80" class="w-full h-full object-cover">
-              <div class="absolute inset-0 hero-overlay"></div>
-              <span class="absolute top-3.5 left-3.5 text-[10px] font-extrabold bg-black/75 border border-[#d9a441]/40 text-[#f0c46a] px-3 py-1 rounded-full uppercase">30 min</span>
-            </div>
-            <div class="p-4 flex items-center justify-between gap-3">
-              <div>
-                <p class="font-extrabold text-white text-base">Corte Masculino</p>
-                <p class="text-xs text-zinc-400 mt-0.5">Corte moderno e acabamento navalhado</p>
-                <p class="text-[#e4b55b] font-black text-sm mt-1.5">R$ 40,00</p>
-              </div>
-              <button type="button" class="press px-5 py-3 rounded-2xl gold-gradient text-black font-bold text-xs shrink-0 gold-shadow">Agendar</button>
-            </div>
-          </div>
-
-          <div onclick="startBooking('Barba', 30, 30)" class="service-card cursor-pointer bg-[#111111] border border-white/10 rounded-[28px] overflow-hidden soft-shadow">
-            <div class="relative h-48 w-full overflow-hidden bg-[#181818]">
-              <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&auto=format&fit=crop&q=80" class="w-full h-full object-cover">
-              <div class="absolute inset-0 hero-overlay"></div>
-              <span class="absolute top-3.5 left-3.5 text-[10px] font-extrabold bg-black/75 border border-[#d9a441]/40 text-[#f0c46a] px-3 py-1 rounded-full uppercase">30 min</span>
-            </div>
-            <div class="p-4 flex items-center justify-between gap-3">
-              <div>
-                <p class="font-extrabold text-white text-base">Barba Completa</p>
-                <p class="text-xs text-zinc-400 mt-0.5">Alinhamento, toalha quente e pós-barba</p>
-                <p class="text-[#e4b55b] font-black text-sm mt-1.5">R$ 30,00</p>
-              </div>
-              <button type="button" class="press px-5 py-3 rounded-2xl gold-gradient text-black font-bold text-xs shrink-0 gold-shadow">Agendar</button>
-            </div>
-          </div>
-
-          <div onclick="startBooking('Corte e Barba', 65, 60)" class="service-card cursor-pointer bg-[#111111] border border-[#d9a441]/35 rounded-[28px] overflow-hidden soft-shadow">
-            <div class="relative h-48 w-full overflow-hidden bg-[#181818]">
-              <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=800&auto=format&fit=crop&q=80" class="w-full h-full object-cover">
-              <div class="absolute inset-0 hero-overlay"></div>
-              <span class="absolute top-3.5 left-3.5 text-[10px] font-extrabold bg-black/75 border border-[#d9a441]/40 text-[#f0c46a] px-3 py-1 rounded-full uppercase">60 min</span>
-              <span class="absolute top-3.5 right-3.5 text-[10px] font-extrabold bg-[#d9a441] text-black px-3 py-1 rounded-full uppercase">Combo</span>
-            </div>
-            <div class="p-4 flex items-center justify-between gap-3">
-              <div>
-                <p class="font-extrabold text-white text-base">Corte e Barba</p>
-                <p class="text-xs text-zinc-400 mt-0.5">Experiência completa da barbearia</p>
-                <p class="text-[#e4b55b] font-black text-sm mt-1.5">R$ 65,00</p>
-              </div>
-              <button type="button" class="press px-5 py-3 rounded-2xl gold-gradient text-black font-bold text-xs shrink-0 gold-shadow">Agendar</button>
-            </div>
-          </div>
-
-          <div onclick="startBooking('Sobrancelha', 15, 20)" class="service-card cursor-pointer bg-[#111111] border border-white/10 rounded-[28px] overflow-hidden soft-shadow">
-            <div class="relative h-48 w-full overflow-hidden bg-[#181818]">
-              <img src="./sobrancelha.jpeg" onerror="this.src='https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&auto=format&fit=crop&q=80'" class="w-full h-full object-cover">
-              <div class="absolute inset-0 hero-overlay"></div>
-              <span class="absolute top-3.5 left-3.5 text-[10px] font-extrabold bg-black/75 border border-[#d9a441]/40 text-[#f0c46a] px-3 py-1 rounded-full uppercase">20 min</span>
-            </div>
-            <div class="p-4 flex items-center justify-between gap-3">
-              <div>
-                <p class="font-extrabold text-white text-base">Sobrancelha</p>
-                <p class="text-xs text-zinc-400 mt-0.5">Alinhamento e acabamento na navalha</p>
-                <p class="text-[#e4b55b] font-black text-sm mt-1.5">R$ 15,00</p>
-              </div>
-              <button type="button" class="press px-5 py-3 rounded-2xl gold-gradient text-black font-bold text-xs shrink-0 gold-shadow">Agendar</button>
-            </div>
-          </div>
-
-          <div onclick="startBooking('Progressiva feminina orgânica', 180, 120)" class="service-card cursor-pointer bg-[#111111] border border-white/10 rounded-[28px] overflow-hidden soft-shadow">
-            <div class="relative h-48 w-full overflow-hidden bg-[#181818]">
-              <img src="./progressiva.jpg" onerror="this.src='https://images.unsplash.com/photo-1560869713-7d0a29430803?w=800&auto=format&fit=crop&q=80'" class="w-full h-full object-cover">
-              <div class="absolute inset-0 hero-overlay"></div>
-              <span class="absolute top-3.5 left-3.5 text-[10px] font-extrabold bg-black/75 border border-[#d9a441]/40 text-[#f0c46a] px-3 py-1 rounded-full uppercase">120 min</span>
-            </div>
-            <div class="p-4 flex items-center justify-between gap-3">
-              <div>
-                <p class="font-extrabold text-white text-base">Progressiva Orgânica</p>
-                <p class="text-xs text-zinc-400 mt-0.5">Alinhamento térmico sem formol</p>
-                <p class="text-[#e4b55b] font-black text-sm mt-1.5">R$ 180,00</p>
-              </div>
-              <button type="button" class="press px-5 py-3 rounded-2xl gold-gradient text-black font-bold text-xs shrink-0 gold-shadow">Agendar</button>
-            </div>
-          </div>
-        </div>
+        <div id="services-catalog-container" class="space-y-5 pb-10"></div>
       </section>
 
       <!-- HISTÓRICO -->
@@ -406,21 +301,35 @@
         <div id="history-container" class="space-y-4"></div>
       </section>
 
-      <!-- PERFIL (Edição de Nome e WhatsApp desbloqueada e sincronizada) -->
+      <!-- PERFIL (Com foto editável, nome sem exigir sobrenome e WhatsApp com máscara fluida) -->
       <section id="tab-content-perfil" class="hidden px-5 pt-7 animate-fade-up">
-        <div class="mb-7">
+        <div class="mb-6">
           <p class="text-[10px] uppercase tracking-[0.28em] text-[#d9a441] font-bold">Minha Conta</p>
           <h2 class="display-font text-3xl text-white mt-1">Meu Perfil</h2>
-          <p class="text-xs text-zinc-500 mt-1">Altere seu nome ou número de WhatsApp abaixo.</p>
+          <p class="text-xs text-zinc-500 mt-1">Personalize sua foto, seu nome e seu número de WhatsApp.</p>
         </div>
 
-        <div class="bg-[#111111] border border-white/10 rounded-[28px] p-6 space-y-4">
+        <div class="bg-[#111111] border border-white/10 rounded-[28px] p-6 space-y-5">
+          <!-- FOTO DE PERFIL EDITÁVEL -->
+          <div class="flex flex-col items-center">
+            <div onclick="document.getElementById('profile-avatar-file').click()" class="relative group cursor-pointer">
+              <img id="profile-avatar-preview" src="./icone.png" onerror="this.src='./icone.png'" class="w-24 h-24 rounded-full object-cover border-2 border-[#d9a441] shadow-xl bg-[#090909]" alt="Foto de Perfil">
+              <div class="absolute bottom-0 right-0 w-8 h-8 rounded-full gold-gradient text-black flex items-center justify-center shadow-lg border-2 border-[#111111]">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              </div>
+            </div>
+            <button type="button" onclick="document.getElementById('profile-avatar-file').click()" class="mt-2.5 text-xs font-bold text-[#f0c46a]">
+              Alterar foto de perfil
+            </button>
+            <input type="file" id="profile-avatar-file" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)">
+          </div>
+
           <div>
             <div class="flex items-center justify-between mb-2">
-              <label class="text-[10px] text-zinc-400 uppercase font-bold tracking-[0.15em]">Nome e Sobrenome</label>
+              <label class="text-[10px] text-zinc-400 uppercase font-bold tracking-[0.15em]">Seu Nome</label>
               <span class="text-[10px] text-[#d9a441] font-semibold">Editável</span>
             </div>
-            <input type="text" id="profile-name-input" placeholder="Seu Nome e Sobrenome" onblur="this.value = formatClientName(this.value)" class="w-full px-4 py-3.5 bg-[#090909] border border-white/15 rounded-2xl text-white outline-none focus:border-[#d9a441] text-sm">
+            <input type="text" id="profile-name-input" placeholder="Como prefere ser chamado" onblur="this.value = formatClientName(this.value)" class="w-full px-4 py-3.5 bg-[#090909] border border-white/15 rounded-2xl text-white outline-none focus:border-[#d9a441] text-sm">
           </div>
 
           <div>
@@ -601,8 +510,62 @@
     let realtimeSub = null;
     let syncInterval = null;
 
+    /* ==============================================================
+       MODAIS PERSONALIZADOS DO APP (Substituem alert() e confirm())
+       ============================================================== */
+    function appAlert(message, title = 'RB Barbearia') {
+      return new Promise(resolve => {
+        const modal = document.getElementById('custom-app-modal');
+        const titleEl = document.getElementById('custom-modal-title');
+        const msgEl = document.getElementById('custom-modal-message');
+        const btnCancel = document.getElementById('custom-modal-cancel');
+        const btnOk = document.getElementById('custom-modal-ok');
+
+        titleEl.innerText = title;
+        msgEl.innerText = message;
+        btnCancel.classList.add('hidden');
+        btnOk.innerText = 'Entendi';
+
+        modal.classList.remove('hidden');
+
+        btnOk.onclick = () => {
+          modal.classList.add('hidden');
+          resolve(true);
+        };
+      });
+    }
+
+    function appConfirm(message, title = 'Confirmação') {
+      return new Promise(resolve => {
+        const modal = document.getElementById('custom-app-modal');
+        const titleEl = document.getElementById('custom-modal-title');
+        const msgEl = document.getElementById('custom-modal-message');
+        const btnCancel = document.getElementById('custom-modal-cancel');
+        const btnOk = document.getElementById('custom-modal-ok');
+
+        titleEl.innerText = title;
+        msgEl.innerText = message;
+        btnCancel.classList.remove('hidden');
+        btnCancel.innerText = 'Voltar';
+        btnOk.innerText = 'Confirmar';
+
+        modal.classList.remove('hidden');
+
+        btnCancel.onclick = () => {
+          modal.classList.add('hidden');
+          resolve(false);
+        };
+        btnOk.onclick = () => {
+          modal.classList.add('hidden');
+          resolve(true);
+        };
+      });
+    }
+
+    window.alert = (msg) => appAlert(String(msg || ''));
+
     function formatClientName(name) {
-      if (!name) return 'Cliente';
+      if (!name) return '';
       return String(name)
         .trim()
         .toLowerCase()
@@ -612,16 +575,116 @@
         .join(' ');
     }
 
+    /* ==============================================================
+       MÁSCARA DE WHATSAPP SEM TRAVAR NO BACKSPACE / TRAÇO
+       ============================================================== */
     function formatPhoneStr(raw) {
       let v = String(raw || '').replace(/\D/g, '');
       if (v.length > 11) v = v.slice(0, 11);
-      if (v.length > 6) return `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7)}`;
-      if (v.length > 2) return `(${v.slice(0, 2)}) ${v.slice(2)}`;
-      return v;
+      if (v.length === 0) return '';
+      if (v.length <= 2) return v;
+      if (v.length <= 6) return `(${v.slice(0, 2)}) ${v.slice(2)}`;
+      if (v.length <= 10) {
+        if (v.length === 7) return `(${v.slice(0, 2)}) ${v.slice(2)}`;
+        return `(${v.slice(0, 2)}) ${v.slice(2, 6)}-${v.slice(6)}`;
+      }
+      return `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7, 11)}`;
     }
 
     function maskPhone(input) {
-      input.value = formatPhoneStr(input.value);
+      const start = input.selectionStart || 0;
+      const digitsBeforeCursor = input.value.slice(0, start).replace(/\D/g, '').length;
+      const formatted = formatPhoneStr(input.value);
+      input.value = formatted;
+
+      if (document.activeElement === input) {
+        let newCursorPos = 0;
+        let digitsCounted = 0;
+        for (let i = 0; i < formatted.length; i++) {
+          if (digitsCounted >= digitsBeforeCursor) break;
+          if (/\d/.test(formatted[i])) digitsCounted++;
+          newCursorPos = i + 1;
+        }
+        try {
+          input.setSelectionRange(newCursorPos, newCursorPos);
+        } catch (e) {}
+      }
+    }
+
+    function closeMandatoryModal() {
+      document.getElementById('modal-mandatory-phone').classList.add('hidden');
+    }
+
+    async function checkExistingPhoneOnModal(val) {
+      const clean = String(val || '').replace(/\D/g, '');
+      if (clean.length < 10) return;
+      const existing = await findProfileByPhone(clean);
+      if (existing && existing.full_name) {
+        const nameInput = document.getElementById('mandatory-name-input');
+        if (nameInput) nameInput.value = formatClientName(existing.full_name);
+      }
+    }
+
+    async function findProfileByPhone(cleanPhone) {
+      if (!cleanPhone || cleanPhone.length < 10) return null;
+      const { data: list } = await sb
+        .from('profiles')
+        .select('*')
+        .eq('phone', cleanPhone)
+        .limit(1);
+
+      if (list && list.length > 0) return list[0];
+      return null;
+    }
+
+    function generateUUID() {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    /* ==============================================================
+       UPLOAD E OTIMIZAÇÃO DA FOTO DE PERFIL
+       ============================================================== */
+    function handleAvatarUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = async function() {
+          const canvas = document.createElement('canvas');
+          const size = 240;
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+
+          const minSide = Math.min(img.width, img.height);
+          const sx = (img.width - minSide) / 2;
+          const sy = (img.height - minSide) / 2;
+
+          ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+
+          document.getElementById('profile-avatar-preview').src = dataUrl;
+          document.getElementById('header-avatar').src = dataUrl;
+
+          if (clientUser) {
+            clientUser.avatar_url = dataUrl;
+            localStorage.setItem('rb_client_session', JSON.stringify(clientUser));
+            await sb.from('profiles').update({ avatar_url: dataUrl }).eq('id', clientUser.id);
+            if (clientUser.phone) {
+              await sb.from('profiles').update({ avatar_url: dataUrl }).eq('phone', clientUser.phone);
+            }
+            showToast('Foto de perfil atualizada!');
+          }
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
     }
 
     function isCompletedItem(item) {
@@ -805,9 +868,7 @@
           const { data: tableRows } = await sb.from('appointments').select('service, calendar_event_id');
           (tableRows || []).forEach(r => countServiceRecord(r.service, r.calendar_event_id));
         }
-      } catch (e) {
-        console.warn('Ordenação padrão de serviços aplicada:', e);
-      }
+      } catch (e) {}
 
       const sorted = [...CATALOG_SERVICES].sort((a, b) => (counts[b.key] || 0) - (counts[a.key] || 0));
 
@@ -873,9 +934,7 @@
           shopSettings.break_start = data.break_start || '';
           shopSettings.break_end = data.break_end || '';
         }
-      } catch (e) {
-        console.warn('Configurações padrão utilizadas:', e);
-      }
+      } catch (e) {}
     }
 
     function initClientRealtime() {
@@ -912,76 +971,159 @@
       await fetchSettings();
       renderPopularAndCatalogServices();
 
-      const { data: { session } } = await sb.auth.getSession();
-      if (!session) {
-        localStorage.removeItem('rb_client_session');
+      // 1. Verifica se já existe sessão salva (seja por WhatsApp ou OAuth) e sincroniza dados mais recentes do banco
+      const savedSessionRaw = localStorage.getItem('rb_client_session');
+      if (savedSessionRaw) {
+        try {
+          const parsed = JSON.parse(savedSessionRaw);
+          if (parsed && parsed.phone) {
+            const freshProf = await findProfileByPhone(String(parsed.phone).replace(/\D/g, ''));
+            if (freshProf) {
+              clientUser = {
+                id: freshProf.id,
+                name: formatClientName(freshProf.full_name || parsed.name || 'Cliente'),
+                email: parsed.email || '',
+                phone: String(freshProf.phone).replace(/\D/g, ''),
+                avatar_url: freshProf.avatar_url || parsed.avatar_url || null
+              };
+              localStorage.setItem('rb_client_session', JSON.stringify(clientUser));
+              enterApp();
+              return;
+            }
+          }
+        } catch (e) {}
       }
 
+      // 2. Listener de login via Google / LinkedIn / Spotify
       sb.auth.onAuthStateChange(async (event, currentSession) => {
         if (currentSession && currentSession.user && !clientUser) {
           const u = currentSession.user;
-          const fallbackName = formatClientName(u.user_metadata?.full_name || 'Cliente');
-          const avatar = u.user_metadata?.avatar_url || null;
+          const oauthName = formatClientName(u.user_metadata?.full_name || 'Cliente');
+          const oauthAvatar = u.user_metadata?.avatar_url || null;
 
-          // Prioriza sempre os dados salvos na tabela profiles (caso o usuário já tenha editado nome/WhatsApp)
-          const { data: profById } = await sb.from('profiles').select('*').eq('id', u.id).maybeSingle();
+          // Verifica vínculo salvo por ID ou por telefone nos metadados
+          let savedPhone = String(u.phone || u.user_metadata?.typed_phone || localStorage.getItem(`rb_oauth_phone_${u.id}`) || '').replace(/\D/g, '');
 
-          if (profById && profById.phone && String(profById.phone).replace(/\D/g, '').length >= 10) {
-            await unifyAndEnterApp(
-              profById.id,
-              formatClientName(profById.full_name || fallbackName),
-              u.email,
-              String(profById.phone).replace(/\D/g, ''),
-              profById.avatar_url || avatar
-            );
+          if (savedPhone.length >= 10) {
+            await unifyAndEnterApp(u.id, oauthName, u.email, savedPhone, oauthAvatar, true);
             return;
           }
 
-          let phone = u.phone || u.user_metadata?.typed_phone || '';
-          const cleanPhone = phone.replace(/\D/g, '');
-
-          if (cleanPhone.length >= 10) {
-            await unifyAndEnterApp(u.id, fallbackName, u.email, cleanPhone, avatar);
-          } else {
-            window.tempAuthUser = { ...u, tempAvatar: avatar };
-            if (fallbackName !== 'Cliente') document.getElementById('mandatory-name-input').value = fallbackName;
-            document.getElementById('modal-mandatory-phone').classList.remove('hidden');
+          const { data: profById } = await sb.from('profiles').select('*').eq('id', u.id).maybeSingle();
+          if (profById && profById.phone && String(profById.phone).replace(/\D/g, '').length >= 10) {
+            const pPhone = String(profById.phone).replace(/\D/g, '');
+            await unifyAndEnterApp(u.id, formatClientName(profById.full_name || oauthName), u.email, pPhone, profById.avatar_url || oauthAvatar, true);
+            return;
           }
+
+          window.tempAuthUser = { ...u, tempAvatar: oauthAvatar };
+          if (oauthName && oauthName !== 'Cliente') {
+            document.getElementById('mandatory-name-input').value = oauthName;
+          }
+          document.getElementById('modal-mandatory-phone').classList.remove('hidden');
         }
       });
     });
 
-    async function unifyAndEnterApp(authId, rawName, email, phone, avatarUrlFromAuth) {
-      const name = formatClientName(rawName);
-      const cleanPhone = String(phone || '').replace(/\D/g, '');
+    /* ==============================================================
+       LOGIN DIRETO PELO WHATSAPP CADASTRADO
+       ============================================================== */
+    async function signInWithPhoneDirect() {
+      const phoneVal = document.getElementById('login-whatsapp-input').value;
+      const cleanPhone = String(phoneVal || '').replace(/\D/g, '');
 
-      // 1. Verifica primeiro pelo ID autenticado, depois pelo telefone
-      let { data: existingProfile } = await sb.from('profiles').select('*').eq('id', authId).maybeSingle();
-      if (!existingProfile && cleanPhone) {
-        const { data: byPhone } = await sb.from('profiles').select('*').eq('phone', cleanPhone).maybeSingle();
-        existingProfile = byPhone || null;
+      if (cleanPhone.length < 10) {
+        await appAlert('Digite seu número de WhatsApp completo com DDD para entrar.', 'WhatsApp Inválido');
+        return;
       }
 
-      let finalUserId = authId;
-      let finalAvatar = avatarUrlFromAuth;
-      let finalName = name;
-      let finalPhone = cleanPhone;
+      const btn = document.getElementById('btn-whatsapp-login');
+      if (btn) { btn.disabled = true; btn.innerText = '...'; }
+
+      const existingProfile = await findProfileByPhone(cleanPhone);
+
+      if (btn) { btn.disabled = false; btn.innerText = 'Entrar'; }
 
       if (existingProfile) {
-        finalUserId = existingProfile.id;
-        finalAvatar = existingProfile.avatar_url || avatarUrlFromAuth;
-        finalName = formatClientName(existingProfile.full_name || name);
-        finalPhone = String(existingProfile.phone || cleanPhone).replace(/\D/g, '');
-        await sb.from('profiles').update({ full_name: finalName, phone: finalPhone, avatar_url: finalAvatar }).eq('id', finalUserId);
+        clientUser = {
+          id: existingProfile.id,
+          name: formatClientName(existingProfile.full_name || 'Cliente'),
+          email: '',
+          phone: cleanPhone,
+          avatar_url: existingProfile.avatar_url || null
+        };
+        localStorage.setItem('rb_client_session', JSON.stringify(clientUser));
+        showToast(`Bem-vindo de volta, ${clientUser.name.split(' ')[0]}!`);
+        enterApp();
       } else {
-        await sb.from('profiles').upsert([{ id: authId, full_name: finalName, phone: finalPhone, avatar_url: avatarUrlFromAuth }]);
+        // Número ainda não cadastrado: abre o modal com o número já preenchido para informar apenas o nome
+        window.tempAuthUser = { id: generateUUID(), email: '', tempAvatar: null };
+        document.getElementById('mandatory-phone-input').value = formatPhoneStr(cleanPhone);
+        document.getElementById('mandatory-name-input').value = '';
+        document.getElementById('modal-mandatory-phone').classList.remove('hidden');
+      }
+    }
+
+    /* ==============================================================
+       UNIFICAÇÃO POR WHATSAPP + PRIORIDADE AO ÚLTIMO NOME SALVO
+       ============================================================== */
+    async function unifyAndEnterApp(authId, rawName, email, phone, avatarUrlFromAuth, preferSavedName = true) {
+      const typedName = formatClientName(rawName || 'Cliente');
+      const cleanPhone = String(phone || '').replace(/\D/g, '');
+
+      // 1. Procura sempre primeiro pelo número de WhatsApp para unificar qualquer login (Gmail 1, Gmail 2, LinkedIn, etc.)
+      let masterProfile = await findProfileByPhone(cleanPhone);
+
+      if (!masterProfile && authId) {
+        const { data: byId } = await sb.from('profiles').select('*').eq('id', authId).maybeSingle();
+        if (byId) masterProfile = byId;
+      }
+
+      let finalUserId = masterProfile ? masterProfile.id : (authId || generateUUID());
+      let finalAvatar = (masterProfile && masterProfile.avatar_url) ? masterProfile.avatar_url : (avatarUrlFromAuth || null);
+
+      // Mantém sempre o último nome salvo no banco se o cliente já tinha cadastro
+      let finalName = typedName;
+      if (masterProfile && masterProfile.full_name && preferSavedName) {
+        finalName = formatClientName(masterProfile.full_name);
+      }
+
+      if (masterProfile) {
+        await sb.from('profiles').update({
+          full_name: finalName,
+          phone: cleanPhone,
+          avatar_url: finalAvatar
+        }).eq('id', finalUserId);
+
+        // Se o cliente entrou por outro e-mail (authId diferente do ID principal), migra eventuais agendamentos para o ID unificado
+        if (authId && authId !== finalUserId) {
+          try {
+            await sb.from('appointments').update({ user_id: finalUserId }).eq('user_id', authId);
+          } catch (e) {}
+        }
+      } else {
+        await sb.from('profiles').upsert([{
+          id: finalUserId,
+          full_name: finalName,
+          phone: cleanPhone,
+          avatar_url: finalAvatar
+        }]);
+      }
+
+      if (authId) {
+        localStorage.setItem(`rb_oauth_phone_${authId}`, cleanPhone);
+        try {
+          await sb.auth.updateUser({
+            data: { typed_phone: cleanPhone, linked_profile_id: finalUserId, full_name: finalName }
+          });
+        } catch (e) {}
       }
 
       clientUser = {
         id: finalUserId,
         name: finalName,
         email: email || '',
-        phone: finalPhone,
+        phone: cleanPhone,
         avatar_url: finalAvatar
       };
 
@@ -991,17 +1133,32 @@
     }
 
     async function submitMandatoryPhone() {
-      const nameInput = formatClientName(document.getElementById('mandatory-name-input').value.trim());
+      const rawName = document.getElementById('mandatory-name-input').value.trim();
       const phoneInput = document.getElementById('mandatory-phone-input').value;
       const cleanPhone = phoneInput.replace(/\D/g, '');
 
-      if (!nameInput.includes(' ')) { alert('Informe seu Nome e Sobrenome.'); return; }
-      if (cleanPhone.length < 10) { alert('Informe um WhatsApp válido com DDD.'); return; }
+      if (cleanPhone.length < 10) {
+        await appAlert('Informe um número de WhatsApp válido com DDD.', 'WhatsApp Inválido');
+        return;
+      }
 
-      const authUser = window.tempAuthUser;
-      if (!authUser) { alert('Sessão não encontrada. Tente entrar novamente.'); return; }
+      // Verifica se já existe perfil para esse WhatsApp
+      const existing = await findProfileByPhone(cleanPhone);
 
-      await unifyAndEnterApp(authUser.id, nameInput, authUser.email, cleanPhone, authUser.tempAvatar);
+      const finalInputName = rawName.length >= 2
+        ? formatClientName(rawName)
+        : (existing && existing.full_name ? formatClientName(existing.full_name) : '');
+
+      if (finalInputName.length < 2) {
+        await appAlert('Informe seu nome para continuar.', 'Nome Obrigatório');
+        return;
+      }
+
+      const authUser = window.tempAuthUser || { id: generateUUID(), email: '', tempAvatar: null };
+      // Se já existia perfil no banco com esse WhatsApp, prioriza o último nome salvo no banco
+      const useSavedName = Boolean(existing && existing.full_name);
+
+      await unifyAndEnterApp(authUser.id, finalInputName, authUser.email, cleanPhone, authUser.tempAvatar, useSavedName);
     }
 
     async function signInWithGoogle() {
@@ -1021,6 +1178,7 @@
 
     function userSignOut() {
       localStorage.removeItem('rb_client_session');
+      clientUser = null;
       if (syncInterval) clearInterval(syncInterval);
       try { sb.auth.signOut(); } catch(e){}
       window.location.reload();
@@ -1040,11 +1198,15 @@
 
     function loadProfileDataIntoUI() {
       if (!clientUser) return;
-      const formattedName = formatClientName(clientUser.name || '');
+      const formattedName = formatClientName(clientUser.name || 'Cliente');
       const formattedPhone = formatPhoneStr(clientUser.phone || '');
+      const avatarSrc = clientUser.avatar_url || './icone.png';
+
       document.getElementById('profile-name-input').value = formattedName;
       document.getElementById('profile-phone-input').value = formattedPhone;
       document.getElementById('home-greeting-name').innerText = `Olá, ${formattedName.split(' ')[0]}!`;
+      document.getElementById('header-avatar').src = avatarSrc;
+      document.getElementById('profile-avatar-preview').src = avatarSrc;
     }
 
     async function saveProfile() {
@@ -1053,12 +1215,12 @@
       const rawPhone = document.getElementById('profile-phone-input').value;
       const cleanPhone = rawPhone.replace(/\D/g, '');
 
-      if (!rawName.includes(' ')) {
-        alert('Informe seu Nome e Sobrenome.');
+      if (rawName.length < 2) {
+        await appAlert('Por favor, informe seu nome.', 'Nome Inválido');
         return;
       }
       if (cleanPhone.length < 10) {
-        alert('Informe um WhatsApp válido com DDD.');
+        await appAlert('Informe um número de WhatsApp válido com DDD.', 'WhatsApp Inválido');
         return;
       }
 
@@ -1069,31 +1231,59 @@
       }
 
       const newName = formatClientName(rawName);
+      const oldPhone = clientUser.phone;
 
-      // 1. Atualiza o perfil no banco (tabela profiles)
-      const { error: profErr } = await sb
-        .from('profiles')
-        .upsert({
-          id: clientUser.id,
+      // 1. Verifica se o novo telefone já pertence a outro registro para unificar
+      const existingWithNewPhone = await findProfileByPhone(cleanPhone);
+      if (existingWithNewPhone && existingWithNewPhone.id !== clientUser.id) {
+        const targetId = existingWithNewPhone.id;
+        await sb.from('profiles').update({
           full_name: newName,
           phone: cleanPhone,
-          avatar_url: clientUser.avatar_url || null
-        });
+          avatar_url: clientUser.avatar_url || existingWithNewPhone.avatar_url || null
+        }).eq('id', targetId);
 
-      if (profErr) {
-        if (btn) { btn.disabled = false; btn.innerText = 'Salvar alterações'; }
-        alert('Erro ao atualizar perfil: ' + profErr.message);
-        return;
+        try {
+          await sb.from('appointments').update({ user_id: targetId }).eq('user_id', clientUser.id);
+        } catch (e) {}
+
+        clientUser.id = targetId;
+      } else {
+        const { error: profErr } = await sb
+          .from('profiles')
+          .upsert({
+            id: clientUser.id,
+            full_name: newName,
+            phone: cleanPhone,
+            avatar_url: clientUser.avatar_url || null
+          });
+
+        if (profErr) {
+          if (btn) { btn.disabled = false; btn.innerText = 'Salvar alterações'; }
+          await appAlert('Não foi possível salvar: ' + profErr.message, 'Erro ao Salvar');
+          return;
+        }
       }
 
-      // 2. Atualiza metadados da conta autenticada para manter nas próximas sessões
+      // Garante que qualquer perfil com o mesmo telefone tenha o mesmo nome atualizado
+      if (oldPhone) {
+        try {
+          await sb.from('profiles').update({ full_name: newName, phone: cleanPhone }).eq('phone', oldPhone);
+        } catch (e) {}
+      }
+
+      // 2. Atualiza metadados da sessão OAuth caso exista
       try {
-        await sb.auth.updateUser({
-          data: { full_name: newName, typed_phone: cleanPhone, phone: cleanPhone }
-        });
+        const { data: { session } } = await sb.auth.getSession();
+        if (session && session.user) {
+          localStorage.setItem(`rb_oauth_phone_${session.user.id}`, cleanPhone);
+          await sb.auth.updateUser({
+            data: { full_name: newName, typed_phone: cleanPhone, phone: cleanPhone, linked_profile_id: clientUser.id }
+          });
+        }
       } catch (e) {}
 
-      // 3. Atualiza agendamentos ativos do cliente (sem tocar nos já concluídos) para refletir no painel em tempo real
+      // 3. Dispara atualização nos agendamentos ativos para sincronizar em tempo real com o painel do barbeiro
       try {
         const { data: userApts } = await sb
           .from('appointments')
@@ -1121,7 +1311,7 @@
         btn.disabled = false;
         btn.innerText = 'Salvar alterações';
       }
-      showToast('Nome e WhatsApp atualizados com sucesso!');
+      showToast('Perfil atualizado com sucesso!');
     }
 
     function switchAppTab(tab) {
@@ -1376,7 +1566,7 @@
       const activeFutureApts = (userApts || []).filter(apt => isActiveUpcomingAppointment(apt, now));
 
       if (activeFutureApts.length >= MAX_ACTIVE_BOOKINGS) {
-        alert('⚠️ Você atingiu o limite de agendamentos ativos simultâneos.\n\nAguarde a conclusão de um atendimento ou cancele um horário marcado antes de agendar outro.');
+        await appAlert('Você já possui horários ativos agendados no limite simultâneo. Aguarde a conclusão de um atendimento ou cancele um horário marcado antes de agendar outro.', 'Agenda Cheia');
         btn.disabled = false;
         btn.innerText = 'Confirmar agendamento';
         return;
@@ -1394,7 +1584,7 @@
       }]);
 
       if (error) {
-        alert('Erro ao agendar: ' + error.message);
+        await appAlert('Não foi possível concluir o agendamento: ' + error.message, 'Erro ao Agendar');
         btn.disabled = false;
         btn.innerText = 'Confirmar agendamento';
         return;
@@ -1624,7 +1814,9 @@
     }
 
     async function executeCancel(id) {
-      if (!confirm('Deseja realmente cancelar este horário?')) return;
+      const confirmed = await appConfirm('Deseja realmente cancelar este horário agendado?', 'Cancelar Horário');
+      if (!confirmed) return;
+
       await sb.from('appointments').update({
         calendar_event_id: 'cancelled_by_client',
         created_at: new Date().toISOString()
