@@ -89,6 +89,22 @@
     .carousel-drag:active {
       cursor: grabbing;
     }
+    /* Balãozinho de Último Acesso igual à imagem de referência */
+    .last-login-pill {
+      position: absolute;
+      bottom: -10px;
+      right: 10px;
+      background: #0c3b66;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #67b7f7;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 6px;
+      z-index: 20;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.65);
+      pointer-events: none;
+    }
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
@@ -149,60 +165,234 @@
     </div>
   </div>
 
-  <!-- LOGIN SEGURO -->
+  <!-- LOGIN SEGURO (COM TELAS DE LOGIN, CÓDIGO ÚNICO E CADASTRE-SE) -->
   <div id="view-login" class="flex flex-col justify-center min-h-screen p-6 z-40 bg-[#090909] absolute inset-0 overflow-y-auto">
     <div class="max-w-md w-full mx-auto py-6">
-      <div class="text-center mb-7">
-        <div class="relative w-24 h-24 rounded-full mx-auto mb-5 overflow-hidden border border-[#d9a441]/40 shadow-2xl bg-[#111]">
-          <img src="./icone.png" alt="RB Barbearia" class="relative w-full h-full object-cover">
+
+      <!-- ================= TELA 1: MENU PRINCIPAL DE LOGIN ================= -->
+      <div id="auth-step-main" class="animate-fade-up">
+        <div class="text-center mb-7">
+          <div class="relative w-24 h-24 rounded-full mx-auto mb-5 overflow-hidden border border-[#d9a441]/40 shadow-2xl bg-[#111]">
+            <img src="./icone.png" alt="RB Barbearia" class="relative w-full h-full object-cover">
+          </div>
+          <p class="gold-text text-[10px] uppercase tracking-[0.35em] font-bold mb-2">RB Barbearia</p>
+          <h1 class="display-font text-3xl text-white mb-2">Faça login para continuar</h1>
+          <p class="text-zinc-500 text-[13px] leading-relaxed max-w-xs mx-auto">Agende online, acompanhe seus horários em tempo real e muito mais.</p>
         </div>
-        <p class="gold-text text-[10px] uppercase tracking-[0.35em] font-bold mb-2">RB Barbearia</p>
-        <h1 class="display-font text-3xl text-white mb-2">Seu estilo começa aqui.</h1>
-        <p class="text-zinc-500 text-[13px] leading-relaxed max-w-xs mx-auto">Agende seu horário em tempo real e de forma 100% segura.</p>
+
+        <!-- ACESSO RÁPIDO POR WHATSAPP CADASTRADO -->
+        <div class="relative bg-[#121212] border border-[#d9a441]/25 rounded-3xl p-4 mb-6 soft-shadow">
+          <label class="text-[10px] text-[#f0c46a] uppercase font-bold tracking-[0.16em] mb-2 block">Já tem cadastro? Entre com seu WhatsApp</label>
+          <div class="flex gap-2">
+            <input type="tel" id="login-whatsapp-input" placeholder="(51) 99999-9999" oninput="maskPhone(this)" class="flex-1 min-w-0 px-4 py-3.5 bg-[#090909] border border-white/10 rounded-2xl text-white outline-none focus:border-[#d9a441] text-sm">
+            <button id="btn-whatsapp-login" type="button" onclick="signInWithPhoneDirect()" class="press px-5 py-3.5 rounded-2xl gold-gradient text-black font-bold text-xs shrink-0 gold-shadow">
+              Entrar
+            </button>
+          </div>
+          <span id="last-pill-WhatsApp" class="last-login-pill hidden">Último acesso</span>
+        </div>
+
+        <div class="flex items-center gap-3 my-4">
+          <div class="h-px bg-white/10 flex-1"></div>
+          <span class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">ou acesse com</span>
+          <div class="h-px bg-white/10 flex-1"></div>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Google -->
+          <div class="relative">
+            <button onclick="signInWithGoogle()" class="press w-full py-4 px-4 rounded-2xl font-semibold text-white bg-[#151515] border border-white/15 flex items-center justify-center gap-3 text-[14px]">
+              <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              Continuar com o Google
+            </button>
+            <span id="last-pill-Google" class="last-login-pill hidden">Último acesso</span>
+          </div>
+
+          <!-- LinkedIn -->
+          <div class="relative">
+            <button onclick="signInWithLinkedIn()" class="press w-full py-4 px-4 rounded-2xl font-semibold text-white bg-[#151515] border border-white/15 flex items-center justify-center gap-3 text-[14px]">
+              <svg class="w-5 h-5 text-[#0A66C2]" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452z"/></svg>
+              Continuar com o LinkedIn
+            </button>
+            <span id="last-pill-LinkedIn" class="last-login-pill hidden">Último acesso</span>
+          </div>
+
+          <!-- Spotify -->
+          <div class="relative">
+            <button onclick="signInWithSpotify()" class="press w-full py-4 px-4 rounded-2xl font-semibold text-white bg-[#151515] border border-white/15 flex items-center justify-center gap-3 text-[14px]">
+              <svg class="w-5 h-5 text-[#1DB954]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.54.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15.001 10.62 18.661 12.9c.42.18.6.78.3 1.14zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.62.539.3.719 1.02.419 1.56-.299.48-1.02.659-1.559.3z" /></svg>
+              Continuar com o Spotify
+            </button>
+            <span id="last-pill-Spotify" class="last-login-pill hidden">Último acesso</span>
+          </div>
+
+          <!-- Continuar com email ou telefone -->
+          <div class="relative">
+            <button type="button" onclick="showAuthStep('email')" class="press w-full py-4 px-4 rounded-2xl font-semibold text-white bg-[#151515] border border-white/15 flex items-center justify-center gap-3 text-[14px]">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+              Continuar com email ou telefone
+            </button>
+            <span id="last-pill-Email" class="last-login-pill hidden">Último acesso</span>
+          </div>
+
+          <!-- Código de acesso único -->
+          <div class="relative">
+            <button type="button" onclick="showAuthStep('otp')" class="press w-full py-4 px-4 rounded-2xl font-semibold text-white bg-[#151515] border border-white/15 flex items-center justify-center gap-3 text-[14px]">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+              Código de acesso único
+            </button>
+            <span id="last-pill-OTP" class="last-login-pill hidden">Último acesso</span>
+          </div>
+        </div>
+
+        <!-- BOTÃO NOVO CADASTRO -->
+        <div class="mt-7 text-center">
+          <button type="button" onclick="showAuthStep('signup')" class="press text-white font-semibold text-[15px] py-2 px-6 hover:text-[#f0c46a] transition-colors">
+            Novo cadastro
+          </button>
+        </div>
+
+        <div class="mt-6 text-center">
+          <a href="https://wa.me/5551995738595?text=Ol%C3%A1%2C%20estou%20tentando%20acessar%20o%20app%20mas%20tive%20dificuldade.%20Pode%20me%20ajudar%20a%20agendar%3F" target="_blank" class="inline-flex flex-col items-center gap-1.5 transition-colors group">
+            <span class="text-zinc-500 text-[11px]">Não consegue acessar?</span>
+            <span class="text-[#d9a441] text-xs font-bold flex items-center gap-1.5 group-hover:text-white transition-colors">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.964 9.964 0 001.333 4.993L2 22l5.233-1.237a9.994 9.994 0 004.779 1.216h.004c5.505 0 9.988-4.478 9.989-9.984 0-2.67-1.04-5.18-2.929-7.071A9.92 9.92 0 0012.012 2zm5.826 14.18c-.246.697-1.436 1.34-1.986 1.385-.436.036-1.002.138-3.197-.773-2.653-1.101-4.341-3.812-4.473-3.987-.132-.175-1.066-1.423-1.066-2.716 0-1.293.673-1.93.916-2.193.242-.261.527-.261.705-.261.176 0 .354.004.508.01.172.007.404-.065.632.485.242.585.827 2.023.898 2.17.071.146.119.317.027.502-.089.183-.135.297-.27.447-.133.15-.286.326-.402.457-.131.149-.271.314-.117.579.155.265.69 1.137 1.479 1.843.918.819 1.769 1.072 2.035 1.196.265.124.421.102.576-.051.155-.153.669-.778.85-1.045.18-.266.36-.222.604-.132.245.091 1.543.729 1.808.861.265.133.441.198.508.31.066.112.066.65-.18 1.347z"/></svg>
+              Fale com o Barbeiro
+            </span>
+          </a>
+        </div>
       </div>
 
-      <!-- ACESSO RÁPIDO POR WHATSAPP CADASTRADO -->
-      <div class="bg-[#121212] border border-[#d9a441]/25 rounded-3xl p-4 mb-5 soft-shadow">
-        <label class="text-[10px] text-[#f0c46a] uppercase font-bold tracking-[0.16em] mb-2 block">Já tem cadastro? Entre com seu WhatsApp</label>
-        <div class="flex gap-2">
-          <input type="tel" id="login-whatsapp-input" placeholder="(51) 99999-9999" oninput="maskPhone(this)" class="flex-1 min-w-0 px-4 py-3.5 bg-[#090909] border border-white/10 rounded-2xl text-white outline-none focus:border-[#d9a441] text-sm">
-          <button id="btn-whatsapp-login" type="button" onclick="signInWithPhoneDirect()" class="press px-5 py-3.5 rounded-2xl gold-gradient text-black font-bold text-xs shrink-0 gold-shadow">
-            Entrar
+      <!-- ================= TELA 2: CÓDIGO DE ACESSO ÚNICO (OTP POR EMAIL) ================= -->
+      <div id="auth-step-otp" class="hidden animate-fade-up">
+        <div class="mb-6">
+          <button type="button" onclick="showAuthStep('main')" class="press w-10 h-10 -ml-2 rounded-xl flex items-center justify-center text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+        </div>
+
+        <div class="text-center mb-8">
+          <div class="relative w-24 h-24 rounded-full mx-auto mb-5 overflow-hidden border border-[#d9a441]/40 shadow-2xl bg-[#111]">
+            <img src="./icone.png" alt="RB Barbearia" class="relative w-full h-full object-cover">
+          </div>
+          <p class="gold-text text-[10px] uppercase tracking-[0.35em] font-bold mb-2">RB Barbearia</p>
+          <h2 class="text-2xl font-bold text-white mb-2">Acesse sua conta</h2>
+          <p id="otp-subtitle" class="text-zinc-400 text-sm leading-relaxed max-w-xs mx-auto">Informe seu email para receber o código de acesso único</p>
+        </div>
+
+        <!-- Solicitar código -->
+        <div id="otp-request-box" class="space-y-4">
+          <div class="flex items-center bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
+            <svg class="w-5 h-5 text-zinc-400 mr-3 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+            <input type="email" id="otp-email-input" placeholder="Email" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400">
+          </div>
+
+          <button type="button" id="btn-request-otp" onclick="requestEmailOtp()" class="press w-full py-4 rounded-xl font-bold text-black gold-gradient gold-shadow text-base">
+            Solicitar código
+          </button>
+        </div>
+
+        <!-- Digitar código recebido -->
+        <div id="otp-verify-box" class="hidden space-y-4">
+          <div class="bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
+            <input type="text" id="otp-code-input" maxlength="8" placeholder="Digite o código recebido" class="w-full bg-transparent text-white text-center tracking-[0.3em] font-bold outline-none text-lg placeholder:tracking-normal placeholder:font-normal placeholder:text-sm placeholder:text-zinc-400">
+          </div>
+
+          <button type="button" id="btn-verify-otp" onclick="verifyEmailOtp()" class="press w-full py-4 rounded-xl font-bold text-black gold-gradient gold-shadow text-base">
+            Confirmar código e entrar
+          </button>
+
+          <button type="button" onclick="resetOtpFlow()" class="w-full py-2 text-xs text-zinc-400 hover:text-white font-semibold">
+            Alterar email ou reenviar código
           </button>
         </div>
       </div>
 
-      <div class="flex items-center gap-3 my-4">
-        <div class="h-px bg-white/10 flex-1"></div>
-        <span class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">ou acesse com</span>
-        <div class="h-px bg-white/10 flex-1"></div>
+      <!-- ================= TELA 3: CONTINUAR COM EMAIL OU TELEFONE ================= -->
+      <div id="auth-step-email" class="hidden animate-fade-up">
+        <div class="flex items-center justify-between mb-6">
+          <button type="button" onclick="showAuthStep('main')" class="press w-10 h-10 -ml-2 rounded-xl flex items-center justify-center text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <h2 class="text-xl font-bold text-white">Acessar conta</h2>
+          <div class="w-8"></div>
+        </div>
+
+        <p class="text-zinc-400 text-sm text-center mb-6 leading-relaxed">Entre com seu email e senha cadastrados ou informe seu WhatsApp</p>
+
+        <div class="space-y-3.5">
+          <div class="bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
+            <input type="text" id="login-email-input" placeholder="Email ou WhatsApp com DDD" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400">
+          </div>
+
+          <div class="relative flex items-center bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
+            <input type="password" id="login-password-input" placeholder="Senha (se entrar com email)" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400 pr-8">
+            <button type="button" onclick="togglePassVisibility('login-password-input')" class="text-zinc-400 hover:text-white">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+            </button>
+          </div>
+
+          <button type="button" id="btn-login-email" onclick="signInWithEmailOrPhone()" class="press w-full py-4 mt-2 rounded-xl font-bold text-black gold-gradient gold-shadow text-base">
+            Entrar
+          </button>
+
+          <div class="text-center pt-3">
+            <button type="button" onclick="showAuthStep('otp')" class="text-xs text-[#f0c46a] font-semibold">
+              Prefere entrar sem senha? Usar código de acesso único
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div class="space-y-3">
-        <button onclick="signInWithGoogle()" class="press w-full py-4 px-4 rounded-2xl font-semibold text-white bg-[#151515] border border-white/10 flex items-center justify-center gap-3 text-[14px]">
-          <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-          Continuar com o Google
-        </button>
+      <!-- ================= TELA 4: CADASTRE-SE ================= -->
+      <div id="auth-step-signup" class="hidden animate-fade-up">
+        <div class="flex items-center justify-between mb-6">
+          <button type="button" onclick="showAuthStep('main')" class="press w-10 h-10 -ml-2 rounded-xl flex items-center justify-center text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <h2 class="text-xl font-bold text-white">Cadastre-se</h2>
+          <div class="w-8"></div>
+        </div>
 
-        <button onclick="signInWithLinkedIn()" class="press w-full py-4 px-4 rounded-2xl font-semibold text-white bg-[#151515] border border-white/10 flex items-center justify-center gap-3 text-[14px]">
-          <svg class="w-5 h-5 text-[#0A66C2]" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452z"/></svg>
-          Continuar com o LinkedIn
-        </button>
+        <p class="text-zinc-400 text-sm text-center mb-6 leading-relaxed">Informe os dados básicos para<br>criar sua conta</p>
 
-        <button onclick="signInWithSpotify()" class="press w-full py-4 px-4 rounded-2xl font-semibold text-white bg-[#151515] border border-white/10 flex items-center justify-center gap-3 text-[14px]">
-          <svg class="w-5 h-5 text-[#1DB954]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.54.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15.001 10.62 18.661 12.9c.42.18.6.78.3 1.14zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.62.539.3.719 1.02.419 1.56-.299.48-1.02.659-1.559.3z" /></svg>
-          Continuar com o Spotify
-        </button>
-      </div>
+        <div class="space-y-3.5">
+          <!-- Nome completo -->
+          <div class="bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
+            <input type="text" id="signup-name-input" placeholder="Nome completo" onblur="this.value = formatClientName(this.value)" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400">
+          </div>
 
-      <div class="mt-8 text-center">
-        <a href="https://wa.me/5551995738595?text=Ol%C3%A1%2C%20estou%20tentando%20acessar%20o%20app%20mas%20tive%20dificuldade.%20Pode%20me%20ajudar%20a%20agendar%3F" target="_blank" class="inline-flex flex-col items-center gap-1.5 transition-colors group">
-          <span class="text-zinc-500 text-[11px]">Não consegue acessar?</span>
-          <span class="text-[#d9a441] text-xs font-bold flex items-center gap-1.5 group-hover:text-white transition-colors">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.964 9.964 0 001.333 4.993L2 22l5.233-1.237a9.994 9.994 0 004.779 1.216h.004c5.505 0 9.988-4.478 9.989-9.984 0-2.67-1.04-5.18-2.929-7.071A9.92 9.92 0 0012.012 2zm5.826 14.18c-.246.697-1.436 1.34-1.986 1.385-.436.036-1.002.138-3.197-.773-2.653-1.101-4.341-3.812-4.473-3.987-.132-.175-1.066-1.423-1.066-2.716 0-1.293.673-1.93.916-2.193.242-.261.527-.261.705-.261.176 0 .354.004.508.01.172.007.404-.065.632.485.242.585.827 2.023.898 2.17.071.146.119.317.027.502-.089.183-.135.297-.27.447-.133.15-.286.326-.402.457-.131.149-.271.314-.117.579.155.265.69 1.137 1.479 1.843.918.819 1.769 1.072 2.035 1.196.265.124.421.102.576-.051.155-.153.669-.778.85-1.045.18-.266.36-.222.604-.132.245.091 1.543.729 1.808.861.265.133.441.198.508.31.066.112.066.65-.18 1.347z"/></svg>
-            Fale com o Barbeiro
-          </span>
-        </a>
+          <!-- Bandeira + Celular -->
+          <div class="flex gap-3">
+            <div class="w-20 bg-[#1c1c1e] rounded-xl border border-white/10 flex items-center justify-center text-xl shrink-0">
+              🇧🇷
+            </div>
+            <div class="flex-1 bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
+              <input type="tel" id="signup-phone-input" placeholder="Celular" oninput="maskPhone(this)" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400">
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
+            <input type="email" id="signup-email-input" placeholder="Email" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400">
+          </div>
+
+          <!-- Senha com ícone de visualizar -->
+          <div class="relative flex items-center bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
+            <input type="password" id="signup-password-input" placeholder="Senha" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400 pr-8">
+            <button type="button" onclick="togglePassVisibility('signup-password-input')" class="text-zinc-400 hover:text-white">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+            </button>
+          </div>
+
+          <button type="button" id="btn-submit-signup" onclick="submitNewSignup()" class="press w-full py-4 mt-2 rounded-xl font-bold text-black gold-gradient gold-shadow text-base">
+            Cadastrar
+          </button>
+
+          <p class="text-center text-xs text-zinc-400 pt-3">
+            Acessando você concorda com os<br><strong class="text-white font-semibold">termos de uso</strong>.
+          </p>
+        </div>
       </div>
 
     </div>
@@ -499,6 +689,7 @@
     let selectedTime = null;
     let knownCompletedIds = new Set();
     let initialLoadDone = false;
+    let pendingOtpEmail = '';
 
     let shopSettings = {
       open: '09:00',
@@ -509,6 +700,211 @@
 
     let realtimeSub = null;
     let syncInterval = null;
+
+    /* ==============================================================
+       BALÃO "ÚLTIMO ACESSO" E NAVEGAÇÃO DAS TELAS DE AUTENTICAÇÃO
+       ============================================================== */
+    function renderLastLoginPill() {
+      const last = localStorage.getItem('rb_last_login');
+      ['WhatsApp', 'Google', 'LinkedIn', 'Spotify', 'Email', 'OTP'].forEach(method => {
+        const pill = document.getElementById(`last-pill-${method}`);
+        if (pill) pill.classList.toggle('hidden', method !== last);
+      });
+    }
+
+    function showAuthStep(step) {
+      ['main', 'otp', 'email', 'signup'].forEach(s => {
+        const el = document.getElementById(`auth-step-${s}`);
+        if (el) el.classList.toggle('hidden', s !== step);
+      });
+      if (step === 'main') renderLastLoginPill();
+    }
+
+    function togglePassVisibility(inputId) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    /* ==============================================================
+       CÓDIGO DE ACESSO ÚNICO (OTP POR EMAIL)
+       ============================================================== */
+    async function requestEmailOtp() {
+      const email = (document.getElementById('otp-email-input').value || '').trim().toLowerCase();
+      if (!email || !email.includes('@')) {
+        await appAlert('Informe um endereço de email válido para receber o código.', 'Email Inválido');
+        return;
+      }
+
+      const btn = document.getElementById('btn-request-otp');
+      if (btn) { btn.disabled = true; btn.innerText = 'Enviando código...'; }
+
+      const { error } = await sb.auth.signInWithOtp({
+        email: email,
+        options: { shouldCreateUser: true }
+      });
+
+      if (btn) { btn.disabled = false; btn.innerText = 'Solicitar código'; }
+
+      if (error) {
+        await appAlert('Não foi possível enviar o código: ' + error.message, 'Erro no Envio');
+        return;
+      }
+
+      pendingOtpEmail = email;
+      document.getElementById('otp-subtitle').innerText = `Enviamos o código de acesso único para ${email}. Digite-o abaixo:`;
+      document.getElementById('otp-request-box').classList.add('hidden');
+      document.getElementById('otp-verify-box').classList.remove('hidden');
+      showToast('Código enviado para seu email!');
+    }
+
+    async function verifyEmailOtp() {
+      const token = (document.getElementById('otp-code-input').value || '').trim();
+      if (!token || token.length < 6) {
+        await appAlert('Digite o código recebido no seu email.', 'Código Inválido');
+        return;
+      }
+
+      const btn = document.getElementById('btn-verify-otp');
+      if (btn) { btn.disabled = true; btn.innerText = 'Verificando...'; }
+
+      localStorage.setItem('rb_last_login', 'OTP');
+
+      let { error } = await sb.auth.verifyOtp({
+        email: pendingOtpEmail,
+        token: token,
+        type: 'email'
+      });
+
+      if (error) {
+        const retry = await sb.auth.verifyOtp({
+          email: pendingOtpEmail,
+          token: token,
+          type: 'signup'
+        });
+        error = retry.error;
+      }
+
+      if (btn) { btn.disabled = false; btn.innerText = 'Confirmar código e entrar'; }
+
+      if (error) {
+        await appAlert('Código inválido ou expirado. Verifique seu email e tente novamente.', 'Código Inválido');
+      }
+    }
+
+    function resetOtpFlow() {
+      document.getElementById('otp-subtitle').innerText = 'Informe seu email para receber o código de acesso único';
+      document.getElementById('otp-verify-box').classList.add('hidden');
+      document.getElementById('otp-request-box').classList.remove('hidden');
+      document.getElementById('otp-code-input').value = '';
+    }
+
+    /* ==============================================================
+       CADASTRE-SE (NOME COMPLETO, CELULAR, EMAIL E SENHA)
+       ============================================================== */
+    async function submitNewSignup() {
+      const rawName = document.getElementById('signup-name-input').value.trim();
+      const rawPhone = document.getElementById('signup-phone-input').value;
+      const email = document.getElementById('signup-email-input').value.trim().toLowerCase();
+      const password = document.getElementById('signup-password-input').value;
+
+      const name = formatClientName(rawName);
+      const cleanPhone = rawPhone.replace(/\D/g, '');
+
+      if (name.length < 2) {
+        await appAlert('Informe seu nome completo.', 'Nome Obrigatório');
+        return;
+      }
+      if (cleanPhone.length < 10) {
+        await appAlert('Informe seu celular/WhatsApp com DDD.', 'Celular Inválido');
+        return;
+      }
+      if (!email || !email.includes('@')) {
+        await appAlert('Informe um endereço de email válido.', 'Email Inválido');
+        return;
+      }
+      if (!password || password.length < 6) {
+        await appAlert('Sua senha deve ter pelo menos 6 caracteres.', 'Senha Curta');
+        return;
+      }
+
+      const btn = document.getElementById('btn-submit-signup');
+      if (btn) { btn.disabled = true; btn.innerText = 'Cadastrando...'; }
+
+      localStorage.setItem('rb_last_login', 'Email');
+
+      const { data, error } = await sb.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: {
+            full_name: name,
+            typed_phone: cleanPhone
+          }
+        }
+      });
+
+      if (btn) { btn.disabled = false; btn.innerText = 'Cadastrar'; }
+
+      if (error) {
+        await appAlert('Não foi possível criar sua conta: ' + error.message, 'Erro no Cadastro');
+        return;
+      }
+
+      if (data && data.user) {
+        localStorage.setItem(`rb_oauth_phone_${data.user.id}`, cleanPhone);
+      }
+
+      if (data && data.session && data.user) {
+        await unifyAndEnterApp(data.user.id, name, email, cleanPhone, null, false);
+      } else {
+        // Caso o Supabase exija confirmação de e-mail, já salva o perfil e abre a tela de código
+        await unifyAndEnterApp(data?.user?.id || generateUUID(), name, email, cleanPhone, null, false);
+      }
+    }
+
+    /* ==============================================================
+       ENTRAR COM EMAIL OU TELEFONE
+       ============================================================== */
+    async function signInWithEmailOrPhone() {
+      const identifier = (document.getElementById('login-email-input').value || '').trim();
+      const password = document.getElementById('login-password-input').value;
+
+      if (!identifier) {
+        await appAlert('Informe seu email ou número de WhatsApp.', 'Atenção');
+        return;
+      }
+
+      // Se digitou apenas números (WhatsApp)
+      const onlyDigits = identifier.replace(/\D/g, '');
+      if (!identifier.includes('@') && onlyDigits.length >= 10) {
+        localStorage.setItem('rb_last_login', 'Email');
+        document.getElementById('login-whatsapp-input').value = formatPhoneStr(onlyDigits);
+        await signInWithPhoneDirect();
+        return;
+      }
+
+      if (!password) {
+        await appAlert('Digite sua senha para entrar com email.', 'Senha Obrigatória');
+        return;
+      }
+
+      const btn = document.getElementById('btn-login-email');
+      if (btn) { btn.disabled = true; btn.innerText = 'Entrando...'; }
+
+      localStorage.setItem('rb_last_login', 'Email');
+
+      const { error } = await sb.auth.signInWithPassword({
+        email: identifier.toLowerCase(),
+        password: password
+      });
+
+      if (btn) { btn.disabled = false; btn.innerText = 'Entrar'; }
+
+      if (error) {
+        await appAlert('Email ou senha incorretos.', 'Acesso Negado');
+      }
+    }
 
     /* ==============================================================
        MODAIS PERSONALIZADOS DO APP (Substituem alert() e confirm())
@@ -967,6 +1363,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
+      renderLastLoginPill();
       enableCarouselDragScroll();
       await fetchSettings();
       renderPopularAndCatalogServices();
@@ -994,7 +1391,7 @@
         } catch (e) {}
       }
 
-      // 2. Listener de login via Google / LinkedIn / Spotify
+      // 2. Listener de login via Google / LinkedIn / Spotify / Email / OTP
       sb.auth.onAuthStateChange(async (event, currentSession) => {
         if (currentSession && currentSession.user && !clientUser) {
           const u = currentSession.user;
@@ -1036,6 +1433,9 @@
         await appAlert('Digite seu número de WhatsApp completo com DDD para entrar.', 'WhatsApp Inválido');
         return;
       }
+
+      localStorage.setItem('rb_last_login', 'WhatsApp');
+      renderLastLoginPill();
 
       const btn = document.getElementById('btn-whatsapp-login');
       if (btn) { btn.disabled = true; btn.innerText = '...'; }
