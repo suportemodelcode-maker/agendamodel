@@ -89,7 +89,6 @@
     .carousel-drag:active {
       cursor: grabbing;
     }
-    /* Balãozinho de Último Acesso */
     .last-login-pill {
       position: absolute;
       bottom: -10px;
@@ -118,7 +117,7 @@
   <!-- TOAST FLUTUANTE -->
   <div id="toast-msg" class="hidden fixed top-6 left-1/2 -translate-x-1/2 z-[120] bg-[#181818] border border-[#d9a441]/40 text-white text-xs font-semibold px-5 py-3 rounded-full shadow-2xl whitespace-nowrap"></div>
 
-  <!-- MODAL DE AVISO / CONFIRMAÇÃO PERSONALIZADO DO APP (Substitui o alert do navegador) -->
+  <!-- MODAL DE AVISO / CONFIRMAÇÃO PERSONALIZADO DO APP -->
   <div id="custom-app-modal" class="hidden fixed inset-0 z-[130] modal-backdrop flex items-center justify-center p-6">
     <div class="bg-[#121212] border border-[#d9a441]/30 rounded-[28px] p-6 w-full max-w-xs soft-shadow animate-fade-up text-center">
       <div id="custom-modal-icon" class="w-12 h-12 rounded-2xl bg-[#d9a441]/15 border border-[#d9a441]/30 flex items-center justify-center mx-auto mb-4 text-[#f0c46a]">
@@ -165,19 +164,37 @@
     </div>
   </div>
 
-  <!-- LOGIN SEGURO (COM TELAS DE LOGIN, CÓDIGO ÚNICO E CADASTRE-SE) -->
+  <!-- LOGIN SEGURO -->
   <div id="view-login" class="flex flex-col justify-center min-h-screen p-6 z-40 bg-[#090909] absolute inset-0 overflow-y-auto">
     <div class="max-w-md w-full mx-auto py-6">
 
       <!-- ================= TELA 1: MENU PRINCIPAL DE LOGIN ================= -->
       <div id="auth-step-main" class="animate-fade-up">
-        <div class="text-center mb-8">
+        <div class="text-center mb-7">
           <div class="relative w-24 h-24 rounded-full mx-auto mb-5 overflow-hidden border border-[#d9a441]/40 shadow-2xl bg-[#111]">
             <img src="./icone.png" alt="RB Barbearia" class="relative w-full h-full object-cover">
           </div>
           <p class="gold-text text-[10px] uppercase tracking-[0.35em] font-bold mb-2">RB Barbearia</p>
           <h1 class="display-font text-3xl text-white mb-2">Faça login para continuar</h1>
           <p class="text-zinc-500 text-[13px] leading-relaxed max-w-xs mx-auto">Agende online, acompanhe seus horários em tempo real e muito mais.</p>
+        </div>
+
+        <!-- ACESSO RÁPIDO POR WHATSAPP CADASTRADO -->
+        <div class="relative bg-[#121212] border border-[#d9a441]/25 rounded-3xl p-4 mb-6 soft-shadow">
+          <label class="text-[10px] text-[#f0c46a] uppercase font-bold tracking-[0.16em] mb-2 block">Já tem cadastro? Entre com seu WhatsApp</label>
+          <div class="flex gap-2">
+            <input type="tel" id="login-whatsapp-input" placeholder="(51) 99999-9999" oninput="maskPhone(this)" class="flex-1 min-w-0 px-4 py-3.5 bg-[#090909] border border-white/10 rounded-2xl text-white outline-none focus:border-[#d9a441] text-sm">
+            <button id="btn-whatsapp-login" type="button" onclick="signInWithPhoneDirect()" class="press px-5 py-3.5 rounded-2xl gold-gradient text-black font-bold text-xs shrink-0 gold-shadow">
+              Entrar
+            </button>
+          </div>
+          <span id="last-pill-WhatsApp" class="last-login-pill hidden">Último acesso</span>
+        </div>
+
+        <div class="flex items-center gap-3 my-4">
+          <div class="h-px bg-white/10 flex-1"></div>
+          <span class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">ou acesse com</span>
+          <div class="h-px bg-white/10 flex-1"></div>
         </div>
 
         <div class="space-y-4">
@@ -208,7 +225,7 @@
             <span id="last-pill-Spotify" class="last-login-pill hidden">Último acesso</span>
           </div>
 
-          <!-- Continuar com email -->
+          <!-- Continuar com email ou telefone -->
           <div class="relative">
             <button type="button" onclick="showAuthStep('email')" class="press w-full py-4 px-4 rounded-2xl font-semibold text-white bg-[#151515] border border-white/15 flex items-center justify-center gap-3 text-[14px]">
               <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
@@ -245,7 +262,7 @@
         </div>
       </div>
 
-      <!-- ================= TELA 2: CÓDIGO DE ACESSO ÚNICO (OTP POR EMAIL) ================= -->
+      <!-- ================= TELA 2: CÓDIGO DE ACESSO ÚNICO ================= -->
       <div id="auth-step-otp" class="hidden animate-fade-up">
         <div class="mb-6">
           <button type="button" onclick="showAuthStep('main')" class="press w-10 h-10 -ml-2 rounded-xl flex items-center justify-center text-white">
@@ -274,7 +291,7 @@
           </button>
         </div>
 
-        <!-- Digitar código recebido (4 a 6 números) -->
+        <!-- Digitar código recebido (6 números exigidos) -->
         <div id="otp-verify-box" class="hidden space-y-4">
           <div class="bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
             <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="otp-code-input" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 6)" placeholder="Código de 6 números" class="w-full bg-transparent text-white text-center tracking-[0.45em] font-bold outline-none text-xl placeholder:tracking-normal placeholder:font-normal placeholder:text-sm placeholder:text-zinc-400">
@@ -290,7 +307,7 @@
         </div>
       </div>
 
-      <!-- ================= TELA 3: CONTINUAR COM EMAIL ================= -->
+      <!-- ================= TELA 3: CONTINUAR COM EMAIL E SENHA ================= -->
       <div id="auth-step-email" class="hidden animate-fade-up">
         <div class="flex items-center justify-between mb-6">
           <button type="button" onclick="showAuthStep('main')" class="press w-10 h-10 -ml-2 rounded-xl flex items-center justify-center text-white">
@@ -709,7 +726,7 @@
     }
 
     /* ==============================================================
-       CÓDIGO DE ACESSO ÚNICO (OTP DE 4 A 6 NÚMEROS POR EMAIL)
+       CÓDIGO DE ACESSO ÚNICO (OTP DE 6 NÚMEROS POR EMAIL)
        ============================================================== */
     async function requestEmailOtp() {
       const email = (document.getElementById('otp-email-input').value || '').trim().toLowerCase();
@@ -742,8 +759,10 @@
 
     async function verifyEmailOtp() {
       const token = (document.getElementById('otp-code-input').value || '').replace(/\D/g, '').trim();
-      if (!token || token.length < 4) {
-        await appAlert('Digite o código numérico de 4 a 6 dígitos recebido no seu email.', 'Código Inválido');
+      
+      // Validação estrita para exatamente 6 dígitos
+      if (!token || token.length !== 6) {
+        await appAlert('O código de segurança deve conter exatamente 6 números.', 'Código Inválido');
         return;
       }
 
@@ -770,7 +789,7 @@
       if (btn) { btn.disabled = false; btn.innerText = 'Confirmar código e entrar'; }
 
       if (error) {
-        await appAlert('Código inválido ou expirado. Verifique seu email e tente novamente.', 'Código Inválido');
+        await appAlert('Código incorreto ou expirado. Verifique o seu e-mail e tente novamente.', 'Acesso Negado');
       }
     }
 
@@ -1401,7 +1420,6 @@
       const typedName = formatClientName(rawName || 'Cliente');
       const cleanPhone = String(phone || '').replace(/\D/g, '');
 
-      // 1. Procura sempre primeiro pelo número de WhatsApp para unificar qualquer login (Gmail 1, Gmail 2, LinkedIn, etc.)
       let masterProfile = await findProfileByPhone(cleanPhone);
 
       if (!masterProfile && authId) {
@@ -1412,7 +1430,6 @@
       let finalUserId = masterProfile ? masterProfile.id : (authId || generateUUID());
       let finalAvatar = (masterProfile && masterProfile.avatar_url) ? masterProfile.avatar_url : (avatarUrlFromAuth || null);
 
-      // Mantém sempre o último nome salvo no banco se o cliente já tinha cadastro
       let finalName = typedName;
       if (masterProfile && masterProfile.full_name && preferSavedName) {
         finalName = formatClientName(masterProfile.full_name);
@@ -1425,7 +1442,6 @@
           avatar_url: finalAvatar
         }).eq('id', finalUserId);
 
-        // Se o cliente entrou por outro e-mail (authId diferente do ID principal), migra eventuais agendamentos para o ID unificado
         if (authId && authId !== finalUserId) {
           try {
             await sb.from('appointments').update({ user_id: finalUserId }).eq('user_id', authId);
@@ -1472,7 +1488,6 @@
         return;
       }
 
-      // Verifica se já existe perfil para esse WhatsApp
       const existing = await findProfileByPhone(cleanPhone);
 
       const finalInputName = rawName.length >= 2
@@ -1485,7 +1500,6 @@
       }
 
       const authUser = window.tempAuthUser || { id: generateUUID(), email: '', tempAvatar: null };
-      // Se já existia perfil no banco com esse WhatsApp, prioriza o último nome salvo no banco
       const useSavedName = Boolean(existing && existing.full_name);
 
       await unifyAndEnterApp(authUser.id, finalInputName, authUser.email, cleanPhone, authUser.tempAvatar, useSavedName);
@@ -1563,7 +1577,6 @@
       const newName = formatClientName(rawName);
       const oldPhone = clientUser.phone;
 
-      // 1. Verifica se o novo telefone já pertence a outro registro para unificar
       const existingWithNewPhone = await findProfileByPhone(cleanPhone);
       if (existingWithNewPhone && existingWithNewPhone.id !== clientUser.id) {
         const targetId = existingWithNewPhone.id;
@@ -1595,14 +1608,12 @@
         }
       }
 
-      // Garante que qualquer perfil com o mesmo telefone tenha o mesmo nome atualizado
       if (oldPhone) {
         try {
           await sb.from('profiles').update({ full_name: newName, phone: cleanPhone }).eq('phone', oldPhone);
         } catch (e) {}
       }
 
-      // 2. Atualiza metadados da sessão OAuth caso exista
       try {
         const { data: { session } } = await sb.auth.getSession();
         if (session && session.user) {
@@ -1613,7 +1624,6 @@
         }
       } catch (e) {}
 
-      // 3. Dispara atualização nos agendamentos ativos para sincronizar em tempo real com o painel do barbeiro
       try {
         const { data: userApts } = await sb
           .from('appointments')
