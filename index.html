@@ -2117,13 +2117,8 @@ async function handleGoogleNativeLogin(response) {
       localStorage.setItem('rb_last_login', 'Google');
 
       try {
-        // Inicializa o cliente do Supabase na hora para garantir que nunca dê 'undefined'
-        const supabaseClient = window.supabase.createClient(
-          'https://cifrmupwumffzrcqwfjv.supabase.co', 
-          'sb_publishable_AcMuSuUE6DK5gGQ9eStmMw_muIgJsG6'
-        );
-
-        const { data, error } = await supabaseClient.auth.signInWithIdToken({
+        // Usa diretamente a instância global 'sb' já inicializada no topo do script
+        const { data, error } = await sb.auth.signInWithIdToken({
           provider: 'google',
           token: response.credential,
         });
