@@ -899,38 +899,13 @@
 
     <nav class="flex flex-row md:flex-col gap-1 md:gap-2 w-full flex-1 justify-around md:justify-start items-center md:items-stretch">
 
-      <button onclick="switchTab('hoje')" id="nav-btn-hoje" class="nav-btn nav-active text-white w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
-
-        <div id="nav-ind-hoje" class="desktop-indicator absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
-
-        <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-
-        <div class="sidebar-label text-left ml-3.5">
-
-          <p class="text-xs font-extrabold leading-none">Agenda de Hoje</p>
-
-          <p class="text-[9px] text-zinc-500 font-semibold mt-0.5">Visão operacional</p>
-
-        </div>
-
-      </button>
-
-
-
-      <button onclick="switchTab('kanban')" id="nav-btn-kanban" class="nav-btn w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
-
-        <div id="nav-ind-kanban" class="desktop-indicator hidden absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
-
+<button onclick="switchTab('kanban')" id="nav-btn-kanban" class="nav-btn nav-active text-white w-12 h-12 md:w-full md:h-12 rounded-2xl flex items-center justify-center md:justify-start px-0 md:px-3.5 hover:text-white hover:bg-zinc-900 border border-transparent relative transition-all group">
+        <div id="nav-ind-kanban" class="desktop-indicator absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-orange-500 rounded-r-full"></div>
         <svg class="nav-icon-svg w-5 h-5 shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-
         <div class="sidebar-label text-left ml-3.5">
-
-          <p class="text-xs font-extrabold leading-none">Calendário & Agenda</p>
-
-          <p class="text-[9px] text-zinc-500 font-semibold mt-0.5">Consulta por data</p>
-
+          <p class="text-xs font-extrabold leading-none">Agenda & Calendário</p>
+          <p class="text-[9px] text-zinc-500 font-semibold mt-0.5">Semanal & Diária</p>
         </div>
-
       </button>
 
 
@@ -1079,356 +1054,184 @@
 
 
 
-    <!-- ABA HOJE -->
-
-    <main id="tab-hoje" class="flex flex-1 flex-col min-h-0 p-4 md:p-8 overflow-y-auto custom-scroll relative z-0">
-
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5">
-
-        <div>
-
-          <p class="text-[9px] text-orange-500 uppercase font-black tracking-[.25em] mb-1">Visão operacional</p>
-
-          <h2 class="text-xl md:text-2xl font-black text-zinc-100 tracking-tight">Agenda de hoje</h2>
-
-        </div>
-
-        <div class="flex gap-2">
-
-          <button onclick="copyDaySummary()" class="mobile-action px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-[9px] uppercase font-black tracking-wider text-zinc-300 hover:text-white">📋 Resumo</button>
-
-          <button onclick="switchTab('kanban')" class="mobile-action px-3 py-2 bg-orange-500 text-zinc-950 rounded-xl text-[9px] uppercase font-black tracking-wider hover:bg-orange-400">Abrir Calendário</button>
-
-        </div>
-
-      </div>
-
-
-
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
-
-        <div class="premium-card rounded-2xl p-4 relative overflow-hidden">
-
-          <div class="absolute -right-5 -top-5 w-20 h-20 rounded-full bg-orange-500/10 blur-2xl"></div>
-
-          <p class="text-[8px] text-zinc-500 uppercase tracking-widest font-black">Próximo</p>
-
-          <p id="today-next-time" class="text-xl md:text-2xl font-black text-orange-400 mt-1">--:--</p>
-
-          <p id="today-next-when" class="text-[9px] text-zinc-500 font-black uppercase tracking-widest mt-0.5 hidden"></p>
-
-          <p id="today-next-client" class="text-[10px] text-zinc-400 font-bold truncate mt-1">Nenhum agendamento</p>
-
-          <p id="today-next-service" class="text-[10px] text-orange-400/80 font-bold truncate uppercase tracking-wide mt-0.5"></p>
-
-        </div>
-
-        <div class="stat-card rounded-2xl p-4">
-
-          <p class="text-[8px] text-zinc-500 uppercase tracking-widest font-black">Atendimentos</p>
-
-          <p id="today-total-count" class="text-xl md:text-2xl font-black text-white mt-1">0</p>
-
-          <p class="text-[10px] text-zinc-500 font-medium mt-1">programados hoje</p>
-
-        </div>
-
-        <div class="stat-card rounded-2xl p-4">
-
-          <p class="text-[8px] text-zinc-500 uppercase tracking-widest font-black">Receita do dia</p>
-
-          <p id="today-revenue" class="text-xl md:text-2xl font-black text-emerald-400 mt-1">R$ 0</p>
-
-          <p id="today-completed" class="text-[10px] text-zinc-500 font-medium mt-1">R$ 0 realizados hoje</p>
-
-        </div>
-
-        <div class="stat-card rounded-2xl p-4">
-
-          <div class="flex items-center justify-between">
-
-            <p class="text-[8px] text-zinc-500 uppercase tracking-widest font-black">Ocupação do dia</p>
-
-            <span id="today-free-slots-label" class="text-[8px] text-zinc-500 font-bold uppercase">0 livres</span>
-
-          </div>
-
-          <p id="today-occupancy" class="text-xl md:text-2xl font-black text-purple-400 mt-1">0%</p>
-
-          <div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden mt-2">
-
-            <div id="today-occupancy-bar" class="h-full bg-purple-500 rounded-full transition-all" style="width:0%"></div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-
-
-      <div class="glass-soft rounded-2xl p-2 mb-5 flex items-center gap-2">
-
-        <svg class="w-4 h-4 text-zinc-500 ml-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-
-        <input id="agenda-search" oninput="filterAgendaCards()" placeholder="Buscar cliente ou serviço na agenda..." class="w-full bg-transparent outline-none text-xs text-white placeholder:text-zinc-600 py-2 px-2">
-
-        <span id="agenda-result-count" class="hidden md:block text-[9px] uppercase font-black text-zinc-600 tracking-widest px-3 whitespace-nowrap"></span>
-
-      </div>
-
-
-
-      <div id="daily-view-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 items-start"></div>
-
-    </main>
-
-
-
-    <!-- ABA CALENDÁRIO & AGENDA -->
-
-    <main id="tab-kanban" class="hidden flex-1 flex-col min-h-0 p-4 md:p-8 overflow-y-auto lg:overflow-hidden custom-scroll relative z-0">
-
-      <div class="flex flex-col lg:flex-row gap-6 h-full min-h-0">
-
-        
-
-        <div class="w-full lg:w-[360px] xl:w-[390px] shrink-0 flex flex-col gap-4 lg:overflow-y-auto custom-scroll pr-0 lg:pr-1">
-
-          <div class="bg-zinc-900/75 border border-zinc-800/90 rounded-3xl p-5 shadow-2xl backdrop-blur-xl">
-
-            <div class="flex items-center justify-between mb-4">
-
-              <div>
-
-                <p class="text-[9px] text-orange-500 uppercase font-black tracking-[.25em]">Navegação</p>
-
-                <h3 id="cal-month-title" class="text-base font-black text-white capitalize mt-0.5">Outubro 2026</h3>
-
-              </div>
-
-              <div class="flex items-center gap-1.5">
-
-                <button onclick="changeCalendarMonth(-1)" class="w-8 h-8 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-orange-500/50 text-zinc-300 hover:text-white flex items-center justify-center transition-all">
-
+<!-- COMPATIBILIDADE INTERNA OCULTA -->
+    <div id="tab-hoje" class="hidden">
+      <span id="today-next-time"></span><span id="today-next-when"></span><span id="today-next-client"></span><span id="today-next-service"></span>
+      <span id="today-total-count"></span><span id="today-revenue"></span><span id="today-completed"></span>
+      <span id="today-occupancy"></span><div id="today-occupancy-bar"></div><span id="today-free-slots-label"></span>
+      <input id="agenda-search"><span id="agenda-result-count"></span><div id="daily-view-container"></div>
+    </div>
+
+    <!-- ABA AGENDA SEMANAL / INDIVIDUAL & CALENDÁRIO -->
+    <main id="tab-kanban" class="flex flex-1 flex-col min-h-0 p-3 md:p-6 overflow-y-auto lg:overflow-hidden custom-scroll relative z-0">
+      <div class="flex flex-col lg:flex-row gap-5 h-full min-h-0">
+
+        <!-- COLUNA ESQUERDA (PRINCIPAL): GRADE SEMANAL OU DIA INDIVIDUAL -->
+        <div class="flex-1 flex flex-col min-h-[520px] lg:min-h-0 bg-zinc-900/40 border border-zinc-800/90 rounded-3xl overflow-hidden shadow-2xl order-2 lg:order-1">
+          
+          <!-- Cabeçalho da Agenda -->
+          <div class="px-4 py-3.5 md:px-6 md:py-4 border-b border-zinc-800/80 bg-zinc-950/70 flex flex-col xl:flex-row xl:items-center justify-between gap-3 shrink-0">
+            <div class="flex items-center justify-between xl:justify-start gap-3">
+              <div class="flex items-center gap-2">
+                <button onclick="stepAgendaPeriod(-1)" class="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-orange-500/40 flex items-center justify-center text-zinc-400 hover:text-white transition-all shrink-0">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-
                 </button>
-
-                <button onclick="selectCalendarToday()" class="px-2.5 h-8 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:bg-orange-500 hover:text-zinc-950 text-[9px] font-black uppercase tracking-wider transition-all">Hoje</button>
-
-                <button onclick="changeCalendarMonth(1)" class="w-8 h-8 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-orange-500/50 text-zinc-300 hover:text-white flex items-center justify-center transition-all">
-
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h2 id="agenda-main-title" class="text-sm md:text-base font-black text-white tracking-tight">Agenda semanal: RB Barbearia</h2>
+                    <span id="selected-day-relative-tag" class="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-orange-500/15 text-orange-400 border border-orange-500/30">Hoje</span>
+                  </div>
+                  <p id="selected-day-full-title" class="text-[11px] font-bold text-zinc-400 capitalize mt-0.5">--/--/----</p>
+                </div>
+                <button onclick="stepAgendaPeriod(1)" class="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-orange-500/40 flex items-center justify-center text-zinc-400 hover:text-white transition-all shrink-0">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-
                 </button>
+              </div>
+              <span id="week-range-label" class="text-[11px] font-black text-zinc-400 bg-zinc-900/90 border border-zinc-800 px-3 py-1.5 rounded-xl hidden sm:inline-block">--/--/---- - --/--/----</span>
+            </div>
 
+            <!-- Alternador: Semana vs Dia Individual + Busca -->
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="flex items-center bg-zinc-900 border border-zinc-800 p-1 rounded-xl">
+                <button onclick="setAgendaScope('week')" id="btn-scope-week" class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-orange-500 text-zinc-950 transition-all">📅 Semana</button>
+                <button onclick="setAgendaScope('day')" id="btn-scope-day" class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all">🔎 Dia Individual</button>
               </div>
 
+              <!-- Sub-opções quando estiver em Dia Individual -->
+              <div id="day-mode-controls" class="hidden flex items-center bg-zinc-900 border border-zinc-800 p-1 rounded-xl">
+                <button onclick="setCalendarViewMode('cards')" id="btn-mode-cards" class="px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-zinc-800 text-white transition-all">🗂️ Cards</button>
+                <button onclick="setCalendarViewMode('timeline')" id="btn-mode-timeline" class="px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all">🕒 Horários</button>
+              </div>
+
+              <div class="flex items-center bg-zinc-900 border border-zinc-800 rounded-xl px-2.5 py-1.5 flex-1 sm:flex-initial">
+                <svg class="w-3.5 h-3.5 text-zinc-500 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input id="cal-day-search" oninput="renderSelectedDaySchedule()" placeholder="Filtrar cliente..." class="bg-transparent outline-none text-xs text-white placeholder:text-zinc-600 w-full sm:w-32">
+              </div>
             </div>
-
-
-
-            <div class="grid grid-cols-7 gap-1.5 text-center mb-2">
-
-              <span class="text-[9px] font-black uppercase text-zinc-600 py-1">Dom</span>
-
-              <span class="text-[9px] font-black uppercase text-zinc-400 py-1">Seg</span>
-
-              <span class="text-[9px] font-black uppercase text-zinc-400 py-1">Ter</span>
-
-              <span class="text-[9px] font-black uppercase text-zinc-400 py-1">Qua</span>
-
-              <span class="text-[9px] font-black uppercase text-zinc-400 py-1">Qui</span>
-
-              <span class="text-[9px] font-black uppercase text-zinc-400 py-1">Sex</span>
-
-              <span class="text-[9px] font-black uppercase text-orange-400 py-1">Sáb</span>
-
-            </div>
-
-
-
-            <div id="calendar-days-grid" class="grid grid-cols-7 gap-1.5"></div>
-
-
-
-            <div class="flex items-center justify-between pt-4 mt-4 border-t border-zinc-800/80 text-[9px] text-zinc-500 font-bold uppercase tracking-wider">
-
-              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Com agendamentos</span>
-
-              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500"></span> Dia selecionado</span>
-
-            </div>
-
           </div>
 
+          <!-- Barra "Total da Semana" + Alertas Pendentes -->
+          <div class="px-4 py-2.5 md:px-6 bg-zinc-950/40 border-b border-zinc-800/70 flex flex-wrap items-center justify-between gap-3 shrink-0">
+            <div class="flex flex-wrap items-center gap-4">
+              <span class="text-[10px] font-black uppercase tracking-widest text-zinc-400">Total da semana:</span>
+              <span id="week-total-cuts" class="text-xs font-black text-white bg-zinc-900 px-2.5 py-1 rounded-lg border border-zinc-800">0 atendimentos</span>
+              <span id="week-total-rev" class="text-xs font-black text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">Previsão: R$ 0,00</span>
+              <span id="week-done-rev" class="text-[10px] font-bold text-zinc-400">Realizado: R$ 0,00</span>
+            </div>
+            <div id="kanban-overdue-badge-container"></div>
+          </div>
 
+          <!-- Container Principal da Agenda (Grade Semanal ou Dia Individual) -->
+          <div id="selected-day-schedule-container" class="flex-1 overflow-auto custom-scroll p-3 md:p-5"></div>
+        </div>
 
-          <div class="premium-card rounded-3xl p-5 space-y-4">
+        <!-- COLUNA DIREITA (LATERAL): MINI CALENDÁRIO + ESTATÍSTICAS DO DIA -->
+        <div class="w-full lg:w-[330px] xl:w-[355px] shrink-0 flex flex-col gap-4 lg:overflow-y-auto custom-scroll order-1 lg:order-2">
+          
+          <!-- Botões de Topo da Lateral (Calendário | Histórico) igual à imagem -->
+          <div class="grid grid-cols-2 gap-2 bg-zinc-900/90 border border-zinc-800 p-1.5 rounded-2xl shrink-0">
+            <button type="button" onclick="selectCalendarToday()" class="py-2 px-3 rounded-xl bg-zinc-950 border border-orange-500/40 text-white text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow">
+              <span>📅</span> Calendário
+            </button>
+            <button type="button" onclick="switchTab('historico')" class="py-2 px-3 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800/60 text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all">
+              <span>🕒</span> Histórico
+            </button>
+          </div>
 
-            <div class="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+          <!-- Card do Mini Calendário -->
+          <div class="bg-zinc-900/75 border border-zinc-800/90 rounded-3xl p-4 shadow-2xl backdrop-blur-xl">
+            <div class="flex items-center justify-between mb-3">
+              <button onclick="changeCalendarMonth(-1)" class="w-8 h-8 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-orange-500/50 text-zinc-300 hover:text-white flex items-center justify-center transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+              </button>
+              <div class="text-center">
+                <h3 id="cal-month-title" class="text-sm font-black text-white capitalize">Outubro 2026</h3>
+              </div>
+              <button onclick="changeCalendarMonth(1)" class="w-8 h-8 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-orange-500/50 text-zinc-300 hover:text-white flex items-center justify-center transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </button>
+            </div>
 
+            <div class="grid grid-cols-7 gap-1 text-center mb-1.5">
+              <span class="text-[9px] font-black uppercase text-zinc-500 py-1">Dom</span>
+              <span class="text-[9px] font-black uppercase text-zinc-400 py-1">Seg</span>
+              <span class="text-[9px] font-black uppercase text-zinc-400 py-1">Ter</span>
+              <span class="text-[9px] font-black uppercase text-zinc-400 py-1">Qua</span>
+              <span class="text-[9px] font-black uppercase text-zinc-400 py-1">Qui</span>
+              <span class="text-[9px] font-black uppercase text-zinc-400 py-1">Sex</span>
+              <span class="text-[9px] font-black uppercase text-orange-400 py-1">Sáb</span>
+            </div>
+
+            <div id="calendar-days-grid" class="grid grid-cols-7 gap-1"></div>
+
+            <div class="flex items-center justify-between pt-3 mt-3 border-t border-zinc-800/80">
+              <button onclick="selectCalendarToday()" class="text-[9px] font-black uppercase text-orange-400 hover:text-orange-300 tracking-wider">Ir para Hoje</button>
+              <span class="text-[8px] text-zinc-500 font-bold uppercase">Clique num dia para focar</span>
+            </div>
+          </div>
+
+          <!-- Seção Profissionais / Visualização -->
+          <div class="bg-zinc-900/75 border border-zinc-800/90 rounded-2xl p-3.5 flex items-center justify-between">
+            <div>
+              <p class="text-[8px] text-zinc-500 uppercase font-black tracking-widest">Profissional / Exibição</p>
+              <p class="text-xs font-black text-white mt-0.5">RB Barbearia (Principal)</p>
+            </div>
+            <button onclick="toggleAgendaScopeQuick()" id="btn-quick-scope-label" class="px-3 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-orange-500/40 text-[9px] font-black text-orange-400 uppercase tracking-wider transition-all">
+              Ver Só o Dia
+            </button>
+          </div>
+
+          <!-- Estatísticas: Resumo do Dia -->
+          <div class="premium-card rounded-3xl p-4 space-y-3.5">
+            <div class="flex items-center justify-between border-b border-zinc-800/80 pb-2.5">
               <div>
-
-                <p class="text-[8px] text-orange-400 uppercase font-black tracking-[.22em]">Resumo da data</p>
-
-                <h4 id="cal-summary-date-label" class="text-sm font-black text-white mt-0.5">--/--/----</h4>
-
+                <p class="text-[8px] text-orange-400 uppercase font-black tracking-[.22em]">Estatísticas</p>
+                <h4 class="text-xs font-black text-white mt-0.5">Resumo do dia (<span id="cal-summary-date-label">--/--/----</span>)</h4>
               </div>
-
-              <span id="cal-summary-badge" class="text-[9px] font-black uppercase px-2.5 py-1 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-300">Dia Normal</span>
-
+              <span id="cal-summary-badge" class="text-[8px] font-black uppercase px-2 py-1 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-300">Hoje</span>
             </div>
 
-
-
-            <div class="grid grid-cols-3 gap-2.5">
-
-              <div class="bg-zinc-950/70 border border-zinc-800/80 rounded-2xl p-3">
-
+            <div class="grid grid-cols-3 gap-2">
+              <div class="bg-zinc-950/70 border border-zinc-800/80 rounded-2xl p-2.5">
                 <p class="text-[8px] text-zinc-500 uppercase font-black tracking-wider">Clientes</p>
-
-                <p id="cal-stat-cuts" class="text-lg font-black text-white mt-1">0</p>
-
+                <p id="cal-stat-cuts" class="text-base font-black text-white mt-0.5">0</p>
               </div>
-
-              <div class="bg-zinc-950/70 border border-zinc-800/80 rounded-2xl p-3">
-
+              <div class="bg-zinc-950/70 border border-zinc-800/80 rounded-2xl p-2.5">
                 <p class="text-[8px] text-zinc-500 uppercase font-black tracking-wider">Previsão</p>
-
-                <p id="cal-stat-rev" class="text-lg font-black text-emerald-400 mt-1">R$ 0</p>
-
+                <p id="cal-stat-rev" class="text-base font-black text-emerald-400 mt-0.5">R$ 0</p>
               </div>
-
-              <div class="bg-zinc-950/70 border border-zinc-800/80 rounded-2xl p-3">
-
-                <p class="text-[8px] text-zinc-500 uppercase font-black tracking-wider">Horários Livres</p>
-
-                <p id="cal-stat-free" class="text-lg font-black text-orange-400 mt-1">0</p>
-
+              <div class="bg-zinc-950/70 border border-zinc-800/80 rounded-2xl p-2.5">
+                <p class="text-[8px] text-zinc-500 uppercase font-black tracking-wider">Livres</p>
+                <p id="cal-stat-free" class="text-base font-black text-orange-400 mt-0.5">0</p>
               </div>
-
             </div>
-
-
 
             <div>
-
-              <div class="flex justify-between items-center text-[9px] font-black uppercase tracking-wider mb-1.5">
-
-                <span class="text-zinc-400">Taxa de Ocupação</span>
-
+              <div class="flex justify-between items-center text-[9px] font-black uppercase tracking-wider mb-1">
+                <span class="text-zinc-400">Taxa de Ocupação do Dia</span>
                 <span id="cal-stat-occ-text" class="text-purple-400">0%</span>
-
               </div>
-
-              <div class="h-2 bg-zinc-950 rounded-full overflow-hidden border border-zinc-800">
-
+              <div class="h-1.5 bg-zinc-950 rounded-full overflow-hidden border border-zinc-800">
                 <div id="cal-stat-occ-bar" class="h-full bg-gradient-to-r from-orange-500 to-purple-500 rounded-full transition-all duration-300" style="width: 0%"></div>
-
               </div>
-
             </div>
 
-
-
-            <div class="grid grid-cols-2 gap-2.5 pt-1">
-
-              <button onclick="openManualModalForSelectedDate()" class="py-3 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 border border-emerald-500/30 font-black text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5">
-
-                <span>✨</span> Agendar Data
-
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <button onclick="openManualModalForSelectedDate()" class="py-2.5 px-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 border border-emerald-500/30 font-black text-[9px] uppercase tracking-wider transition-all flex items-center justify-center gap-1">
+                <span>✨</span> Agendar Dia
               </button>
-
-              <button onclick="openBlockModalForSelectedDate()" class="py-3 px-3 rounded-xl bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/25 font-black text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5">
-
-                <span>🚫</span> Bloquear Data
-
+              <button onclick="openBlockModalForSelectedDate()" class="py-2.5 px-2.5 rounded-xl bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/25 font-black text-[9px] uppercase tracking-wider transition-all flex items-center justify-center gap-1">
+                <span>🚫</span> Bloquear Dia
               </button>
-
             </div>
-
+            <button onclick="copySelectedDateSummary()" class="w-full py-2 bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 rounded-xl text-[9px] uppercase font-black tracking-wider text-zinc-400 hover:text-white transition-all">
+              📋 Copiar Resumo do Dia
+            </button>
           </div>
 
         </div>
-
-
-
-        <div class="flex-1 flex flex-col min-h-[420px] lg:min-h-0 bg-zinc-900/40 border border-zinc-800/90 rounded-3xl overflow-hidden shadow-2xl">
-
-          <div class="p-4 md:p-6 border-b border-zinc-800/80 bg-zinc-950/60 flex flex-col xl:flex-row xl:items-center justify-between gap-4 shrink-0">
-
-            <div class="flex items-center gap-3">
-
-              <button onclick="stepSelectedDate(-1)" class="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-orange-500/40 flex items-center justify-center text-zinc-400 hover:text-white transition-all shrink-0">
-
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-
-              </button>
-
-              <div>
-
-                <div class="flex items-center gap-2">
-
-                  <p class="text-[9px] text-orange-500 uppercase font-black tracking-[.25em]">Agenda do Dia</p>
-
-                  <span id="selected-day-relative-tag" class="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-orange-500/15 text-orange-400 border border-orange-500/30">Hoje</span>
-
-                </div>
-
-                <h2 id="selected-day-full-title" class="text-base md:text-lg font-black text-white capitalize mt-0.5">Quarta-feira, 14 de Outubro</h2>
-
-              </div>
-
-              <button onclick="stepSelectedDate(1)" class="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-orange-500/40 flex items-center justify-center text-zinc-400 hover:text-white transition-all shrink-0">
-
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-
-              </button>
-
-            </div>
-
-
-
-            <div class="flex flex-wrap items-center gap-2.5">
-
-              <div class="flex items-center bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-1.5 flex-1 sm:flex-initial">
-
-                <svg class="w-3.5 h-3.5 text-zinc-500 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-
-                <input id="cal-day-search" oninput="renderSelectedDaySchedule()" placeholder="Filtrar cliente ou serviço..." class="bg-transparent outline-none text-xs text-white placeholder:text-zinc-600 w-full sm:w-44">
-
-              </div>
-
-
-
-              <div class="flex items-center bg-zinc-900 border border-zinc-800 p-1 rounded-xl">
-
-                <button onclick="setCalendarViewMode('cards')" id="btn-mode-cards" class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-orange-500 text-zinc-950 transition-all">🗂️ Cards</button>
-
-                <button onclick="setCalendarViewMode('timeline')" id="btn-mode-timeline" class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all">🕒 Horários</button>
-
-              </div>
-
-
-
-              <button onclick="copySelectedDateSummary()" class="px-3 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-xl text-[9px] uppercase font-black tracking-wider text-zinc-300 hover:text-white transition-all">📋 Copiar</button>
-
-            </div>
-
-          </div>
-
-
-
-          <div id="selected-day-schedule-container" class="flex-1 overflow-y-auto custom-scroll p-4 md:p-6"></div>
-
-        </div>
-
-
 
       </div>
-
     </main>
 
 
@@ -3152,6 +2955,58 @@ function isOverduePendingItem(item) {
   return false;
 }
 
+let agendaScope = 'week'; // 'week' (Grade Semanal igual à foto) ou 'day' (Dia Individual)
+
+// Redireciona qualquer chamada antiga da aba 'hoje' direto para 'kanban'
+const _baseSwitchTab = switchTab;
+switchTab = function(tab) {
+  if (!tab || tab === 'hoje') tab = 'kanban';
+  _baseSwitchTab(tab);
+};
+
+function setAgendaScope(scope) {
+  agendaScope = scope;
+  const btnWeek = document.getElementById('btn-scope-week');
+  const btnDay = document.getElementById('btn-scope-day');
+  const dayControls = document.getElementById('day-mode-controls');
+  const mainTitle = document.getElementById('agenda-main-title');
+  const quickBtn = document.getElementById('btn-quick-scope-label');
+
+  if (btnWeek && btnDay) {
+    btnWeek.className = scope === 'week'
+      ? 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-orange-500 text-zinc-950 transition-all'
+      : 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all';
+    btnDay.className = scope === 'day'
+      ? 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-orange-500 text-zinc-950 transition-all'
+      : 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all';
+  }
+  if (dayControls) dayControls.classList.toggle('hidden', scope !== 'day');
+  if (mainTitle) mainTitle.innerText = scope === 'week' ? 'Agenda semanal: RB Barbearia' : 'Agenda do Dia: RB Barbearia';
+  if (quickBtn) quickBtn.innerText = scope === 'week' ? 'Ver Só o Dia' : 'Ver Semana';
+
+  renderSelectedDaySchedule();
+}
+
+function toggleAgendaScopeQuick() {
+  setAgendaScope(agendaScope === 'week' ? 'day' : 'week');
+}
+
+function stepAgendaPeriod(dir) {
+  stepSelectedDate(agendaScope === 'week' ? (dir * 7) : dir);
+}
+
+function getWeekDaysForDate(dateObj) {
+  const start = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+  start.setDate(start.getDate() - start.getDay()); // Domingo daquela semana
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    days.push(d);
+  }
+  return days;
+}
+
 function renderCalendarSection() {
   renderCalendarGrid();
   renderSelectedDaySchedule();
@@ -3187,7 +3042,7 @@ function selectCalendarToday() {
   renderCalendarSection();
 }
 
-function selectCalendarDate(dateStr) {
+function selectCalendarDate(dateStr, switchToIndividualDay) {
   const dObj = parseBrDateToObj(dateStr);
   if (isDateOutsideThreeMonths(dObj)) {
     return alert('A agenda permite acesso somente dentro do período dos próximos 3 meses (até ' + formatBrDate(getMaxAgendaDateObj()) + ').');
@@ -3195,7 +3050,11 @@ function selectCalendarDate(dateStr) {
   selectedCalendarDateStr = dateStr;
   calCurrentYear = dObj.getFullYear();
   calCurrentMonth = dObj.getMonth();
-  renderCalendarSection();
+  if (switchToIndividualDay) {
+    setAgendaScope('day');
+  } else {
+    renderCalendarSection();
+  }
 }
 
 function stepSelectedDate(daysDelta) {
@@ -3210,20 +3069,20 @@ function stepSelectedDate(daysDelta) {
 function setCalendarViewMode(mode) {
   calendarViewMode = mode;
   document.getElementById('btn-mode-cards').className = mode === 'cards'
-    ? 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-orange-500 text-zinc-950 transition-all'
-    : 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all';
+    ? 'px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-zinc-800 text-white transition-all'
+    : 'px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all';
   document.getElementById('btn-mode-timeline').className = mode === 'timeline'
-    ? 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-orange-500 text-zinc-950 transition-all'
-    : 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all';
+    ? 'px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-zinc-800 text-white transition-all'
+    : 'px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all';
   renderSelectedDaySchedule();
 }
 
 function renderCalendarGrid() {
   const grid = document.getElementById('calendar-days-grid');
   const title = document.getElementById('cal-month-title');
-  if (!grid ? true : !title) return;
+  if (!grid || !title) return;
 
-  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   title.innerText = meses[calCurrentMonth] + ' ' + calCurrentYear;
 
   const firstDayOfMonth = new Date(calCurrentYear, calCurrentMonth, 1).getDay();
@@ -3243,7 +3102,7 @@ function renderCalendarGrid() {
 
   let html = '';
   for (let i = 0; i < firstDayOfMonth; i++) {
-    html += '<div class="cal-day-empty h-11 rounded-xl"></div>';
+    html += '<div class="cal-day-empty h-9 rounded-xl"></div>';
   }
 
   for (let day = 1; day <= daysInMonth; day++) {
@@ -3252,8 +3111,8 @@ function renderCalendarGrid() {
     const isOut = isDateOutsideThreeMonths(cellDateObj);
 
     if (isOut) {
-      html += '<div class="cal-day-empty h-12 rounded-2xl border border-zinc-900 bg-zinc-950/30 flex flex-col items-center justify-center opacity-25 cursor-not-allowed">'
-        + '<span class="text-xs font-bold text-zinc-600 leading-none">' + day + '</span>'
+      html += '<div class="cal-day-empty h-9 rounded-xl border border-zinc-900 bg-zinc-950/30 flex flex-col items-center justify-center opacity-25 cursor-not-allowed">'
+        + '<span class="text-[11px] font-bold text-zinc-600 leading-none">' + day + '</span>'
         + '</div>';
       continue;
     }
@@ -3262,22 +3121,20 @@ function renderCalendarGrid() {
     const isToday = dStr === todayStr;
     const count = countsMap[dStr] ? countsMap[dStr] : 0;
     const hasBlock = (blocksMap[dStr] ? blocksMap[dStr] : 0) > 0;
-    const isSunday = cellDateObj.getDay() === 0;
 
-    let badgeHtml = '';
+    let dotHtml = '';
     if (count > 0) {
-      badgeHtml = '<span class="cal-badge text-[8px] font-black px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 leading-tight mt-0.5">' + count + '</span>';
+      dotHtml = '<span class="w-1.5 h-1.5 rounded-full ' + (isSelected ? 'bg-zinc-950' : 'bg-emerald-400') + ' mt-0.5"></span>';
     } else if (hasBlock) {
-      badgeHtml = '<span class="w-1.5 h-1.5 rounded-full bg-red-500 mt-1"></span>';
+      dotHtml = '<span class="w-1.5 h-1.5 rounded-full bg-red-500 mt-0.5"></span>';
     }
 
     const clsSelected = isSelected ? 'selected ' : '';
     const clsToday = isToday ? 'today ' : '';
-    const clsSunday = (isSunday && !isSelected) ? 'opacity-45 ' : '';
 
-    html += '<button type="button" onclick="selectCalendarDate(\'' + dStr + '\')" class="cal-day h-12 rounded-2xl border border-zinc-800/80 bg-zinc-950/80 flex flex-col items-center justify-center ' + clsSelected + clsToday + clsSunday + '">'
-      + '<span class="text-xs font-extrabold leading-none">' + day + '</span>'
-      + badgeHtml
+    html += '<button type="button" onclick="selectCalendarDate(\'' + dStr + '\')" ondblclick="selectCalendarDate(\'' + dStr + '\', true)" title="1 clique: Seleciona data | 2 cliques: Abre Dia Individual" class="cal-day h-9 rounded-xl border border-zinc-800/80 bg-zinc-950/80 flex flex-col items-center justify-center ' + clsSelected + clsToday + '">'
+      + '<span class="text-[11px] font-extrabold leading-none">' + day + '</span>'
+      + dotHtml
       + '</button>';
   }
   grid.innerHTML = html;
@@ -3302,43 +3159,86 @@ function renderSelectedDaySchedule() {
   if (diffDays === 0) relLabel = 'Hoje';
   else if (diffDays === 1) relLabel = 'Amanhã';
   else if (diffDays === -1) relLabel = 'Ontem';
-  else if (diffDays > 1) relLabel = 'Daqui a ' + diffDays + ' dias';
-  else if (diffDays < -1) relLabel = 'Há ' + Math.abs(diffDays) + ' dias';
+  else if (diffDays > 1) relLabel = 'Daqui a ' + diffDays + 'd';
+  else if (diffDays < -1) relLabel = 'Há ' + Math.abs(diffDays) + 'd';
 
-  document.getElementById('selected-day-relative-tag').innerText = relLabel;
-  document.getElementById('cal-summary-badge').innerText = relLabel;
+  const relTag = document.getElementById('selected-day-relative-tag');
+  if (relTag) relTag.innerText = relLabel;
+  const sumBadge = document.getElementById('cal-summary-badge');
+  if (sumBadge) sumBadge.innerText = relLabel;
 
+  // Estatísticas do dia selecionado (Lateral Direita)
   const dayAptsRaw = allAppointments
     .filter(function(a) { return a.date === selectedCalendarDateStr; })
     .sort(function(a, b) { return timeToMinutes(a.time) - timeToMinutes(b.time); });
 
   const metrics = calculateDayOccupancyMetrics(dayAptsRaw);
-
   document.getElementById('cal-stat-cuts').innerText = metrics.dayCuts;
   document.getElementById('cal-stat-rev').innerText = 'R$ ' + metrics.dayRev.toFixed(0);
   document.getElementById('cal-stat-free').innerText = metrics.freeSlotsCount;
   document.getElementById('cal-stat-occ-text').innerText = metrics.occPercent + '%';
   document.getElementById('cal-stat-occ-bar').style.width = metrics.occPercent + '%';
 
+  // Calcula o Total da Semana (Barra Superior)
+  const weekDays = getWeekDaysForDate(dObj);
+  const weekDateStrings = weekDays.map(function(wd) { return formatBrDate(wd); });
+  const weekRangeEl = document.getElementById('week-range-label');
+  if (weekRangeEl) weekRangeEl.innerText = weekDateStrings[0] + ' - ' + weekDateStrings[6];
+
+  let weekCuts = 0;
+  let weekRev = 0;
+  let weekDoneRev = 0;
+  allAppointments.forEach(function(a) {
+    if (!weekDateStrings.includes(a.date) || isBlockItem(a) || isNoShowItem(a)) return;
+    const p = parseFloat(a.price ? a.price : 0);
+    weekCuts++;
+    weekRev += p;
+    if (isCompletedItem(a)) weekDoneRev += p;
+  });
+
+  const wCutsEl = document.getElementById('week-total-cuts');
+  const wRevEl = document.getElementById('week-total-rev');
+  const wDoneEl = document.getElementById('week-done-rev');
+  if (wCutsEl) wCutsEl.innerText = weekCuts + (weekCuts === 1 ? ' atendimento' : ' atendimentos');
+  if (wRevEl) wRevEl.innerText = 'Previsão: R$ ' + weekRev.toFixed(2).replace('.', ',');
+  if (wDoneEl) wDoneEl.innerText = 'Concluído: R$ ' + weekDoneRev.toFixed(2).replace('.', ',');
+
+  // Badge de Pendentes Passados
+  const overdueList = allAppointments.filter(function(a) { return isOverduePendingItem(a); });
+  const overdueBadgeBox = document.getElementById('kanban-overdue-badge-container');
+  if (overdueBadgeBox) {
+    if (overdueList.length > 0) {
+      const firstOverdueJson = JSON.stringify(overdueList[0]).replace(/'/g, "&apos;");
+      overdueBadgeBox.innerHTML = '<button onclick=\'openFinishModal(' + firstOverdueJson + ')\' class="px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-zinc-950 border border-amber-500/40 text-[9px] font-black uppercase tracking-wider animate-pulse transition-all">⚠️ ' + overdueList.length + ' atendimento(s) passado(s) sem baixa (Dar Baixa)</button>';
+    } else {
+      overdueBadgeBox.innerHTML = '<span class="text-[9px] font-black uppercase px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">✓ Baixas em dia</span>';
+    }
+  }
+
   const searchInput = document.getElementById('cal-day-search');
   const searchQuery = (searchInput && searchInput.value ? searchInput.value : '').toLowerCase().trim();
 
+  // MODO 1: GRADE SEMANAL (IGUAL À IMAGEM)
+  if (agendaScope === 'week') {
+    renderWeeklyGridSchedule(container, weekDays, metrics.openMin, metrics.closeMin, metrics.bStartMin, metrics.bEndMin, searchQuery);
+    return;
+  }
+
+  // MODO 2: DIA INDIVIDUAL (CARDS OU HORÁRIOS)
   if (calendarViewMode === 'cards') {
     const merged = mergeBlocks(dayAptsRaw).filter(function(item) {
       if (!searchQuery) return true;
       const cName = (item.profiles && item.profiles.full_name ? item.profiles.full_name : '').toLowerCase();
       const sName = (item.service ? item.service : '').toLowerCase();
       const tName = (item.time ? item.time : '').toLowerCase();
-      if (cName.includes(searchQuery)) return true;
-      if (sName.includes(searchQuery)) return true;
-      return tName.includes(searchQuery);
+      return cName.includes(searchQuery) || sName.includes(searchQuery) || tName.includes(searchQuery);
     });
 
     if (!merged.length) {
       container.innerHTML = '<div class="h-full min-h-[280px] flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-zinc-800/60 rounded-3xl bg-zinc-950/40">'
         + '<div class="w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-2xl mb-3">📅</div>'
         + '<p class="text-sm font-black uppercase tracking-widest text-zinc-200">Agenda Livre em ' + selectedCalendarDateStr + '</p>'
-        + '<p class="text-xs text-zinc-500 mt-1 max-w-xs">Não há clientes agendados para esta data ou filtro. Aproveite para encaixar um cliente ou alternar para a grade de horários.</p>'
+        + '<p class="text-xs text-zinc-500 mt-1 max-w-xs">Não há clientes agendados para esta data. Encaixe um cliente ou alterne para os horários livres.</p>'
         + '<div class="flex gap-2.5 mt-5">'
         + '<button onclick="openManualModalForSelectedDate()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-wider transition-all">✨ Agendar Cliente</button>'
         + '<button onclick="setCalendarViewMode(\'timeline\')" class="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-black text-[10px] uppercase tracking-wider transition-all">🕒 Ver Horários Livres</button>'
@@ -3350,12 +3250,12 @@ function renderSelectedDaySchedule() {
     return;
   }
 
+  // DIA INDIVIDUAL - MODO LINHA DO TEMPO (HORÁRIOS)
   const openMin = metrics.openMin;
   const closeMin = metrics.closeMin;
   const bStartMin = metrics.bStartMin;
   const bEndMin = metrics.bEndMin;
   const occupiedIntervals = metrics.occupiedIntervals;
-
   const shiftTimelineHtml = { manha: '', tarde: '', noite: '' };
 
   for (let t = openMin; t <= closeMin - 30; t += 30) {
@@ -3400,28 +3300,20 @@ function renderSelectedDaySchedule() {
         const payLabel = getPaymentMethod(a);
 
         let statusBadgeExtra = '';
-        if (isDone) {
-          statusBadgeExtra = '<span class="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">✅ Concluído · ' + payLabel + '</span>';
-        } else if (isNoShow) {
-          statusBadgeExtra = '<span class="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">⚠️ Não Compareceu</span>';
-        } else if (isOverdue) {
-          statusBadgeExtra = '<span class="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/40 animate-pulse">⏳ Horário Passado · Pendente</span>';
-        }
+        if (isDone) statusBadgeExtra = '<span class="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">✅ Concluído · ' + payLabel + '</span>';
+        else if (isNoShow) statusBadgeExtra = '<span class="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">⚠️ Não Compareceu</span>';
+        else if (isOverdue) statusBadgeExtra = '<span class="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/40 animate-pulse">⏳ Pendente</span>';
 
         const statusTag = isContinuation
-          ? '<span class="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">Em andamento (início ' + a.time + ' · ' + durMins + ' min)</span>'
+          ? '<span class="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">Em andamento (início ' + a.time + ')</span>'
           : '<span class="text-[10px] font-black text-emerald-400">R$ ' + priceFormatted + '</span>' + statusBadgeExtra;
 
         let actionsHtml = '';
         if (!isContinuation) {
-          const whatsBtn = whatsLink
-            ? '<a href="' + whatsLink + '" target="_blank" class="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider transition-all">Whats</a>'
-            : '';
+          const whatsBtn = whatsLink ? '<a href="' + whatsLink + '" target="_blank" class="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-zinc-950 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider transition-all">Whats</a>' : '';
           const itemJson = JSON.stringify(a).replace(/'/g, "&apos;");
           const finishBtnLabel = isDone ? ('✅ ' + payLabel) : (isNoShow ? '⚠️ Faltou' : '✓ Finalizar');
-          const finishBtnCls = isDone
-            ? 'bg-emerald-500 text-zinc-950 hover:bg-emerald-400'
-            : (isNoShow ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500 hover:text-zinc-950' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500 hover:text-zinc-950');
+          const finishBtnCls = isDone ? 'bg-emerald-500 text-zinc-950 hover:bg-emerald-400' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500 hover:text-zinc-950';
 
           actionsHtml = '<div class="flex flex-wrap items-center gap-1.5 shrink-0">'
             + '<button onclick=\'openFinishModal(' + itemJson + ')\' class="px-3 py-1.5 rounded-xl ' + finishBtnCls + ' text-[9px] font-black uppercase tracking-wider transition-all">' + finishBtnLabel + '</button>'
@@ -3470,6 +3362,159 @@ function renderSelectedDaySchedule() {
   });
   finalTimelineHtml += '</div>';
   container.innerHTML = finalTimelineHtml;
+}
+
+// RENDERIZA A GRADE SEMANAL (COLUNAS DOM A SÁB x HORÁRIOS) IGUAL À IMAGEM
+function renderWeeklyGridSchedule(container, weekDays, openMin, closeMin, bStartMin, bEndMin, searchQuery) {
+  const diasCurtos = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+  const todayStr = formatBrDate(new Date());
+
+  let html = '<div class="min-w-[780px] select-none">';
+
+  // Cabeçalho dos 7 dias da semana
+  html += '<div class="grid grid-cols-[62px_repeat(7,minmax(0,1fr))] border-b border-zinc-800 sticky top-0 z-30 bg-zinc-950/95 backdrop-blur-md">';
+  html += '<div class="p-2 flex items-center justify-center text-[9px] font-black uppercase text-zinc-600 border-r border-zinc-800/70">Hora</div>';
+
+  weekDays.forEach(function(dObj, idx) {
+    const dStr = formatBrDate(dObj);
+    const isSel = dStr === selectedCalendarDateStr;
+    const isToday = dStr === todayStr;
+    const headerBg = isSel ? 'bg-orange-500/15 border-b-2 border-b-orange-500' : (isToday ? 'bg-zinc-900/80' : '');
+    const dayNumCls = isSel ? 'bg-orange-500 text-zinc-950' : (isToday ? 'text-orange-400' : 'text-zinc-200');
+
+    html += '<div class="p-2 text-center border-r border-zinc-800/60 last:border-r-0 transition-all ' + headerBg + '">'
+      + '<button type="button" onclick="selectCalendarDate(\'' + dStr + '\')" class="w-full flex flex-col items-center justify-center group">'
+      + '<span class="text-[9px] font-black uppercase tracking-widest ' + (isSel ? 'text-orange-400' : 'text-zinc-500 group-hover:text-zinc-300') + '">' + diasCurtos[idx] + '</span>'
+      + '<span class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black mt-0.5 ' + dayNumCls + '">' + dObj.getDate() + '</span>'
+      + '</button>'
+      + '<button type="button" onclick="selectCalendarDate(\'' + dStr + '\', true)" class="mt-1 text-[8px] font-extrabold uppercase tracking-wider text-zinc-500 hover:text-orange-400 transition-colors">Ver dia ➔</button>'
+      + '</div>';
+  });
+  html += '</div>';
+
+  // Linhas de Horários (de 30 em 30 min)
+  for (let t = openMin; t <= closeMin - 30; t += 30) {
+    const slotStr = minutesToTime(t);
+    const isFullHour = (t % 60 === 0);
+    const isBreakSlot = (bStartMin >= 0 && bEndMin > bStartMin && t >= bStartMin && t < bEndMin);
+
+    html += '<div class="grid grid-cols-[62px_repeat(7,minmax(0,1fr))] border-b border-zinc-800/45 min-h-[56px]">';
+
+    // Coluna da Hora
+    html += '<div class="pr-2 pt-1.5 text-right border-r border-zinc-800/70 ' + (isFullHour ? 'text-[11px] font-black text-zinc-300' : 'text-[9px] font-semibold text-zinc-600') + '">'
+      + slotStr
+      + '</div>';
+
+    // Células dos 7 dias para este horário
+    weekDays.forEach(function(dObj) {
+      const dStr = formatBrDate(dObj);
+      const isSelDay = dStr === selectedCalendarDateStr;
+      const colHighlight = isSelDay ? 'bg-orange-500/[0.02]' : '';
+
+      // Procura agendamentos desta data que cobrem este horário
+      const dayApts = allAppointments.filter(function(a) { return a.date === dStr; });
+      let activeItem = null;
+      let isStartSlot = false;
+
+      for (let i = 0; i < dayApts.length; i++) {
+        const a = dayApts[i];
+        const sMin = timeToMinutes(a.time);
+        const dur = isBlockItem(a) ? 30 : getServiceDuration(a.service);
+        const eMin = sMin + dur;
+        if (t >= sMin && t < eMin) {
+          activeItem = a;
+          isStartSlot = (t === sMin);
+          break;
+        }
+      }
+
+      if (activeItem) {
+        if (!isStartSlot) {
+          // Slot ocupado pela continuação de um serviço longo (ex: 60m ou 120m)
+          html += '<div class="border-r border-zinc-800/50 last:border-r-0 ' + colHighlight + '"></div>';
+          return;
+        }
+
+        const isBlock = isBlockItem(activeItem);
+        const dur = isBlock ? 30 : getServiceDuration(activeItem.service);
+        const endStr = minutesToTime(t + dur);
+        const spanSlots = Math.max(1, Math.ceil(dur / 30));
+        const cardHeightPx = spanSlots * 56 - 6;
+
+        if (isBlock) {
+          const bTitle = (activeItem.service || 'Bloqueado').replace('🚫 ', '');
+          html += '<div class="relative border-r border-zinc-800/50 last:border-r-0 p-0.5 ' + colHighlight + '">'
+            + '<div onclick="deleteAppointment(\'' + activeItem.id + '\', true)" title="Clique para liberar horário" style="height:' + cardHeightPx + 'px" class="w-full rounded-xl bg-red-950/40 hover:bg-red-950/70 border border-red-500/30 border-l-4 border-l-red-500 p-2 cursor-pointer transition-all flex flex-col justify-between overflow-hidden z-10 relative">'
+            + '<div class="flex items-center justify-between gap-1"><span class="text-[9px] font-black uppercase text-red-400 truncate">🚫 Bloqueio</span><span class="text-[8px] text-zinc-400">✕</span></div>'
+            + '<p class="text-[9px] text-zinc-300 font-bold truncate">' + bTitle + '</p>'
+            + '<p class="text-[8px] text-zinc-500 font-bold">' + slotStr + ' - ' + endStr + '</p>'
+            + '</div></div>';
+          return;
+        }
+
+        const clientName = activeItem.profiles && activeItem.profiles.full_name ? formatClientName(activeItem.profiles.full_name) : 'Cliente';
+        const servName = activeItem.service || 'Serviço';
+        if (searchQuery && !clientName.toLowerCase().includes(searchQuery) && !servName.toLowerCase().includes(searchQuery)) {
+          html += '<div class="border-r border-zinc-800/50 last:border-r-0 ' + colHighlight + '"></div>';
+          return;
+        }
+
+        const isDone = isCompletedItem(activeItem);
+        const isNoShow = isNoShowItem(activeItem);
+        const isOverdue = isOverduePendingItem(activeItem);
+
+        // Cores dos cards na grade semanal inspiradas na foto, mas no tema escuro/premium RB
+        let cardStyle = 'bg-sky-500/15 border-sky-500/40 border-l-sky-400 text-sky-100 hover:bg-sky-500/25';
+        let badgeIcon = '✂️';
+
+        const sLower = servName.toLowerCase();
+        if (isDone) {
+          cardStyle = 'bg-emerald-500/20 border-emerald-500/50 border-l-emerald-400 text-emerald-100 hover:bg-emerald-500/30';
+          badgeIcon = '✅';
+        } else if (isNoShow) {
+          cardStyle = 'bg-zinc-900/90 border-amber-500/40 border-l-amber-500 text-zinc-400 opacity-60';
+          badgeIcon = '🚫';
+        } else if (isOverdue) {
+          cardStyle = 'bg-amber-500/20 border-amber-500/50 border-l-amber-400 text-amber-100 hover:bg-amber-500/30';
+          badgeIcon = '⏳';
+        } else if (sLower.includes('corte e barba')) {
+          cardStyle = 'bg-emerald-500/15 border-emerald-500/40 border-l-emerald-400 text-emerald-100 hover:bg-emerald-500/25';
+        } else if (sLower.includes('barba')) {
+          cardStyle = 'bg-amber-500/15 border-amber-500/40 border-l-amber-400 text-amber-100 hover:bg-amber-500/25';
+        } else if (sLower.includes('progressiva')) {
+          cardStyle = 'bg-pink-500/15 border-pink-500/40 border-l-pink-400 text-pink-100 hover:bg-pink-500/25';
+        }
+
+        const itemJson = JSON.stringify(activeItem).replace(/'/g, "&apos;");
+
+        html += '<div class="relative border-r border-zinc-800/50 last:border-r-0 p-0.5 ' + colHighlight + '">'
+          + '<div onclick=\'openDetailsModal(' + itemJson + ')\' style="height:' + cardHeightPx + 'px" class="w-full rounded-xl border border-l-4 p-2 cursor-pointer transition-all shadow-md flex flex-col justify-between overflow-hidden z-20 relative backdrop-blur-sm ' + cardStyle + '">'
+          + '<div>'
+          + '<div class="flex items-start justify-between gap-1">'
+          + '<p class="text-[11px] font-black text-white leading-tight truncate">' + clientName + '</p>'
+          + '<span class="text-[9px] shrink-0">' + badgeIcon + '</span>'
+          + '</div>'
+          + '<p class="text-[9px] font-bold opacity-85 truncate mt-0.5">' + servName + '</p>'
+          + '</div>'
+          + '<p class="text-[9px] font-extrabold opacity-75 tracking-tight">' + slotStr + ' - ' + endStr + '</p>'
+          + '</div></div>';
+      } else if (isBreakSlot) {
+        html += '<div class="border-r border-zinc-800/50 last:border-r-0 bg-zinc-950/70 flex items-center justify-center">'
+          + '<span class="text-[8px] font-bold uppercase text-zinc-700">Descanso</span>'
+          + '</div>';
+      } else {
+        const isoDate = formatIsoDate(dObj);
+        html += '<button type="button" onclick="prefillTimeSlot=\'' + slotStr + '\'; selectCalendarDate(\'' + dStr + '\'); openManualModal(\'' + isoDate + '\')" class="border-r border-zinc-800/50 last:border-r-0 hover:bg-emerald-500/10 group flex items-center justify-center transition-colors ' + colHighlight + '">'
+          + '<span class="opacity-0 group-hover:opacity-100 text-[9px] font-black text-emerald-400 uppercase">+ Agendar</span>'
+          + '</button>';
+      }
+    });
+
+    html += '</div>';
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
 }
 
 function openManualModalForSelectedDate(slotStr) {
