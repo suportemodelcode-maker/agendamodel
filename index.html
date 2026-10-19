@@ -2117,12 +2117,8 @@ async function handleGoogleNativeLogin(response) {
       localStorage.setItem('rb_last_login', 'Google');
 
       try {
-        // Garante que o cliente do Supabase exista mesmo se o Google responder antes do carregamento total
-        const supabaseClient = (typeof sb !== 'undefined' && sb) 
-          ? sb 
-          : window.supabase.createClient('https://cifrmupwumffzrcqwfjv.supabase.co', 'sb_publishable_AcMuSuUE6DK5gGQ9eStmMw_muIgJsG6');
-
-        const { data, error } = await supabaseClient.auth.signInWithIdToken({
+        // Usa diretamente a conexão oficial 'sb' que já carrega junto com o seu aplicativo
+        const { data, error } = await sb.auth.signInWithIdToken({
           provider: 'google',
           token: response.credential,
         });
