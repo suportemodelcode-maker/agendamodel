@@ -3462,12 +3462,16 @@ let cardStyle = 'bg-sky-500/15 border-sky-500/40 border-l-sky-400 text-sky-100 h
         } else if (isOverdue) {
           cardStyle = 'bg-amber-500/20 border-amber-500/50 border-l-amber-400 text-amber-100 hover:bg-amber-500/30';
           badgeIcon = '⏳';
-        } else if (sLower.includes('corte e barba')) {
-          cardStyle = 'bg-emerald-500/15 border-emerald-500/40 border-l-emerald-400 text-emerald-100 hover:bg-emerald-500/25'; // Verde para Corte e Barba
+} else if (sLower.includes('corte e barba')) {
+          // Alterado para roxo (purple) para não conflitar com o verde do "Concluído"
+          cardStyle = 'bg-purple-500/15 border-purple-500/40 border-l-purple-400 text-purple-100 hover:bg-purple-500/25'; 
         } else if (sLower.includes('barba')) {
           cardStyle = 'bg-amber-500/15 border-amber-500/40 border-l-amber-400 text-amber-100 hover:bg-amber-500/25';
         } else if (sLower.includes('progressiva')) {
-          cardStyle = 'bg-pink-500/15 border-pink-500/40 border-l-pink-400 text-pink-100 hover:bg-pink-500/25'; // Rosa para Progressiva
+          cardStyle = 'bg-pink-500/15 border-pink-500/40 border-l-pink-400 text-pink-100 hover:bg-pink-500/25';
+        } else if (sLower.includes('sobrancelha')) {
+          // Adicionado cor específica para sobrancelha
+          cardStyle = 'bg-teal-500/15 border-teal-500/40 border-l-teal-400 text-teal-100 hover:bg-teal-500/25';
         }
 
         const itemJson = JSON.stringify(activeItem).replace(/'/g, "&apos;");
@@ -3475,17 +3479,17 @@ let cardStyle = 'bg-sky-500/15 border-sky-500/40 border-l-sky-400 text-sky-100 h
         // Condicional para não renderizar a span do ícone se estiver vazio
         const badgeHtml = badgeIcon ? '<span class="text-[10px] shrink-0">' + badgeIcon + '</span>' : '';
 
+        // Ajustamos os paddings (py-1 px-1.5) e espaços entre os textos para caber o horário nos serviços curtos (30min)
         html += '<div class="relative border-r border-zinc-800/50 last:border-r-0 p-0.5 ' + colHighlight + '">'
-          + '<div onclick=\'openDetailsModal(' + itemJson + ')\' style="height:' + cardHeightPx + 'px" class="w-full rounded-xl border border-l-4 p-2 cursor-pointer transition-all shadow-md flex flex-col justify-between overflow-hidden z-20 relative backdrop-blur-sm ' + cardStyle + '">'
-          + '<div>'
+          + '<div onclick=\'openDetailsModal(' + itemJson + ')\' style="height:' + cardHeightPx + 'px" class="w-full rounded-xl border border-l-4 py-1 px-1.5 cursor-pointer transition-all shadow-md flex flex-col justify-between overflow-hidden z-20 relative backdrop-blur-sm ' + cardStyle + '">'
+          + '<div class="flex flex-col space-y-[2px]">'
           + '<div class="flex items-start justify-between gap-1">'
-          + '<p class="text-[11px] font-black text-white leading-tight truncate">' + clientName + '</p>'
+          + '<p class="text-[10px] font-black text-white leading-none truncate">' + clientName + '</p>'
           + badgeHtml
           + '</div>'
-          // A fonte do serviço mudou de text-[9px] para text-[12px] e de opacity-85 para opacidade total
-          + '<p class="text-[12px] font-black text-white truncate mt-1 drop-shadow-sm">' + servName + '</p>'
+          + '<p class="text-[12px] font-black text-white leading-none truncate drop-shadow-sm">' + servName + '</p>'
           + '</div>'
-          + '<p class="text-[9px] font-extrabold opacity-75 tracking-tight">' + slotStr + ' - ' + endStr + '</p>'
+          + '<p class="text-[8px] font-extrabold opacity-80 leading-none tracking-tight">' + slotStr + ' - ' + endStr + '</p>'
           + '</div></div>';
       } else if (isBreakSlot) {
         html += '<div class="border-r border-zinc-800/50 last:border-r-0 bg-zinc-950/70 flex items-center justify-center">'
