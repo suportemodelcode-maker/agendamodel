@@ -1090,25 +1090,13 @@
               <span id="week-range-label" class="text-[11px] font-black text-zinc-400 bg-zinc-900/90 border border-zinc-800 px-3 py-1.5 rounded-xl hidden sm:inline-block">--/--/---- - --/--/----</span>
             </div>
 
-            <!-- Alternador: Semana vs Dia Individual + Busca -->
+<!-- Busca da Agenda -->
             <div class="flex flex-wrap items-center gap-2">
-              <div class="flex items-center bg-zinc-900 border border-zinc-800 p-1 rounded-xl">
-                <button onclick="setAgendaScope('week')" id="btn-scope-week" class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-orange-500 text-zinc-950 transition-all">📅 Semana</button>
-                <button onclick="setAgendaScope('day')" id="btn-scope-day" class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all">🔎 Dia Individual</button>
-              </div>
-
-              <!-- Sub-opções quando estiver em Dia Individual -->
-              <div id="day-mode-controls" class="hidden flex items-center bg-zinc-900 border border-zinc-800 p-1 rounded-xl">
-                <button onclick="setCalendarViewMode('cards')" id="btn-mode-cards" class="px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-zinc-800 text-white transition-all">🗂️ Cards</button>
-                <button onclick="setCalendarViewMode('timeline')" id="btn-mode-timeline" class="px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all">🕒 Horários</button>
-              </div>
-
               <div class="flex items-center bg-zinc-900 border border-zinc-800 rounded-xl px-2.5 py-1.5 flex-1 sm:flex-initial">
                 <svg class="w-3.5 h-3.5 text-zinc-500 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 <input id="cal-day-search" oninput="renderSelectedDaySchedule()" placeholder="Filtrar cliente..." class="bg-transparent outline-none text-xs text-white placeholder:text-zinc-600 w-full sm:w-32">
               </div>
             </div>
-          </div>
 
           <!-- Barra "Total da Semana" + Alertas Pendentes -->
           <div class="px-4 py-2.5 md:px-6 bg-zinc-950/40 border-b border-zinc-800/70 flex flex-wrap items-center justify-between gap-3 shrink-0">
@@ -1170,15 +1158,12 @@
             </div>
           </div>
 
-          <!-- Seção Profissionais / Visualização -->
+<!-- Seção Profissionais / Visualização -->
           <div class="bg-zinc-900/75 border border-zinc-800/90 rounded-2xl p-3.5 flex items-center justify-between">
             <div>
               <p class="text-[8px] text-zinc-500 uppercase font-black tracking-widest">Profissional / Exibição</p>
               <p class="text-xs font-black text-white mt-0.5">RB Barbearia (Principal)</p>
             </div>
-            <button onclick="toggleAgendaScopeQuick()" id="btn-quick-scope-label" class="px-3 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-orange-500/40 text-[9px] font-black text-orange-400 uppercase tracking-wider transition-all">
-              Ver Só o Dia
-            </button>
           </div>
 
           <!-- Estatísticas: Resumo do Dia -->
@@ -3382,12 +3367,11 @@ function renderWeeklyGridSchedule(container, weekDays, openMin, closeMin, bStart
     const headerBg = isSel ? 'bg-orange-500/15 border-b-2 border-b-orange-500' : (isToday ? 'bg-zinc-900/80' : '');
     const dayNumCls = isSel ? 'bg-orange-500 text-zinc-950' : (isToday ? 'text-orange-400' : 'text-zinc-200');
 
-    html += '<div class="p-2 text-center border-r border-zinc-800/60 last:border-r-0 transition-all ' + headerBg + '">'
+html += '<div class="p-2 text-center border-r border-zinc-800/60 last:border-r-0 transition-all ' + headerBg + '">'
       + '<button type="button" onclick="selectCalendarDate(\'' + dStr + '\')" class="w-full flex flex-col items-center justify-center group">'
       + '<span class="text-[9px] font-black uppercase tracking-widest ' + (isSel ? 'text-orange-400' : 'text-zinc-500 group-hover:text-zinc-300') + '">' + diasCurtos[idx] + '</span>'
       + '<span class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black mt-0.5 ' + dayNumCls + '">' + dObj.getDate() + '</span>'
       + '</button>'
-      + '<button type="button" onclick="selectCalendarDate(\'' + dStr + '\', true)" class="mt-1 text-[8px] font-extrabold uppercase tracking-wider text-zinc-500 hover:text-orange-400 transition-colors">Ver dia ➔</button>'
       + '</div>';
   });
   html += '</div>';
@@ -3463,9 +3447,8 @@ function renderWeeklyGridSchedule(container, weekDays, openMin, closeMin, bStart
         const isNoShow = isNoShowItem(activeItem);
         const isOverdue = isOverduePendingItem(activeItem);
 
-        // Cores dos cards na grade semanal inspiradas na foto, mas no tema escuro/premium RB
-        let cardStyle = 'bg-sky-500/15 border-sky-500/40 border-l-sky-400 text-sky-100 hover:bg-sky-500/25';
-        let badgeIcon = '✂️';
+let cardStyle = 'bg-sky-500/15 border-sky-500/40 border-l-sky-400 text-sky-100 hover:bg-sky-500/25'; // Azul para Corte Masculino padrão
+        let badgeIcon = ''; // Removida a tesourinha
 
         const sLower = servName.toLowerCase();
         if (isDone) {
@@ -3478,23 +3461,27 @@ function renderWeeklyGridSchedule(container, weekDays, openMin, closeMin, bStart
           cardStyle = 'bg-amber-500/20 border-amber-500/50 border-l-amber-400 text-amber-100 hover:bg-amber-500/30';
           badgeIcon = '⏳';
         } else if (sLower.includes('corte e barba')) {
-          cardStyle = 'bg-emerald-500/15 border-emerald-500/40 border-l-emerald-400 text-emerald-100 hover:bg-emerald-500/25';
+          cardStyle = 'bg-emerald-500/15 border-emerald-500/40 border-l-emerald-400 text-emerald-100 hover:bg-emerald-500/25'; // Verde para Corte e Barba
         } else if (sLower.includes('barba')) {
           cardStyle = 'bg-amber-500/15 border-amber-500/40 border-l-amber-400 text-amber-100 hover:bg-amber-500/25';
         } else if (sLower.includes('progressiva')) {
-          cardStyle = 'bg-pink-500/15 border-pink-500/40 border-l-pink-400 text-pink-100 hover:bg-pink-500/25';
+          cardStyle = 'bg-pink-500/15 border-pink-500/40 border-l-pink-400 text-pink-100 hover:bg-pink-500/25'; // Rosa para Progressiva
         }
 
         const itemJson = JSON.stringify(activeItem).replace(/'/g, "&apos;");
+
+        // Condicional para não renderizar a span do ícone se estiver vazio
+        const badgeHtml = badgeIcon ? '<span class="text-[10px] shrink-0">' + badgeIcon + '</span>' : '';
 
         html += '<div class="relative border-r border-zinc-800/50 last:border-r-0 p-0.5 ' + colHighlight + '">'
           + '<div onclick=\'openDetailsModal(' + itemJson + ')\' style="height:' + cardHeightPx + 'px" class="w-full rounded-xl border border-l-4 p-2 cursor-pointer transition-all shadow-md flex flex-col justify-between overflow-hidden z-20 relative backdrop-blur-sm ' + cardStyle + '">'
           + '<div>'
           + '<div class="flex items-start justify-between gap-1">'
           + '<p class="text-[11px] font-black text-white leading-tight truncate">' + clientName + '</p>'
-          + '<span class="text-[9px] shrink-0">' + badgeIcon + '</span>'
+          + badgeHtml
           + '</div>'
-          + '<p class="text-[9px] font-bold opacity-85 truncate mt-0.5">' + servName + '</p>'
+          // A fonte do serviço mudou de text-[9px] para text-[12px] e de opacity-85 para opacidade total
+          + '<p class="text-[12px] font-black text-white truncate mt-1 drop-shadow-sm">' + servName + '</p>'
           + '</div>'
           + '<p class="text-[9px] font-extrabold opacity-75 tracking-tight">' + slotStr + ' - ' + endStr + '</p>'
           + '</div></div>';
