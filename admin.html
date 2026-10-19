@@ -200,8 +200,7 @@
 
 
 <!-- LOGIN -->
-
-<div id="auth-screen" class="fixed inset-0 bg-zinc-950 z-50 flex items-center justify-center p-4">
+<div id="auth-screen" class="hidden fixed inset-0 bg-zinc-950 z-50 items-center justify-center p-4">
 
   <div class="absolute inset-0 overflow-hidden pointer-events-none">
 
@@ -2628,10 +2627,23 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   if (sb) {
     const { data: { session } } = await sb.auth.getSession();
+    
     if (session) {
       const { data: isAdm } = await sb.rpc('is_admin');
-      if (isAdm) processLogin();
-      else await sb.auth.signOut();
+      if (isAdm) {
+        processLogin();
+        return; // Interrompe aqui, você já está logado e o painel vai carregar!
+      } else {
+        await sb.auth.signOut();
+      }
+    }
+    
+    // Se chegou até aqui, é porque a pessoa NÃO está logada.
+    // Então habilitamos a tela de login para aparecer:
+    const authScreen = document.getElementById('auth-screen');
+    if (authScreen) {
+      authScreen.classList.remove('hidden');
+      authScreen.classList.add('flex');
     }
   }
 });
