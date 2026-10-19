@@ -104,6 +104,34 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.65);
       pointer-events: none;
     }
+    /* Estilo do Seletor de Data (Roda estilo iOS/App) */
+    .wheel-col {
+      height: 224px;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .wheel-col::-webkit-scrollbar { display: none; }
+    .wheel-spacer { height: 96px; }
+    .wheel-item {
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      scroll-snap-align: center;
+      font-size: 15px;
+      color: #71717a;
+      transition: all 0.15s ease;
+      user-select: none;
+      cursor: pointer;
+    }
+    .wheel-item.active {
+      color: #ffffff;
+      font-size: 19px;
+      font-weight: 600;
+    }
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
@@ -113,6 +141,16 @@
 </head>
 
 <body class="antialiased select-none">
+
+  <!-- OVERLAY DE AUTENTICAÇÃO OAUTH (Evita tela piscando) -->
+  <div id="oauth-loading-overlay" class="hidden fixed inset-0 z-[150] bg-[#090909] flex flex-col items-center justify-center p-6">
+    <div class="relative w-20 h-20 rounded-full mb-5 overflow-hidden border border-[#d9a441]/40 shadow-2xl bg-[#111]">
+      <img src="./icone.png" alt="RB Barbearia" class="w-full h-full object-cover">
+    </div>
+    <div class="w-7 h-7 border-2 border-[#d9a441]/20 border-t-[#d9a441] rounded-full animate-spin mb-3"></div>
+    <p class="text-white text-sm font-bold">Conectando à sua conta...</p>
+    <p class="text-zinc-500 text-xs mt-1">Aguarde um instante</p>
+  </div>
 
   <!-- TOAST FLUTUANTE -->
   <div id="toast-msg" class="hidden fixed top-6 left-1/2 -translate-x-1/2 z-[120] bg-[#181818] border border-[#d9a441]/40 text-white text-xs font-semibold px-5 py-3 rounded-full shadow-2xl whitespace-nowrap"></div>
@@ -125,12 +163,69 @@
       </div>
       <h3 id="custom-modal-title" class="display-font text-xl text-white font-bold">Aviso</h3>
       <p id="custom-modal-message" class="text-xs text-zinc-400 mt-2 leading-relaxed"></p>
-      <div class="flex items-center gap-2.5 mt-6">
+      <div id="custom-modal-buttons" class="flex items-center gap-2.5 mt-6">
         <button id="custom-modal-cancel" type="button" class="hidden press flex-1 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-zinc-300 font-bold text-xs">
           Cancelar
         </button>
         <button id="custom-modal-ok" type="button" class="press flex-1 py-3.5 rounded-2xl gold-gradient text-black font-bold text-xs gold-shadow">
           OK
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONTA JÁ EXISTENTE (Sugere alterar senha ou código único) -->
+  <div id="modal-existing-email" class="hidden fixed inset-0 z-[135] modal-backdrop flex items-center justify-center p-6">
+    <div class="bg-[#121212] border border-[#d9a441]/30 rounded-[28px] p-6 w-full max-w-xs soft-shadow animate-fade-up text-center">
+      <div class="w-12 h-12 rounded-2xl bg-[#d9a441]/15 border border-[#d9a441]/30 flex items-center justify-center mx-auto mb-4 text-[#f0c46a]">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+      </div>
+      <h3 class="display-font text-xl text-white font-bold">Conta já cadastrada</h3>
+      <p id="existing-email-text" class="text-xs text-zinc-400 mt-2 leading-relaxed">
+        Já existe uma conta cadastrada com este e-mail. Como deseja acessar?
+      </p>
+      <div class="space-y-2.5 mt-6">
+        <button type="button" onclick="handleExistingEmailAction('otp')" class="press w-full py-3.5 rounded-2xl gold-gradient text-black font-bold text-xs gold-shadow">
+          Receber código de acesso único
+        </button>
+        <button type="button" onclick="handleExistingEmailAction('reset')" class="press w-full py-3.5 rounded-2xl bg-[#1c1c1e] border border-[#d9a441]/40 text-[#f0c46a] font-bold text-xs">
+          Modificar / Alterar a senha
+        </button>
+        <button type="button" onclick="handleExistingEmailAction('login')" class="press w-full py-3 rounded-2xl bg-white/5 border border-white/10 text-zinc-300 font-semibold text-xs">
+          Entrar com minha senha atual
+        </button>
+        <button type="button" onclick="document.getElementById('modal-existing-email').classList.add('hidden')" class="w-full pt-2 text-[11px] text-zinc-500 font-semibold">
+          Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SELETOR DE DATA (ESTILO RODA DA IMAGEM) -->
+  <div id="modal-date-wheel" class="hidden fixed inset-0 z-[140] modal-backdrop flex items-center justify-center p-5">
+    <div class="w-full max-w-[340px] rounded-[28px] overflow-hidden border border-white/10 shadow-2xl animate-fade-up" style="background: radial-gradient(circle at 50% 0%, rgba(18, 75, 115, 0.55) 0%, #1c1c1e 42%, #18181a 100%);">
+      <div class="pt-5 pb-2 text-center">
+        <h3 class="text-white font-semibold text-[15px]">Escolha a data</h3>
+      </div>
+
+      <div class="relative px-4 my-2 h-[224px] flex items-center justify-center">
+        <!-- Barra central destacada -->
+        <div class="pointer-events-none absolute left-3 right-3 h-[34px] rounded-xl bg-black/65 border border-white/5 z-0"></div>
+
+        <!-- Colunas: Dia / Mês / Ano -->
+        <div class="relative z-10 grid grid-cols-3 w-full text-center items-center">
+          <div id="wheel-day" class="wheel-col"></div>
+          <div id="wheel-month" class="wheel-col"></div>
+          <div id="wheel-year" class="wheel-col"></div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 p-4 pt-2">
+        <button type="button" onclick="closeDateWheelModal()" class="press py-3.5 rounded-full bg-[#3a3a3c] text-white font-semibold text-sm">
+          Cancelar
+        </button>
+        <button type="button" onclick="confirmDateWheelSelection()" class="press py-3.5 rounded-full bg-[#1d9bf0] text-white font-semibold text-sm shadow-lg">
+          Confirmar
         </button>
       </div>
     </div>
@@ -168,7 +263,7 @@
   <div id="view-login" class="flex flex-col justify-center min-h-screen p-6 z-40 bg-[#090909] absolute inset-0 overflow-y-auto">
     <div class="max-w-md w-full mx-auto py-6">
 
-<!-- ================= TELA 1: MENU PRINCIPAL DE LOGIN ================= -->
+      <!-- ================= TELA 1: MENU PRINCIPAL DE LOGIN ================= -->
       <div id="auth-step-main" class="animate-fade-up">
         <div class="text-center mb-7">
           <div class="relative w-24 h-24 rounded-full mx-auto mb-5 overflow-hidden border border-[#d9a441]/40 shadow-2xl bg-[#111]">
@@ -182,27 +277,27 @@
         <div class="space-y-4">
           <!-- Google -->
           <div class="relative">
-            <button onclick="signInWithGoogle()" class="press w-full py-4 px-4 rounded-2xl font-semibold text-white bg-[#151515] border border-white/15 flex items-center justify-center gap-3 text-[14px]">
+            <button id="btn-oauth-google" onclick="signInWithGoogle()" class="press w-full py-4 px-4 rounded-2xl font-semibold text-white bg-[#151515] border border-white/15 flex items-center justify-center gap-3 text-[14px]">
               <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-              Continuar com o Google
+              <span>Continuar com o Google</span>
             </button>
             <span id="last-pill-Google" class="last-login-pill hidden">Último acesso</span>
           </div>
 
           <!-- LinkedIn -->
           <div class="relative">
-            <button onclick="signInWithLinkedIn()" class="press w-full py-4 px-4 rounded-2xl font-semibold text-white bg-[#151515] border border-white/15 flex items-center justify-center gap-3 text-[14px]">
+            <button id="btn-oauth-linkedin" onclick="signInWithLinkedIn()" class="press w-full py-4 px-4 rounded-2xl font-semibold text-white bg-[#151515] border border-white/15 flex items-center justify-center gap-3 text-[14px]">
               <svg class="w-5 h-5 text-[#0A66C2]" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452z"/></svg>
-              Continuar com o LinkedIn
+              <span>Continuar com o LinkedIn</span>
             </button>
             <span id="last-pill-LinkedIn" class="last-login-pill hidden">Último acesso</span>
           </div>
 
           <!-- Spotify -->
           <div class="relative">
-            <button onclick="signInWithSpotify()" class="press w-full py-4 px-4 rounded-2xl font-semibold text-white bg-[#151515] border border-white/15 flex items-center justify-center gap-3 text-[14px]">
+            <button id="btn-oauth-spotify" onclick="signInWithSpotify()" class="press w-full py-4 px-4 rounded-2xl font-semibold text-white bg-[#151515] border border-white/15 flex items-center justify-center gap-3 text-[14px]">
               <svg class="w-5 h-5 text-[#1DB954]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.54.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15.001 10.62 18.661 12.9c.42.18.6.78.3 1.14zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.62.539.3.719 1.02.419 1.56-.299.48-1.02.659-1.559.3z" /></svg>
-              Continuar com o Spotify
+              <span>Continuar com o Spotify</span>
             </button>
             <span id="last-pill-Spotify" class="last-login-pill hidden">Último acesso</span>
           </div>
@@ -244,9 +339,6 @@
         </div>
       </div>
 
-
-
-      
       <!-- ================= TELA 2: CÓDIGO DE ACESSO ÚNICO ================= -->
       <div id="auth-step-otp" class="hidden animate-fade-up">
         <div class="mb-6">
@@ -261,14 +353,14 @@
           </div>
           <p class="gold-text text-[10px] uppercase tracking-[0.35em] font-bold mb-2">RB Barbearia</p>
           <h2 class="text-2xl font-bold text-white mb-2">Acesse sua conta</h2>
-          <p id="otp-subtitle" class="text-zinc-400 text-sm leading-relaxed max-w-xs mx-auto">Informe seu email para receber o código de acesso único</p>
+          <p id="otp-subtitle" class="text-zinc-400 text-sm leading-relaxed max-w-xs mx-auto">Informe seu email cadastrado para receber o código de acesso único</p>
         </div>
 
         <!-- Solicitar código -->
         <div id="otp-request-box" class="space-y-4">
           <div class="flex items-center bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
             <svg class="w-5 h-5 text-zinc-400 mr-3 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-            <input type="email" id="otp-email-input" placeholder="Email" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400">
+            <input type="email" id="otp-email-input" placeholder="Email cadastrado" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400">
           </div>
 
           <button type="button" id="btn-request-otp" onclick="requestEmailOtp()" class="press w-full py-4 rounded-xl font-bold text-black gold-gradient gold-shadow text-base">
@@ -320,7 +412,10 @@
             Entrar
           </button>
 
-          <div class="text-center pt-3">
+          <div class="flex flex-col items-center gap-2 pt-3">
+            <button type="button" onclick="openPasswordResetFromLogin()" class="text-xs text-zinc-400 hover:text-white font-semibold">
+              Esqueceu a senha? Modificar senha
+            </button>
             <button type="button" onclick="showAuthStep('otp')" class="text-xs text-[#f0c46a] font-semibold">
               Prefere entrar sem senha? Usar código de acesso único
             </button>
@@ -328,7 +423,7 @@
         </div>
       </div>
 
-      <!-- ================= TELA 4: CADASTRE-SE ================= -->
+      <!-- ================= TELA 4: CADASTRE-SE (COM VERIFICAÇÃO DE EMAIL) ================= -->
       <div id="auth-step-signup" class="hidden animate-fade-up">
         <div class="flex items-center justify-between mb-6">
           <button type="button" onclick="showAuthStep('main')" class="press w-10 h-10 -ml-2 rounded-xl flex items-center justify-center text-white">
@@ -338,44 +433,108 @@
           <div class="w-8"></div>
         </div>
 
-        <p class="text-zinc-400 text-sm text-center mb-6 leading-relaxed">Informe os dados básicos para<br>criar sua conta</p>
+        <!-- Formulário de dados do novo cadastro -->
+        <div id="signup-form-box">
+          <p class="text-zinc-400 text-sm text-center mb-6 leading-relaxed">Informe os dados básicos para<br>criar sua conta</p>
 
-        <div class="space-y-3.5">
-          <!-- Nome completo -->
-          <div class="bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
-            <input type="text" id="signup-name-input" placeholder="Nome completo" onblur="this.value = formatClientName(this.value)" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400">
-          </div>
-
-          <!-- Bandeira + Celular -->
-          <div class="flex gap-3">
-            <div class="w-20 bg-[#1c1c1e] rounded-xl border border-white/10 flex items-center justify-center text-xl shrink-0">
-              🇧🇷
+          <div class="space-y-3.5">
+            <!-- Nome completo -->
+            <div class="bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
+              <input type="text" id="signup-name-input" placeholder="Nome completo" onblur="this.value = formatClientName(this.value)" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400">
             </div>
-            <div class="flex-1 bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
-              <input type="tel" id="signup-phone-input" placeholder="Celular" oninput="maskPhone(this)" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400">
+
+            <!-- Bandeira + Celular -->
+            <div class="flex gap-3">
+              <div class="w-20 bg-[#1c1c1e] rounded-xl border border-white/10 flex items-center justify-center text-xl shrink-0">
+                🇧🇷
+              </div>
+              <div class="flex-1 bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
+                <input type="tel" id="signup-phone-input" placeholder="Celular com DDD" oninput="maskPhone(this)" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400">
+              </div>
             </div>
-          </div>
 
-          <!-- Email -->
+            <!-- Email -->
+            <div class="bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
+              <input type="email" id="signup-email-input" placeholder="Email" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400">
+            </div>
+
+            <!-- Senha com ícone de visualizar -->
+            <div class="relative flex items-center bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
+              <input type="password" id="signup-password-input" placeholder="Senha (mínimo 6 caracteres)" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400 pr-8">
+              <button type="button" onclick="togglePassVisibility('signup-password-input')" class="text-zinc-400 hover:text-white">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+              </button>
+            </div>
+
+            <button type="button" id="btn-submit-signup" onclick="submitNewSignup()" class="press w-full py-4 mt-2 rounded-xl font-bold text-black gold-gradient gold-shadow text-base">
+              Cadastrar e verificar email
+            </button>
+
+            <p class="text-center text-xs text-zinc-400 pt-3">
+              Acessando você concorda com os<br><strong class="text-white font-semibold">termos de uso</strong>.
+            </p>
+          </div>
+        </div>
+
+        <!-- Caixa de verificação do código enviado para o e-mail no Novo Cadastro -->
+        <div id="signup-verify-box" class="hidden space-y-4 text-center">
+          <div class="relative w-20 h-20 rounded-full mx-auto mb-3 overflow-hidden border border-[#d9a441]/40 shadow-2xl bg-[#111]">
+            <img src="./icone.png" alt="RB Barbearia" class="w-full h-full object-cover">
+          </div>
+          <p class="gold-text text-[10px] uppercase tracking-[0.35em] font-bold">RB Barbearia</p>
+          <h3 class="text-lg font-bold text-white">Verifique seu email</h3>
+          <p id="signup-verify-subtitle" class="text-xs text-zinc-400 leading-relaxed max-w-xs mx-auto">
+            Enviamos um código de 6 dígitos para o seu email para confirmar que ele está correto.
+          </p>
+
           <div class="bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
-            <input type="email" id="signup-email-input" placeholder="Email" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="signup-otp-input" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 6)" placeholder="Código de 6 números" class="w-full bg-transparent text-white text-center tracking-[0.45em] font-bold outline-none text-xl placeholder:tracking-normal placeholder:font-normal placeholder:text-sm placeholder:text-zinc-400">
           </div>
 
-          <!-- Senha com ícone de visualizar -->
+          <button type="button" id="btn-verify-signup-otp" onclick="verifySignupOtp()" class="press w-full py-4 rounded-xl font-bold text-black gold-gradient gold-shadow text-base">
+            Verificar e concluir cadastro
+          </button>
+
+          <button type="button" onclick="backToSignupForm()" class="w-full py-2 text-xs text-zinc-400 hover:text-white font-semibold">
+            Digitou o email errado? Voltar e corrigir
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= TELA 5: MODIFICAR / ALTERAR SENHA ================= -->
+      <div id="auth-step-reset" class="hidden animate-fade-up">
+        <div class="flex items-center justify-between mb-6">
+          <button type="button" onclick="showAuthStep('email')" class="press w-10 h-10 -ml-2 rounded-xl flex items-center justify-center text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <h2 class="text-xl font-bold text-white">Modificar senha</h2>
+          <div class="w-8"></div>
+        </div>
+
+        <div id="reset-request-box" class="space-y-4">
+          <p class="text-zinc-400 text-sm text-center mb-4 leading-relaxed">Informe seu e-mail cadastrado para receber o código de alteração de senha</p>
+          <div class="bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
+            <input type="email" id="reset-email-input" placeholder="Seu email cadastrado" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400">
+          </div>
+          <button type="button" id="btn-send-reset" onclick="requestPasswordResetOtp()" class="press w-full py-4 rounded-xl font-bold text-black gold-gradient gold-shadow text-base">
+            Enviar código de segurança
+          </button>
+        </div>
+
+        <div id="reset-confirm-box" class="hidden space-y-4">
+          <p id="reset-subtitle" class="text-zinc-400 text-xs text-center mb-2 leading-relaxed">Digite o código de 6 números enviado para seu e-mail e defina sua nova senha:</p>
+          <div class="bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
+            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="reset-code-input" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 6)" placeholder="Código de 6 números" class="w-full bg-transparent text-white text-center tracking-[0.45em] font-bold outline-none text-xl placeholder:tracking-normal placeholder:font-normal placeholder:text-sm placeholder:text-zinc-400">
+          </div>
           <div class="relative flex items-center bg-[#1c1c1e] rounded-xl border border-white/10 focus-within:border-[#d9a441] px-4 py-4">
-            <input type="password" id="signup-password-input" placeholder="Senha" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400 pr-8">
-            <button type="button" onclick="togglePassVisibility('signup-password-input')" class="text-zinc-400 hover:text-white">
+            <input type="password" id="reset-new-password" placeholder="Nova senha (mín. 6 caracteres)" class="w-full bg-transparent text-white outline-none text-sm placeholder:text-zinc-400 pr-8">
+            <button type="button" onclick="togglePassVisibility('reset-new-password')" class="text-zinc-400 hover:text-white">
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
             </button>
           </div>
-
-          <button type="button" id="btn-submit-signup" onclick="submitNewSignup()" class="press w-full py-4 mt-2 rounded-xl font-bold text-black gold-gradient gold-shadow text-base">
-            Cadastrar
+          <button type="button" id="btn-confirm-reset" onclick="confirmPasswordResetOtp()" class="press w-full py-4 rounded-xl font-bold text-black gold-gradient gold-shadow text-base">
+            Salvar nova senha e entrar
           </button>
-
-          <p class="text-center text-xs text-zinc-400 pt-3">
-            Acessando você concorda com os<br><strong class="text-white font-semibold">termos de uso</strong>.
-          </p>
         </div>
       </div>
 
@@ -394,7 +553,7 @@
           <div class="absolute inset-x-0 top-0 safe-top px-5">
             <div class="flex items-center justify-between">
               <div onclick="switchAppTab('perfil')" class="flex items-center gap-3 cursor-pointer">
-                <img id="header-avatar" src="./icone.png" onerror="this.src='./icone.png'" class="w-11 h-11 rounded-full object-cover border border-[#d9a441]/50 bg-[#111]" alt="Perfil">
+                <img id="header-avatar" src="" class="w-11 h-11 rounded-full object-cover border border-[#d9a441]/50 bg-[#18181b]" alt="Perfil">
                 <div>
                   <p class="text-[10px] text-zinc-400 uppercase tracking-widest">RB Barbearia</p>
                   <p id="home-greeting-name" class="font-semibold text-white text-sm mt-0.5">Olá!</p>
@@ -465,13 +624,33 @@
         <div id="services-catalog-container" class="space-y-5 pb-10"></div>
       </section>
 
-      <!-- HISTÓRICO -->
+      <!-- HISTÓRICO COM FILTRO DE PERÍODO -->
       <section id="tab-content-historico" class="hidden px-5 pt-7 animate-fade-up">
-        <div class="mb-6">
+        <div class="mb-5">
           <p class="text-[10px] uppercase tracking-[0.28em] text-[#d9a441] font-bold">Meus Registros</p>
-          <h2 class="display-font text-3xl text-white mt-1">Meus Horários</h2>
-          <p class="text-xs text-zinc-500 mt-1">Atualizado automaticamente em tempo real com a barbearia.</p>
+          <h2 class="display-font text-3xl text-white mt-1">Histórico de agendamentos</h2>
         </div>
+
+        <!-- Filtro de Período igual à referência -->
+        <div class="mb-6">
+          <div class="flex items-center justify-between mb-2.5">
+            <p class="text-xs text-zinc-300 font-medium">Escolha o período que deseja filtrar</p>
+            <button id="btn-clear-date-filter" type="button" onclick="clearHistoryDateFilter()" class="hidden text-[11px] text-[#f0c46a] font-semibold">
+              Mostrar todos
+            </button>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <button type="button" onclick="openDateWheelModal('start')" class="press flex items-center justify-between px-3.5 py-3 rounded-xl bg-[#0e0e10] border border-white/10 text-zinc-300 text-xs font-medium">
+              <span id="filter-start-label">--/--/----</span>
+              <svg class="w-4 h-4 text-zinc-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3M4 11h16M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"/></svg>
+            </button>
+            <button type="button" onclick="openDateWheelModal('end')" class="press flex items-center justify-between px-3.5 py-3 rounded-xl bg-[#0e0e10] border border-white/10 text-zinc-300 text-xs font-medium">
+              <span id="filter-end-label">--/--/----</span>
+              <svg class="w-4 h-4 text-zinc-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3M4 11h16M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"/></svg>
+            </button>
+          </div>
+        </div>
+
         <div id="history-container" class="space-y-4"></div>
       </section>
 
@@ -484,10 +663,10 @@
         </div>
 
         <div class="bg-[#111111] border border-white/10 rounded-[28px] p-6 space-y-5">
-          <!-- FOTO DE PERFIL EDITÁVEL -->
+          <!-- FOTO DE PERFIL (Padrão sem foto caso o usuário não tenha enviado) -->
           <div class="flex flex-col items-center">
             <div onclick="document.getElementById('profile-avatar-file').click()" class="relative group cursor-pointer">
-              <img id="profile-avatar-preview" src="./icone.png" onerror="this.src='./icone.png'" class="w-24 h-24 rounded-full object-cover border-2 border-[#d9a441] shadow-xl bg-[#090909]" alt="Foto de Perfil">
+              <img id="profile-avatar-preview" src="" class="w-24 h-24 rounded-full object-cover border-2 border-[#d9a441] shadow-xl bg-[#18181b]" alt="Foto de Perfil">
               <div class="absolute bottom-0 right-0 w-8 h-8 rounded-full gold-gradient text-black flex items-center justify-center shadow-lg border-2 border-[#111111]">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
               </div>
@@ -498,25 +677,36 @@
             <input type="file" id="profile-avatar-file" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)">
           </div>
 
+          <!-- Botão único "Editar" para desbloquear os campos -->
+          <div class="flex items-center justify-between pt-2 border-t border-white/10">
+            <span class="text-xs font-bold text-zinc-300">Dados da conta</span>
+            <button type="button" id="btn-unlock-profile" onclick="toggleProfileEditMode(true)" class="press px-3.5 py-1.5 rounded-xl bg-white/5 border border-[#d9a441]/40 text-xs font-bold text-[#f0c46a]">
+              Editar
+            </button>
+          </div>
+
           <div>
             <div class="flex items-center justify-between mb-2">
               <label class="text-[10px] text-zinc-400 uppercase font-bold tracking-[0.15em]">Seu Nome</label>
-              <span class="text-[10px] text-[#d9a441] font-semibold">Editável</span>
             </div>
-            <input type="text" id="profile-name-input" placeholder="Como prefere ser chamado" onblur="this.value = formatClientName(this.value)" class="w-full px-4 py-3.5 bg-[#090909] border border-white/15 rounded-2xl text-white outline-none focus:border-[#d9a441] text-sm">
+            <input type="text" id="profile-name-input" disabled placeholder="Como prefere ser chamado" onblur="this.value = formatClientName(this.value)" class="w-full px-4 py-3.5 bg-[#090909] border border-white/10 rounded-2xl text-zinc-400 disabled:opacity-60 disabled:cursor-not-allowed outline-none focus:border-[#d9a441] text-sm transition-all">
           </div>
 
           <div>
             <div class="flex items-center justify-between mb-2">
               <label class="text-[10px] text-zinc-400 uppercase font-bold tracking-[0.15em]">WhatsApp com DDD</label>
-              <span class="text-[10px] text-[#d9a441] font-semibold">Editável</span>
             </div>
-            <input type="tel" id="profile-phone-input" placeholder="(51) 99999-9999" oninput="maskPhone(this)" class="w-full px-4 py-3.5 bg-[#090909] border border-white/15 rounded-2xl text-white outline-none focus:border-[#d9a441] text-sm">
+            <input type="tel" id="profile-phone-input" disabled placeholder="(51) 99999-9999" oninput="maskPhone(this)" class="w-full px-4 py-3.5 bg-[#090909] border border-white/10 rounded-2xl text-zinc-400 disabled:opacity-60 disabled:cursor-not-allowed outline-none focus:border-[#d9a441] text-sm transition-all">
           </div>
 
-          <button id="btn-save-profile" onclick="saveProfile()" class="press w-full py-4 gold-gradient text-black font-bold rounded-2xl text-sm mt-2 gold-shadow">
-            Salvar alterações
-          </button>
+          <div id="profile-edit-actions" class="hidden flex items-center gap-2.5 pt-1">
+            <button type="button" onclick="toggleProfileEditMode(false)" class="press flex-1 py-4 bg-white/5 border border-white/10 text-zinc-300 font-bold rounded-2xl text-sm">
+              Cancelar
+            </button>
+            <button id="btn-save-profile" onclick="saveProfile()" class="press flex-1 py-4 gold-gradient text-black font-bold rounded-2xl text-sm gold-shadow">
+              Salvar alterações
+            </button>
+          </div>
         </div>
 
         <button onclick="userSignOut()" class="press w-full mt-4 py-4 rounded-2xl border border-red-500/15 bg-red-500/5 text-red-400 text-xs font-semibold">Sair da conta</button>
@@ -614,6 +804,15 @@
 
     const MAX_ACTIVE_BOOKINGS = 3;
 
+    // Ícone padrão universal de usuário sem foto (estilo aplicativos padrão)
+    const DEFAULT_USER_AVATAR = "data:image/svg+xml;utf8," + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+        <rect width="120" height="120" fill="#27272a"/>
+        <circle cx="60" cy="44" r="22" fill="#71717a"/>
+        <path d="M20 112c0-22 18-36 40-36s40 14 40 36" fill="#71717a"/>
+      </svg>
+    `);
+
     const CATALOG_SERVICES = [
       {
         key: 'corte masculino',
@@ -674,6 +873,20 @@
     let knownCompletedIds = new Set();
     let initialLoadDone = false;
     let pendingOtpEmail = '';
+    let pendingSignupData = null;
+    let pendingExistingEmail = '';
+    let pendingResetEmail = '';
+    let isAwaitingSignupVerification = false;
+    let isHandlingAuthSession = false;
+
+    // Estado do Filtro de Histórico
+    let cachedHistoryItems = [];
+    let historyFilterStart = null; // formato DD/MM/YYYY
+    let historyFilterEnd = null;   // formato DD/MM/YYYY
+    let activeWheelTarget = 'start';
+    let wheelSelectedDay = 19;
+    let wheelSelectedMonth = 9; // 0-11
+    let wheelSelectedYear = 2026;
 
     let shopSettings = {
       open: '09:00',
@@ -684,6 +897,73 @@
 
     let realtimeSub = null;
     let syncInterval = null;
+
+    /* ==============================================================
+       GARANTE QUE SOMENTE FOTO ENVIADA PELO PRÓPRIO USUÁRIO SEJA USADA
+       ============================================================== */
+    function isCustomUserUploadedAvatar(url) {
+      if (!url || typeof url !== 'string') return false;
+      const trimmed = url.trim();
+      // Aceita apenas foto salva pelo upload de arquivo do próprio cliente (data:image/...)
+      return trimmed.startsWith('data:image/');
+    }
+
+    function getDisplayAvatar(url) {
+      return isCustomUserUploadedAvatar(url) ? url : DEFAULT_USER_AVATAR;
+    }
+
+    /* ==============================================================
+       VALIDAÇÃO ESTRITA DE EMAIL (Bloqueia @gmail.con e erros comuns)
+       ============================================================== */
+    function validateEmailStrict(rawEmail) {
+      const email = String(rawEmail || '').trim().toLowerCase();
+      if (!email) {
+        return { valid: false, msg: 'Informe seu endereço de e-mail.' };
+      }
+      const basicRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+      if (!basicRegex.test(email)) {
+        return { valid: false, msg: 'Formato de e-mail inválido. Verifique se digitou corretamente (ex: nome@email.com).' };
+      }
+
+      const [localPart, domain] = email.split('@');
+      if (!localPart || !domain || domain.startsWith('.') || domain.endsWith('.') || domain.includes('..')) {
+        return { valid: false, msg: 'Endereço de e-mail inválido. Revise a digitação.' };
+      }
+
+      // Bloqueia extensões digitadas errado como .con, .comm, .cmo, .brr, etc.
+      const domainSuggestions = {
+        'gmail.con': 'gmail.com',
+        'gmail.comm': 'gmail.com',
+        'gmail.cmo': 'gmail.com',
+        'gmail.com.br': 'gmail.com',
+        'gamil.com': 'gmail.com',
+        'gmial.com': 'gmail.com',
+        'gmal.com': 'gmail.com',
+        'hotmail.con': 'hotmail.com',
+        'hotmail.comm': 'hotmail.com',
+        'hotmal.com': 'hotmail.com',
+        'outlook.con': 'outlook.com',
+        'outlook.comm': 'outlook.com',
+        'icloud.con': 'icloud.com',
+        'yahoo.con': 'yahoo.com'
+      };
+
+      if (domainSuggestions[domain]) {
+        return {
+          valid: false,
+          msg: `Parece que o e-mail foi digitado errado ("@${domain}"). Você quis dizer "@${domainSuggestions[domain]}"?`
+        };
+      }
+
+      if (/\.(con|comm|cmo|ocm|netr|orgg|brr)$/i.test(domain)) {
+        return {
+          valid: false,
+          msg: `O final do seu e-mail ("@${domain}") parece conter um erro de digitação. Verifique e tente novamente.`
+        };
+      }
+
+      return { valid: true, email };
+    }
 
     /* ==============================================================
        BALÃO "ÚLTIMO ACESSO" E NAVEGAÇÃO DAS TELAS DE AUTENTICAÇÃO
@@ -697,7 +977,7 @@
     }
 
     function showAuthStep(step) {
-      ['main', 'otp', 'email', 'signup'].forEach(s => {
+      ['main', 'otp', 'email', 'signup', 'reset'].forEach(s => {
         const el = document.getElementById(`auth-step-${s}`);
         if (el) el.classList.toggle('hidden', s !== step);
       });
@@ -711,27 +991,35 @@
     }
 
     /* ==============================================================
-       CÓDIGO DE ACESSO ÚNICO (OTP DE 6 NÚMEROS POR EMAIL)
+       CÓDIGO DE ACESSO ÚNICO (SOMENTE CLIENTES JÁ CADASTRADOS)
        ============================================================== */
     async function requestEmailOtp() {
-      const email = (document.getElementById('otp-email-input').value || '').trim().toLowerCase();
-      if (!email || !email.includes('@')) {
-        await appAlert('Informe um endereço de email válido para receber o código.', 'Email Inválido');
+      const rawEmail = document.getElementById('otp-email-input').value;
+      const check = validateEmailStrict(rawEmail);
+      if (!check.valid) {
+        await appAlert(check.msg, 'Email Inválido');
         return;
       }
+      const email = check.email;
 
       const btn = document.getElementById('btn-request-otp');
-      if (btn) { btn.disabled = true; btn.innerText = 'Enviando código...'; }
+      if (btn) { btn.disabled = true; btn.innerText = 'Verificando cadastro...'; }
 
+      // shouldCreateUser: false garante que SOMENTE clientes já cadastrados recebam o código
       const { error } = await sb.auth.signInWithOtp({
         email: email,
-        options: { shouldCreateUser: true }
+        options: { shouldCreateUser: false }
       });
 
       if (btn) { btn.disabled = false; btn.innerText = 'Solicitar código'; }
 
       if (error) {
-        await appAlert('Não foi possível enviar o código: ' + error.message, 'Erro no Envio');
+        const errMsg = String(error.message || '').toLowerCase();
+        if (errMsg.includes('signups not allowed') || errMsg.includes('user not found') || errMsg.includes('invalid') || error.status === 400 || error.status === 422) {
+          await appAlert('Este e-mail ainda não possui cadastro na RB Barbearia. O código de acesso único funciona somente para clientes já cadastrados. Use a opção "Novo cadastro" na tela inicial.', 'E-mail Não Cadastrado');
+        } else {
+          await appAlert('Não foi possível enviar o código: ' + error.message, 'Erro no Envio');
+        }
         return;
       }
 
@@ -744,8 +1032,7 @@
 
     async function verifyEmailOtp() {
       const token = (document.getElementById('otp-code-input').value || '').replace(/\D/g, '').trim();
-      
-      // Validação estrita para exatamente 6 dígitos
+
       if (!token || token.length !== 6) {
         await appAlert('O código de segurança deve conter exatamente 6 números.', 'Código Inválido');
         return;
@@ -756,7 +1043,7 @@
 
       localStorage.setItem('rb_last_login', 'OTP');
 
-      let { error } = await sb.auth.verifyOtp({
+      let { data, error } = await sb.auth.verifyOtp({
         email: pendingOtpEmail,
         token: token,
         type: 'email'
@@ -766,8 +1053,9 @@
         const retry = await sb.auth.verifyOtp({
           email: pendingOtpEmail,
           token: token,
-          type: 'signup'
+          type: 'magiclink'
         });
+        data = retry.data;
         error = retry.error;
       }
 
@@ -775,23 +1063,57 @@
 
       if (error) {
         await appAlert('Código incorreto ou expirado. Verifique o seu e-mail e tente novamente.', 'Acesso Negado');
+        return;
+      }
+
+      if (data && data.session) {
+        await processAuthenticatedSession(data.session);
       }
     }
 
     function resetOtpFlow() {
-      document.getElementById('otp-subtitle').innerText = 'Informe seu email para receber o código de acesso único';
+      document.getElementById('otp-subtitle').innerText = 'Informe seu email cadastrado para receber o código de acesso único';
       document.getElementById('otp-verify-box').classList.add('hidden');
       document.getElementById('otp-request-box').classList.remove('hidden');
       document.getElementById('otp-code-input').value = '';
     }
 
     /* ==============================================================
-       CADASTRE-SE (NOME COMPLETO, CELULAR, EMAIL E SENHA)
+       NOVO CADASTRO COM BLOQUEIO DE EMAIL DUPLICADO E VERIFICAÇÃO DE EMAIL
        ============================================================== */
+    function showExistingEmailModal(email) {
+      pendingExistingEmail = email;
+      const txt = document.getElementById('existing-email-text');
+      if (txt) {
+        txt.innerText = `Já existe uma conta cadastrada com o e-mail ${email}. Caso deseje, você pode modificar sua senha ou receber um código de acesso único.`;
+      }
+      document.getElementById('modal-existing-email').classList.remove('hidden');
+    }
+
+    async function handleExistingEmailAction(action) {
+      document.getElementById('modal-existing-email').classList.add('hidden');
+      const email = pendingExistingEmail;
+
+      if (action === 'otp') {
+        showAuthStep('otp');
+        resetOtpFlow();
+        document.getElementById('otp-email-input').value = email;
+        await requestEmailOtp();
+      } else if (action === 'reset') {
+        showAuthStep('reset');
+        document.getElementById('reset-request-box').classList.remove('hidden');
+        document.getElementById('reset-confirm-box').classList.add('hidden');
+        document.getElementById('reset-email-input').value = email;
+      } else if (action === 'login') {
+        showAuthStep('email');
+        document.getElementById('login-email-input').value = email;
+      }
+    }
+
     async function submitNewSignup() {
       const rawName = document.getElementById('signup-name-input').value.trim();
       const rawPhone = document.getElementById('signup-phone-input').value;
-      const email = document.getElementById('signup-email-input').value.trim().toLowerCase();
+      const rawEmail = document.getElementById('signup-email-input').value;
       const password = document.getElementById('signup-password-input').value;
 
       const name = formatClientName(rawName);
@@ -805,19 +1127,23 @@
         await appAlert('Informe seu celular/WhatsApp com DDD.', 'Celular Inválido');
         return;
       }
-      if (!email || !email.includes('@')) {
-        await appAlert('Informe um endereço de email válido.', 'Email Inválido');
+
+      const emailCheck = validateEmailStrict(rawEmail);
+      if (!emailCheck.valid) {
+        await appAlert(emailCheck.msg, 'Verifique seu Email');
         return;
       }
+      const email = emailCheck.email;
+
       if (!password || password.length < 6) {
         await appAlert('Sua senha deve ter pelo menos 6 caracteres.', 'Senha Curta');
         return;
       }
 
       const btn = document.getElementById('btn-submit-signup');
-      if (btn) { btn.disabled = true; btn.innerText = 'Cadastrando...'; }
+      if (btn) { btn.disabled = true; btn.innerText = 'Verificando dados...'; }
 
-      localStorage.setItem('rb_last_login', 'Email');
+      isAwaitingSignupVerification = true;
 
       const { data, error } = await sb.auth.signUp({
         email: email,
@@ -830,21 +1156,198 @@
         }
       });
 
-      if (btn) { btn.disabled = false; btn.innerText = 'Cadastrar'; }
+      // Verifica se o e-mail já existe no Supabase Auth
+      const alreadyExistsInAuth =
+        (error && /already registered|already exists|user already/i.test(error.message)) ||
+        (data && data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0);
 
-      if (error) {
-        await appAlert('Não foi possível criar sua conta: ' + error.message, 'Erro no Cadastro');
+      if (alreadyExistsInAuth) {
+        isAwaitingSignupVerification = false;
+        if (btn) { btn.disabled = false; btn.innerText = 'Cadastrar e verificar email'; }
+        showExistingEmailModal(email);
         return;
       }
 
-      if (data && data.user) {
-        localStorage.setItem(`rb_oauth_phone_${data.user.id}`, cleanPhone);
+      if (error) {
+        isAwaitingSignupVerification = false;
+        if (btn) { btn.disabled = false; btn.innerText = 'Cadastrar e verificar email'; }
+        await appAlert('Não foi possível iniciar o cadastro: ' + error.message, 'Erro no Cadastro');
+        return;
       }
 
-      if (data && data.session && data.user) {
-        await unifyAndEnterApp(data.user.id, name, email, cleanPhone, null, false);
-      } else {
-        await unifyAndEnterApp(data?.user?.id || generateUUID(), name, email, cleanPhone, null, false);
+      // Se o Supabase estiver com auto-confirm ativado (retornou session direto),
+      // enviamos um OTP de verificação para garantir que o e-mail digitado realmente existe
+      if (data && data.session) {
+        await sb.auth.signOut();
+        await sb.auth.signInWithOtp({
+          email: email,
+          options: { shouldCreateUser: false }
+        });
+      }
+
+      if (btn) { btn.disabled = false; btn.innerText = 'Cadastrar e verificar email'; }
+
+      pendingSignupData = {
+        userId: data?.user?.id || null,
+        name: name,
+        email: email,
+        phone: cleanPhone,
+        password: password
+      };
+
+      document.getElementById('signup-verify-subtitle').innerText =
+        `Enviamos um código de verificação de 6 números para ${email}. Digite-o abaixo para confirmar seu e-mail e concluir o cadastro:`;
+      document.getElementById('signup-form-box').classList.add('hidden');
+      document.getElementById('signup-verify-box').classList.remove('hidden');
+      showToast('Código de verificação enviado para seu e-mail!');
+    }
+
+    async function verifySignupOtp() {
+      if (!pendingSignupData) return;
+      const token = (document.getElementById('signup-otp-input').value || '').replace(/\D/g, '').trim();
+
+      if (!token || token.length !== 6) {
+        await appAlert('Digite o código de 6 números enviado para o seu e-mail.', 'Código Inválido');
+        return;
+      }
+
+      const btn = document.getElementById('btn-verify-signup-otp');
+      if (btn) { btn.disabled = true; btn.innerText = 'Confirmando...'; }
+
+      let { data, error } = await sb.auth.verifyOtp({
+        email: pendingSignupData.email,
+        token: token,
+        type: 'signup'
+      });
+
+      if (error) {
+        const retry = await sb.auth.verifyOtp({
+          email: pendingSignupData.email,
+          token: token,
+          type: 'email'
+        });
+        data = retry.data;
+        error = retry.error;
+      }
+
+      if (btn) { btn.disabled = false; btn.innerText = 'Verificar e concluir cadastro'; }
+
+      if (error) {
+        await appAlert('Código incorreto ou expirado. Verifique o código no seu e-mail ou volte para corrigir o endereço digitado.', 'Código Inválido');
+        return;
+      }
+
+      isAwaitingSignupVerification = false;
+      localStorage.setItem('rb_last_login', 'Email');
+
+      const finalAuthId = data?.user?.id || pendingSignupData.userId || generateUUID();
+      localStorage.setItem(`rb_oauth_phone_${finalAuthId}`, pendingSignupData.phone);
+
+      await unifyAndEnterApp(
+        finalAuthId,
+        pendingSignupData.name,
+        pendingSignupData.email,
+        pendingSignupData.phone,
+        false
+      );
+    }
+
+    function backToSignupForm() {
+      isAwaitingSignupVerification = false;
+      document.getElementById('signup-verify-box').classList.add('hidden');
+      document.getElementById('signup-form-box').classList.remove('hidden');
+      document.getElementById('signup-otp-input').value = '';
+    }
+
+    /* ==============================================================
+       MODIFICAR / ALTERAR SENHA (POR CÓDIGO NO EMAIL)
+       ============================================================== */
+    function openPasswordResetFromLogin() {
+      const typed = (document.getElementById('login-email-input').value || '').trim();
+      showAuthStep('reset');
+      document.getElementById('reset-request-box').classList.remove('hidden');
+      document.getElementById('reset-confirm-box').classList.add('hidden');
+      if (typed) document.getElementById('reset-email-input').value = typed;
+    }
+
+    async function requestPasswordResetOtp() {
+      const check = validateEmailStrict(document.getElementById('reset-email-input').value);
+      if (!check.valid) {
+        await appAlert(check.msg, 'Email Inválido');
+        return;
+      }
+      const email = check.email;
+
+      const btn = document.getElementById('btn-send-reset');
+      if (btn) { btn.disabled = true; btn.innerText = 'Enviando código...'; }
+
+      const { error } = await sb.auth.signInWithOtp({
+        email: email,
+        options: { shouldCreateUser: false }
+      });
+
+      if (btn) { btn.disabled = false; btn.innerText = 'Enviar código de segurança'; }
+
+      if (error) {
+        await appAlert('Não encontramos uma conta cadastrada com este e-mail.', 'E-mail Não Encontrado');
+        return;
+      }
+
+      pendingResetEmail = email;
+      document.getElementById('reset-request-box').classList.add('hidden');
+      document.getElementById('reset-confirm-box').classList.remove('hidden');
+      showToast('Código enviado para seu e-mail!');
+    }
+
+    async function confirmPasswordResetOtp() {
+      const token = (document.getElementById('reset-code-input').value || '').replace(/\D/g, '').trim();
+      const newPassword = document.getElementById('reset-new-password').value;
+
+      if (!token || token.length !== 6) {
+        await appAlert('Digite o código de 6 números enviado para o seu e-mail.', 'Código Inválido');
+        return;
+      }
+      if (!newPassword || newPassword.length < 6) {
+        await appAlert('A nova senha deve ter pelo menos 6 caracteres.', 'Senha Curta');
+        return;
+      }
+
+      const btn = document.getElementById('btn-confirm-reset');
+      if (btn) { btn.disabled = true; btn.innerText = 'Atualizando senha...'; }
+
+      let { data, error } = await sb.auth.verifyOtp({
+        email: pendingResetEmail,
+        token: token,
+        type: 'email'
+      });
+
+      if (error) {
+        const retry = await sb.auth.verifyOtp({
+          email: pendingResetEmail,
+          token: token,
+          type: 'recovery'
+        });
+        data = retry.data;
+        error = retry.error;
+      }
+
+      if (error) {
+        if (btn) { btn.disabled = false; btn.innerText = 'Salvar nova senha e entrar'; }
+        await appAlert('Código incorreto ou expirado.', 'Erro na Verificação');
+        return;
+      }
+
+      const { error: updErr } = await sb.auth.updateUser({ password: newPassword });
+      if (btn) { btn.disabled = false; btn.innerText = 'Salvar nova senha e entrar'; }
+
+      if (updErr) {
+        await appAlert('Não foi possível alterar a senha: ' + updErr.message, 'Erro');
+        return;
+      }
+
+      showToast('Senha alterada com sucesso!');
+      if (data && data.session) {
+        await processAuthenticatedSession(data.session);
       }
     }
 
@@ -855,8 +1358,9 @@
       const identifier = (document.getElementById('login-email-input').value || '').trim();
       const password = document.getElementById('login-password-input').value;
 
-      if (!identifier || !identifier.includes('@')) {
-        await appAlert('Informe seu endereço de email cadastrado.', 'Email Obrigatório');
+      const emailCheck = validateEmailStrict(identifier);
+      if (!emailCheck.valid) {
+        await appAlert(emailCheck.msg, 'Email Inválido');
         return;
       }
 
@@ -870,8 +1374,8 @@
 
       localStorage.setItem('rb_last_login', 'Email');
 
-      const { error } = await sb.auth.signInWithPassword({
-        email: identifier.toLowerCase(),
+      const { data, error } = await sb.auth.signInWithPassword({
+        email: emailCheck.email,
         password: password
       });
 
@@ -879,11 +1383,16 @@
 
       if (error) {
         await appAlert('Email ou senha incorretos.', 'Acesso Negado');
+        return;
+      }
+
+      if (data && data.session) {
+        await processAuthenticatedSession(data.session);
       }
     }
 
     /* ==============================================================
-       MODAIS PERSONALIZADOS DO APP (Substituem alert() e confirm())
+       MODAIS PERSONALIZADOS DO APP
        ============================================================== */
     function appAlert(message, title = 'RB Barbearia') {
       return new Promise(resolve => {
@@ -948,7 +1457,7 @@
     }
 
     /* ==============================================================
-       MÁSCARA DE WHATSAPP SEM TRAVAR NO BACKSPACE / TRAÇO
+       MÁSCARA DE WHATSAPP
        ============================================================== */
     function formatPhoneStr(raw) {
       let v = String(raw || '').replace(/\D/g, '');
@@ -985,6 +1494,7 @@
 
     function closeMandatoryModal() {
       document.getElementById('modal-mandatory-phone').classList.add('hidden');
+      document.getElementById('oauth-loading-overlay').classList.add('hidden');
     }
 
     async function checkExistingPhoneOnModal(val) {
@@ -1018,7 +1528,7 @@
     }
 
     /* ==============================================================
-       UPLOAD E OTIMIZAÇÃO DA FOTO DE PERFIL
+       UPLOAD E OTIMIZAÇÃO DA FOTO DE PERFIL (VINCULADA AO NÚMERO)
        ============================================================== */
     function handleAvatarUpload(event) {
       const file = event.target.files && event.target.files[0];
@@ -1051,7 +1561,7 @@
             if (clientUser.phone) {
               await sb.from('profiles').update({ avatar_url: dataUrl }).eq('phone', clientUser.phone);
             }
-            showToast('Foto de perfil atualizada!');
+            showToast('Foto de perfil atualizada e vinculada ao seu número!');
           }
         };
         img.src = e.target.result;
@@ -1129,6 +1639,13 @@
         parseInt(timeParts[0] || 0, 10),
         parseInt(timeParts[1] || 0, 10)
       );
+    }
+
+    function parseDateOnly(dateStr) {
+      if (!dateStr) return null;
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return null;
+      return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
     }
 
     function getRelativeDayLabel(dateStr) {
@@ -1338,73 +1855,132 @@
       }
     }
 
+    /* ==============================================================
+       PROCESSAMENTO CENTRALIZADO E ESTÁVEL DE LOGIN / OAUTH (Sem piscar)
+       ============================================================== */
+    async function processAuthenticatedSession(currentSession) {
+      if (!currentSession || !currentSession.user || clientUser || isHandlingAuthSession || isAwaitingSignupVerification) {
+        return;
+      }
+
+      isHandlingAuthSession = true;
+      try {
+        const u = currentSession.user;
+        const oauthName = formatClientName(u.user_metadata?.full_name || u.user_metadata?.name || 'Cliente');
+
+        // 1. Verifica telefone já salvo nos metadados ou no navegador
+        let savedPhone = String(
+          u.phone ||
+          u.user_metadata?.typed_phone ||
+          localStorage.getItem(`rb_oauth_phone_${u.id}`) ||
+          ''
+        ).replace(/\D/g, '');
+
+        if (savedPhone.length >= 10) {
+          await unifyAndEnterApp(u.id, oauthName, u.email, savedPhone, true);
+          return;
+        }
+
+        // 2. Verifica se já existe perfil por ID no banco
+        const { data: profById } = await sb.from('profiles').select('*').eq('id', u.id).maybeSingle();
+        if (profById && profById.phone && String(profById.phone).replace(/\D/g, '').length >= 10) {
+          const pPhone = String(profById.phone).replace(/\D/g, '');
+          await unifyAndEnterApp(u.id, formatClientName(profById.full_name || oauthName), u.email, pPhone, true);
+          return;
+        }
+
+        // 3. Caso seja o primeiro acesso via Google/LinkedIn/Spotify sem telefone vinculado, pede o WhatsApp
+        window.tempAuthUser = u;
+        if (oauthName && oauthName !== 'Cliente') {
+          document.getElementById('mandatory-name-input').value = oauthName;
+        }
+        document.getElementById('oauth-loading-overlay').classList.add('hidden');
+        document.getElementById('modal-mandatory-phone').classList.remove('hidden');
+      } finally {
+        isHandlingAuthSession = false;
+      }
+    }
+
+    // Registra o listener IMEDIATAMENTE antes de qualquer await para nunca perder o retorno do Google/LinkedIn
+    sb.auth.onAuthStateChange((event, currentSession) => {
+      if (event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') return;
+      if (currentSession && currentSession.user && !clientUser && !isAwaitingSignupVerification) {
+        processAuthenticatedSession(currentSession);
+      }
+    });
+
     window.addEventListener('DOMContentLoaded', async () => {
+      // Define ícones padrão de perfil sem foto logo ao iniciar
+      document.getElementById('header-avatar').src = DEFAULT_USER_AVATAR;
+      document.getElementById('profile-avatar-preview').src = DEFAULT_USER_AVATAR;
+
+      // Inicializa datas padrão do filtro de histórico com a data de hoje
+      const now = new Date();
+      const todayFormatted = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+      document.getElementById('filter-start-label').innerText = todayFormatted;
+      document.getElementById('filter-end-label').innerText = todayFormatted;
+
+      // Detecta se a URL acabou de retornar do login social (Google / LinkedIn / Spotify)
+      const isOAuthCallback =
+        window.location.hash.includes('access_token=') ||
+        window.location.search.includes('code=');
+
+      if (isOAuthCallback) {
+        document.getElementById('oauth-loading-overlay').classList.remove('hidden');
+      }
+
       renderLastLoginPill();
       enableCarouselDragScroll();
-      await fetchSettings();
-      renderPopularAndCatalogServices();
 
-      // 1. Verifica se já existe sessão salva e sincroniza dados mais recentes do banco
+      // 1. Verifica sessão local existente
       const savedSessionRaw = localStorage.getItem('rb_client_session');
-      if (savedSessionRaw) {
+      if (savedSessionRaw && !isOAuthCallback) {
         try {
           const parsed = JSON.parse(savedSessionRaw);
           if (parsed && parsed.phone) {
             const freshProf = await findProfileByPhone(String(parsed.phone).replace(/\D/g, ''));
             if (freshProf) {
+              const validCustomPhoto = isCustomUserUploadedAvatar(freshProf.avatar_url)
+                ? freshProf.avatar_url
+                : (isCustomUserUploadedAvatar(parsed.avatar_url) ? parsed.avatar_url : null);
+
               clientUser = {
                 id: freshProf.id,
                 name: formatClientName(freshProf.full_name || parsed.name || 'Cliente'),
                 email: parsed.email || '',
                 phone: String(freshProf.phone).replace(/\D/g, ''),
-                avatar_url: freshProf.avatar_url || parsed.avatar_url || null
+                avatar_url: validCustomPhoto
               };
               localStorage.setItem('rb_client_session', JSON.stringify(clientUser));
               enterApp();
+              fetchSettings();
+              renderPopularAndCatalogServices();
               return;
             }
           }
         } catch (e) {}
       }
 
-      // 2. Listener de login via Google / LinkedIn / Spotify / Email / OTP
-      sb.auth.onAuthStateChange(async (event, currentSession) => {
-        if (currentSession && currentSession.user && !clientUser) {
-          const u = currentSession.user;
-          const oauthName = formatClientName(u.user_metadata?.full_name || 'Cliente');
-          const oauthAvatar = u.user_metadata?.avatar_url || null;
+      // 2. Verifica sessão ativa do Supabase (caso o evento inicial já tenha disparado no retorno OAuth)
+      const { data: { session } } = await sb.auth.getSession();
+      if (session && session.user && !clientUser) {
+        await processAuthenticatedSession(session);
+      } else {
+        document.getElementById('oauth-loading-overlay').classList.add('hidden');
+      }
 
-          // Verifica vínculo salvo por ID ou por telefone nos metadados
-          let savedPhone = String(u.phone || u.user_metadata?.typed_phone || localStorage.getItem(`rb_oauth_phone_${u.id}`) || '').replace(/\D/g, '');
-
-          if (savedPhone.length >= 10) {
-            await unifyAndEnterApp(u.id, oauthName, u.email, savedPhone, oauthAvatar, true);
-            return;
-          }
-
-          const { data: profById } = await sb.from('profiles').select('*').eq('id', u.id).maybeSingle();
-          if (profById && profById.phone && String(profById.phone).replace(/\D/g, '').length >= 10) {
-            const pPhone = String(profById.phone).replace(/\D/g, '');
-            await unifyAndEnterApp(u.id, formatClientName(profById.full_name || oauthName), u.email, pPhone, profById.avatar_url || oauthAvatar, true);
-            return;
-          }
-
-          window.tempAuthUser = { ...u, tempAvatar: oauthAvatar };
-          if (oauthName && oauthName !== 'Cliente') {
-            document.getElementById('mandatory-name-input').value = oauthName;
-          }
-          document.getElementById('modal-mandatory-phone').classList.remove('hidden');
-        }
-      });
+      await fetchSettings();
+      renderPopularAndCatalogServices();
     });
 
     /* ==============================================================
-       UNIFICAÇÃO POR WHATSAPP + PRIORIDADE AO ÚLTIMO NOME SALVO
+       UNIFICAÇÃO POR WHATSAPP + FOTO EXCLUSIVA DO NÚMERO
        ============================================================== */
-    async function unifyAndEnterApp(authId, rawName, email, phone, avatarUrlFromAuth, preferSavedName = true) {
+    async function unifyAndEnterApp(authId, rawName, email, phone, preferSavedName = true) {
       const typedName = formatClientName(rawName || 'Cliente');
       const cleanPhone = String(phone || '').replace(/\D/g, '');
 
+      // Busca primeiro pelo número de WhatsApp para puxar a foto vinculada ao número
       let masterProfile = await findProfileByPhone(cleanPhone);
 
       if (!masterProfile && authId) {
@@ -1413,7 +1989,12 @@
       }
 
       let finalUserId = masterProfile ? masterProfile.id : (authId || generateUUID());
-      let finalAvatar = (masterProfile && masterProfile.avatar_url) ? masterProfile.avatar_url : (avatarUrlFromAuth || null);
+
+      // Regra estrita: usa SOMENTE foto enviada pelo próprio usuário vinculada ao número.
+      // Ignora fotos de Gmail, LinkedIn ou ícone da barbearia.
+      let finalAvatar = (masterProfile && isCustomUserUploadedAvatar(masterProfile.avatar_url))
+        ? masterProfile.avatar_url
+        : null;
 
       let finalName = typedName;
       if (masterProfile && masterProfile.full_name && preferSavedName) {
@@ -1443,11 +2024,6 @@
 
       if (authId) {
         localStorage.setItem(`rb_oauth_phone_${authId}`, cleanPhone);
-        try {
-          await sb.auth.updateUser({
-            data: { typed_phone: cleanPhone, linked_profile_id: finalUserId, full_name: finalName }
-          });
-        } catch (e) {}
       }
 
       clientUser = {
@@ -1460,6 +2036,13 @@
 
       localStorage.setItem('rb_client_session', JSON.stringify(clientUser));
       document.getElementById('modal-mandatory-phone').classList.add('hidden');
+      document.getElementById('oauth-loading-overlay').classList.add('hidden');
+
+      // Limpa o hash da URL após login OAuth para evitar reprocessamento
+      if (window.location.hash.includes('access_token')) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
       enterApp();
     }
 
@@ -1484,25 +2067,44 @@
         return;
       }
 
-      const authUser = window.tempAuthUser || { id: generateUUID(), email: '', tempAvatar: null };
+      const authUser = window.tempAuthUser || { id: generateUUID(), email: '' };
       const useSavedName = Boolean(existing && existing.full_name);
 
-      await unifyAndEnterApp(authUser.id, finalInputName, authUser.email, cleanPhone, authUser.tempAvatar, useSavedName);
+      await unifyAndEnterApp(authUser.id, finalInputName, authUser.email, cleanPhone, useSavedName);
+    }
+
+    function getExactRedirectUrl() {
+      return window.location.origin + window.location.pathname;
     }
 
     async function signInWithGoogle() {
+      const btn = document.getElementById('btn-oauth-google');
+      if (btn) { btn.disabled = true; btn.querySelector('span').innerText = 'Conectando ao Google...'; }
       localStorage.setItem('rb_last_login', 'Google');
-      await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+      await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: getExactRedirectUrl() }
+      });
     }
 
     async function signInWithSpotify() {
+      const btn = document.getElementById('btn-oauth-spotify');
+      if (btn) { btn.disabled = true; btn.querySelector('span').innerText = 'Conectando ao Spotify...'; }
       localStorage.setItem('rb_last_login', 'Spotify');
-      await sb.auth.signInWithOAuth({ provider: 'spotify', options: { redirectTo: window.location.origin } });
+      await sb.auth.signInWithOAuth({
+        provider: 'spotify',
+        options: { redirectTo: getExactRedirectUrl() }
+      });
     }
 
     async function signInWithLinkedIn() {
+      const btn = document.getElementById('btn-oauth-linkedin');
+      if (btn) { btn.disabled = true; btn.querySelector('span').innerText = 'Conectando ao LinkedIn...'; }
       localStorage.setItem('rb_last_login', 'LinkedIn');
-      await sb.auth.signInWithOAuth({ provider: 'linkedin_oidc', options: { redirectTo: window.location.origin } });
+      await sb.auth.signInWithOAuth({
+        provider: 'linkedin_oidc',
+        options: { redirectTo: getExactRedirectUrl() }
+      });
     }
 
     function userSignOut() {
@@ -1510,7 +2112,7 @@
       clientUser = null;
       if (syncInterval) clearInterval(syncInterval);
       try { sb.auth.signOut(); } catch(e){}
-      window.location.reload();
+      window.location.href = getExactRedirectUrl();
     }
 
     function enterApp() {
@@ -1525,11 +2127,43 @@
       switchAppTab('inicio');
     }
 
+    /* ==============================================================
+       ABA PERFIL: CAMPOS BLOQUEADOS POR PADRÃO + BOTÃO "EDITAR"
+       ============================================================== */
+    function toggleProfileEditMode(unlock) {
+      const nameInput = document.getElementById('profile-name-input');
+      const phoneInput = document.getElementById('profile-phone-input');
+      const actionsBox = document.getElementById('profile-edit-actions');
+      const unlockBtn = document.getElementById('btn-unlock-profile');
+
+      if (unlock) {
+        nameInput.disabled = false;
+        phoneInput.disabled = false;
+        nameInput.classList.remove('text-zinc-400', 'border-white/10');
+        nameInput.classList.add('text-white', 'border-[#d9a441]/50');
+        phoneInput.classList.remove('text-zinc-400', 'border-white/10');
+        phoneInput.classList.add('text-white', 'border-[#d9a441]/50');
+        actionsBox.classList.remove('hidden');
+        unlockBtn.classList.add('hidden');
+        nameInput.focus();
+      } else {
+        nameInput.disabled = true;
+        phoneInput.disabled = true;
+        nameInput.classList.add('text-zinc-400', 'border-white/10');
+        nameInput.classList.remove('text-white', 'border-[#d9a441]/50');
+        phoneInput.classList.add('text-zinc-400', 'border-white/10');
+        phoneInput.classList.remove('text-white', 'border-[#d9a441]/50');
+        actionsBox.classList.add('hidden');
+        unlockBtn.classList.remove('hidden');
+        loadProfileDataIntoUI();
+      }
+    }
+
     function loadProfileDataIntoUI() {
       if (!clientUser) return;
       const formattedName = formatClientName(clientUser.name || 'Cliente');
       const formattedPhone = formatPhoneStr(clientUser.phone || '');
-      const avatarSrc = clientUser.avatar_url || './icone.png';
+      const avatarSrc = getDisplayAvatar(clientUser.avatar_url);
 
       document.getElementById('profile-name-input').value = formattedName;
       document.getElementById('profile-phone-input').value = formattedPhone;
@@ -1565,10 +2199,14 @@
       const existingWithNewPhone = await findProfileByPhone(cleanPhone);
       if (existingWithNewPhone && existingWithNewPhone.id !== clientUser.id) {
         const targetId = existingWithNewPhone.id;
+        const linkedPhoto = isCustomUserUploadedAvatar(clientUser.avatar_url)
+          ? clientUser.avatar_url
+          : (isCustomUserUploadedAvatar(existingWithNewPhone.avatar_url) ? existingWithNewPhone.avatar_url : null);
+
         await sb.from('profiles').update({
           full_name: newName,
           phone: cleanPhone,
-          avatar_url: clientUser.avatar_url || existingWithNewPhone.avatar_url || null
+          avatar_url: linkedPhoto
         }).eq('id', targetId);
 
         try {
@@ -1576,14 +2214,16 @@
         } catch (e) {}
 
         clientUser.id = targetId;
+        clientUser.avatar_url = linkedPhoto;
       } else {
+        const cleanAvatar = isCustomUserUploadedAvatar(clientUser.avatar_url) ? clientUser.avatar_url : null;
         const { error: profErr } = await sb
           .from('profiles')
           .upsert({
             id: clientUser.id,
             full_name: newName,
             phone: cleanPhone,
-            avatar_url: clientUser.avatar_url || null
+            avatar_url: cleanAvatar
           });
 
         if (profErr) {
@@ -1593,49 +2233,21 @@
         }
       }
 
-      if (oldPhone) {
+      if (oldPhone && oldPhone !== cleanPhone) {
         try {
           await sb.from('profiles').update({ full_name: newName, phone: cleanPhone }).eq('phone', oldPhone);
         } catch (e) {}
       }
 
-      try {
-        const { data: { session } } = await sb.auth.getSession();
-        if (session && session.user) {
-          localStorage.setItem(`rb_oauth_phone_${session.user.id}`, cleanPhone);
-          await sb.auth.updateUser({
-            data: { full_name: newName, typed_phone: cleanPhone, phone: cleanPhone, linked_profile_id: clientUser.id }
-          });
-        }
-      } catch (e) {}
-
-      try {
-        const { data: userApts } = await sb
-          .from('appointments')
-          .select('id, calendar_event_id')
-          .eq('user_id', clientUser.id);
-
-        const activeIds = (userApts || [])
-          .filter(a => !isCompletedItem(a) && !isCancelledItem(a) && !isNoShowItem(a))
-          .map(a => a.id);
-
-        if (activeIds.length > 0) {
-          await sb
-            .from('appointments')
-            .update({ created_at: new Date().toISOString() })
-            .in('id', activeIds);
-        }
-      } catch (e) {}
-
       clientUser.name = newName;
       clientUser.phone = cleanPhone;
       localStorage.setItem('rb_client_session', JSON.stringify(clientUser));
 
-      loadProfileDataIntoUI();
       if (btn) {
         btn.disabled = false;
         btn.innerText = 'Salvar alterações';
       }
+      toggleProfileEditMode(false);
       showToast('Perfil atualizado com sucesso!');
     }
 
@@ -1652,9 +2264,125 @@
       document.getElementById('app-scroll').scrollTo({ top: 0, behavior: 'smooth' });
       if (tab === 'historico' || tab === 'inicio') syncClientAppointmentsData();
       if (tab === 'servicos' || tab === 'inicio') renderPopularAndCatalogServices();
-      if (tab === 'perfil') loadProfileDataIntoUI();
+      if (tab === 'perfil') {
+        toggleProfileEditMode(false);
+        loadProfileDataIntoUI();
+      }
     }
 
+    /* ==============================================================
+       SELETOR DE DATA EM RODA (HISTÓRICO DE AGENDAMENTOS)
+       ============================================================== */
+    const WHEEL_MONTHS = [
+      'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+      'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
+    ];
+
+    function buildWheelColumn(containerId, items, selectedVal, onSelect) {
+      const col = document.getElementById(containerId);
+      if (!col) return;
+
+      col.innerHTML = `<div class="wheel-spacer"></div>` +
+        items.map(it => `<div class="wheel-item ${it.value === selectedVal ? 'active' : ''}" data-val="${it.value}">${it.label}</div>`).join('') +
+        `<div class="wheel-spacer"></div>`;
+
+      const itemEls = Array.from(col.querySelectorAll('.wheel-item'));
+      const initialIndex = Math.max(0, items.findIndex(i => i.value === selectedVal));
+
+      setTimeout(() => {
+        col.scrollTop = initialIndex * 32;
+      }, 10);
+
+      col.onscroll = () => {
+        const idx = Math.min(items.length - 1, Math.max(0, Math.round(col.scrollTop / 32)));
+        itemEls.forEach((el, i) => el.classList.toggle('active', i === idx));
+        if (items[idx]) onSelect(items[idx].value);
+      };
+
+      itemEls.forEach((el, idx) => {
+        el.onclick = () => {
+          col.scrollTo({ top: idx * 32, behavior: 'smooth' });
+        };
+      });
+    }
+
+    function openDateWheelModal(target) {
+      activeWheelTarget = target;
+      const currentStr = target === 'start'
+        ? (historyFilterStart || document.getElementById('filter-start-label').innerText)
+        : (historyFilterEnd || document.getElementById('filter-end-label').innerText);
+
+      const parts = String(currentStr || '').split('/');
+      const now = new Date();
+      wheelSelectedDay = parts.length === 3 ? parseInt(parts[0], 10) || now.getDate() : now.getDate();
+      wheelSelectedMonth = parts.length === 3 ? (parseInt(parts[1], 10) - 1) : now.getMonth();
+      wheelSelectedYear = parts.length === 3 ? parseInt(parts[2], 10) || now.getFullYear() : now.getFullYear();
+
+      const days = Array.from({ length: 31 }, (_, i) => ({ value: i + 1, label: String(i + 1) }));
+      const months = WHEEL_MONTHS.map((m, i) => ({ value: i, label: m }));
+      const years = Array.from({ length: 10 }, (_, i) => {
+        const y = 2022 + i;
+        return { value: y, label: String(y) };
+      });
+
+      document.getElementById('modal-date-wheel').classList.remove('hidden');
+
+      buildWheelColumn('wheel-day', days, wheelSelectedDay, val => { wheelSelectedDay = val; });
+      buildWheelColumn('wheel-month', months, wheelSelectedMonth, val => { wheelSelectedMonth = val; });
+      buildWheelColumn('wheel-year', years, wheelSelectedYear, val => { wheelSelectedYear = val; });
+    }
+
+    function closeDateWheelModal() {
+      document.getElementById('modal-date-wheel').classList.add('hidden');
+    }
+
+    function confirmDateWheelSelection() {
+      const maxDaysInMonth = new Date(wheelSelectedYear, wheelSelectedMonth + 1, 0).getDate();
+      const validDay = Math.min(wheelSelectedDay, maxDaysInMonth);
+      const formatted = `${String(validDay).padStart(2, '0')}/${String(wheelSelectedMonth + 1).padStart(2, '0')}/${wheelSelectedYear}`;
+
+      if (activeWheelTarget === 'start') {
+        historyFilterStart = formatted;
+        document.getElementById('filter-start-label').innerText = formatted;
+        if (!historyFilterEnd) {
+          historyFilterEnd = document.getElementById('filter-end-label').innerText;
+        }
+      } else {
+        historyFilterEnd = formatted;
+        document.getElementById('filter-end-label').innerText = formatted;
+        if (!historyFilterStart) {
+          historyFilterStart = document.getElementById('filter-start-label').innerText;
+        }
+      }
+
+      // Se a data inicial for maior que a final, ajusta automaticamente
+      const dStart = parseDateOnly(historyFilterStart);
+      const dEnd = parseDateOnly(historyFilterEnd);
+      if (dStart && dEnd && dStart > dEnd) {
+        if (activeWheelTarget === 'start') {
+          historyFilterEnd = historyFilterStart;
+          document.getElementById('filter-end-label').innerText = historyFilterEnd;
+        } else {
+          historyFilterStart = historyFilterEnd;
+          document.getElementById('filter-start-label').innerText = historyFilterStart;
+        }
+      }
+
+      document.getElementById('btn-clear-date-filter').classList.remove('hidden');
+      closeDateWheelModal();
+      renderHistoryList(cachedHistoryItems);
+    }
+
+    function clearHistoryDateFilter() {
+      historyFilterStart = null;
+      historyFilterEnd = null;
+      document.getElementById('btn-clear-date-filter').classList.add('hidden');
+      renderHistoryList(cachedHistoryItems);
+    }
+
+    /* ==============================================================
+       AGENDAMENTO DE HORÁRIOS
+       ============================================================== */
     function startBooking(service, price, duration) {
       selectedService = service;
       selectedPrice = price;
@@ -1933,6 +2661,7 @@
       if (error) return;
 
       const validItems = (data || []).filter(item => item.service && !isBlockItem(item));
+      cachedHistoryItems = validItems;
 
       validItems.forEach(item => {
         if (isCompletedItem(item)) {
@@ -2038,22 +2767,37 @@
       const container = document.getElementById('history-container');
       if (!container) return;
 
-      if (!allUserItems.length) {
+      let filteredItems = [...(allUserItems || [])];
+
+      if (historyFilterStart && historyFilterEnd) {
+        const startD = parseDateOnly(historyFilterStart);
+        const endD = parseDateOnly(historyFilterEnd);
+        if (startD && endD) {
+          startD.setHours(0, 0, 0, 0);
+          endD.setHours(23, 59, 59, 999);
+          filteredItems = filteredItems.filter(item => {
+            const itemD = parseDateOnly(item.date);
+            return itemD && itemD >= startD && itemD <= endD;
+          });
+        }
+      }
+
+      if (!filteredItems.length) {
         container.innerHTML = `
           <div class="bg-[#111] border border-white/5 rounded-3xl p-8 text-center">
-            <p class="text-white font-semibold text-sm">Sua agenda está vazia</p>
-            <p class="text-zinc-600 text-xs mt-1">Marque seu corte quando quiser.</p>
+            <p class="text-white font-semibold text-sm">${historyFilterStart ? 'Nenhum agendamento neste período' : 'Sua agenda está vazia'}</p>
+            <p class="text-zinc-500 text-xs mt-1">${historyFilterStart ? 'Altere as datas acima ou toque em "Mostrar todos".' : 'Marque seu corte quando quiser.'}</p>
           </div>
         `;
         return;
       }
 
       const now = new Date();
-      const upcoming = allUserItems
+      const upcoming = filteredItems
         .filter(item => isActiveUpcomingAppointment(item, now))
         .sort((a, b) => parseAppointmentDate(a) - parseAppointmentDate(b));
 
-      const pastOrFinalized = allUserItems
+      const pastOrFinalized = filteredItems
         .filter(item => !isActiveUpcomingAppointment(item, now))
         .sort((a, b) => (parseAppointmentDate(b) || 0) - (parseAppointmentDate(a) || 0));
 
