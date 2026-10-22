@@ -1902,18 +1902,16 @@ let prefillTimeSlot = null;
 
 
 
-const servicesMap = {
+let currentShopId = 'rb-barbearia';
+let currentShopName = 'RB Barbearia';
+let currentShopLogo = './icone.png';
 
+let servicesMap = {
   'Corte Masculino': { price: 40, duration: 30 },
-
   'Barba': { price: 30, duration: 30 },
-
   'Corte e Barba': { price: 65, duration: 60 },
-
   'Sobrancelha': { price: 15, duration: 20 },
-
   'Progressiva feminina orgânica': { price: 180, duration: 120 }
-
 };
 
 let manualSelectedTime = null;
@@ -1983,7 +1981,9 @@ function isNoShowItem(item) {
 
 
 function getServiceDuration(serviceName) {
-
+  if (serviceName && servicesMap[serviceName] && servicesMap[serviceName].duration) {
+    return Number(servicesMap[serviceName].duration);
+  }
   const s = (serviceName ? serviceName : '').toLowerCase();
 
   if (s.includes('corte e barba')) return 60;
@@ -3697,7 +3697,7 @@ async function fetchManualTimes() {
   const d = parts[2];
   const targetDate = d + '/' + m + '/' + y;
   const targetDateNoZero = parseInt(d, 10) + '/' + parseInt(m, 10) + '/' + y;
-  const res = await sb.from('appointments').select('service, time, calendar_event_id').in('date', [targetDate, targetDateNoZero]);
+  const res = await sb.from('appointments').select('service, time, calendar_event_id').eq('barbershop_id', currentShopId).in('date', [targetDate, targetDateNoZero]);
   const booked = res.data;
   
   let occupiedIntervals = [];
@@ -3821,13 +3821,14 @@ async function saveManualBooking() {
   }
 
   const parts = dateVal.split('-');
-  const resIns = await sb.from('appointments').insert([{
+const resIns = await sb.from('appointments').insert([{
     user_id: finalUserId,
     service: service,
     price: manualSelectedPrice,
     date: parts[2] + '/' + parts[1] + '/' + parts[0],
     time: manualSelectedTime,
-    calendar_event_id: 'internal_system'
+    calendar_event_id: 'internal_system',
+    barbershop_id: currentShopId
   }]);
 
   if (resIns.error) {
@@ -3892,7 +3893,7 @@ async function fetchEditTimes() {
   const targetDate = parts[2] + '/' + parts[1] + '/' + parts[0];
   const targetDateNoZero = parseInt(parts[2], 10) + '/' + parseInt(parts[1], 10) + '/' + parts[0];
 
-  const res = await sb.from('appointments').select('id, service, time, calendar_event_id').in('date', [targetDate, targetDateNoZero]);
+  const res = await sb.from('appointments').select('id, service, time, calendar_event_id').eq('barbershop_id', currentShopId).in('date', [targetDate, targetDateNoZero]);
   const booked = res.data || [];
 
   let occupiedIntervals = [];
@@ -4156,13 +4157,14 @@ async function confirmBlock() {
         return isBlockItem(a) && a.date === dBr && a.time === slotStr;
       });
       if (!alreadyBlocked) {
-        inserts.push({
+inserts.push({
           user_id: targetUserId,
           service: blockLabel,
           price: 0,
           date: dBr,
           time: slotStr,
-          calendar_event_id: 'blocked_time'
+          calendar_event_id: 'blocked_time',
+          barbershop_id: currentShopId
         });
       }
     }
@@ -4325,27 +4327,49 @@ async function deleteAppointment(idsStr, isBlocked) {
    ======================================================== */
 
 async function loadSettings() {
-
   if (!sb) return;
+  const { data: { session } } = await sb.auth.getSession();
+  const userEmail = session && session.user ? session.user.email : '';
 
-  const res = await sb.from('settings').select('*').eq('id', 1).maybeSingle();
+  const res = await sb.from('barbershops')
+    .select('*')
+    .ilike('admin_email', userEmail)
+    .maybeSingle();
 
   const data = res.data;
-
   if (data) {
+    currentShopId = data.id;
+    currentShopName = data.name || 'Barbearia';
+    currentShopLogo = data.logo_url || './icone.png';
 
-    document.getElementById('set-open').value = data.open_time ? data.open_time : '09:00';
+    document.getElementById('set-open').value = data.open_time || '09:00';
+    document.getElementById('set-close').value = data.close_time || '20:30';
+    document.getElementById('set-break-start').value = data.break_start || '';
+    document.getElementById('set-break-end').value = data.break_end || '';
 
-    document.getElementById('set-close').value = data.close_time ? data.close_time : '20:30';
+    // Atualiza os serviços do modal de Agendamento Manual
+    if (Array.isArray(data.services) && data.services.length > 0) {
+      servicesMap = {};
+      const sel = document.getElementById('manual-service');
+      let optsHtml = '<option value="" disabled selected>Selecione o serviço</option>';
+      data.services.forEach(function(s) {
+        servicesMap[s.name] = { price: Number(s.price), duration: Number(s.duration) };
+        optsHtml += '<option value="' + s.name + '">' + s.name + ' (R$ ' + s.price + ' - ' + s.duration + 'm)</option>';
+      });
+      if (sel) sel.innerHTML = optsHtml;
+    }
 
-    document.getElementById('set-break-start').value = data.break_start ? data.break_start : '';
-
-    document.getElementById('set-break-end').value = data.break_end ? data.break_end : '';
-
+    // Atualiza Nome e Logo da Barbearia em todo o Painel
+    document.title = 'Painel - ' + currentShopName;
+    document.querySelectorAll('h1, #agenda-main-title, .sidebar-label span:first-child').forEach(function(el) {
+      if (el.id === 'agenda-main-title') el.innerText = 'Agenda semanal: ' + currentShopName;
+      else el.innerText = currentShopName;
+    });
+    document.querySelectorAll('img[src="./icone.png"]').forEach(function(img) {
+      img.src = currentShopLogo;
+    });
   }
-
   ['set-open', 'set-close', 'set-break-start', 'set-break-end'].forEach(syncTimeDisplay);
-
 }
 
 
@@ -4620,19 +4644,12 @@ async function saveSettings() {
 
 
 
-  const res = await sb.from('settings').upsert({
-
-    id: 1,
-
+const res = await sb.from('barbershops').update({
     open_time: openVal,
-
     close_time: closeVal,
-
     break_start: bStartVal,
-
     break_end: bEndVal
-
-  });
+  }).eq('id', currentShopId);
 
   if (res.error) {
 
