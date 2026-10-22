@@ -844,10 +844,21 @@
   </div>
 
 <script>
-    const SUPABASE_URL = 'https://cifrmupwumffzrcqwfjv.supabase.co';
+const SUPABASE_URL = 'https://cifrmupwumffzrcqwfjv.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_AcMuSuUE6DK5gGQ9eStmMw_muIgJsG6';
     var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const MAX_ACTIVE_BOOKINGS = 3;
+
+    // Identifica a barbearia pela URL (?b=vikings) e guarda no navegador
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlShopParam = urlParams.get('b');
+    if (urlShopParam) {
+      localStorage.setItem('active_barbershop_id', urlShopParam.trim().toLowerCase());
+    }
+    let currentShopId = urlShopParam
+      ? urlShopParam.trim().toLowerCase()
+      : (localStorage.getItem('active_barbershop_id') || 'rb-barbearia');
+    let currentShopName = 'RB Barbearia';
 
     // Ícone padrão universal de usuário sem foto (estilo aplicativos padrão)
     const DEFAULT_USER_AVATAR = "data:image/svg+xml;utf8," + encodeURIComponent(`
@@ -858,8 +869,8 @@
       </svg>
     `);
 
-    const CATALOG_SERVICES = [
-      {
+let CATALOG_SERVICES = [
+        {
         key: 'corte masculino',
         name: 'Corte Masculino',
         shortTitle: 'Corte Masculino',
@@ -1640,6 +1651,8 @@
     }
 
     function getServiceDuration(serviceName) {
+      const found = CATALOG_SERVICES.find(item => item.name.toLowerCase() === String(serviceName || '').toLowerCase());
+      if (found && found.duration) return Number(found.duration);
       const s = (serviceName || '').toLowerCase();
       if (s.includes('corte e barba') || s.includes('combo') || s.includes('completo')) return 60;
       if (s.includes('progressiva')) return 120;
@@ -1795,12 +1808,9 @@
           sampleDates.push(`${dd}/${mm}/${yyyy}`);
         }
 
-        const { data: rpcRows } = await sb.rpc('get_busy_slots', { p_dates: sampleDates });
+    const { data: rpcRows } = await sb.rpc('get_busy_slots', { p_dates: sampleDates, p_barbershop_id: currentShopId });
         if (rpcRows && rpcRows.length) {
           rpcRows.forEach(r => countServiceRecord(r.service, r.calendar_event_id));
-        } else {
-          const { data: tableRows } = await sb.from('appointments').select('service, calendar_event_id');
-          (tableRows || []).forEach(r => countServiceRecord(r.service, r.calendar_event_id));
         }
       } catch (e) {}
 
@@ -1859,14 +1869,35 @@
       }
     }
 
-    async function fetchSettings() {
+   async function fetchSettings() {
       try {
-        const { data } = await sb.from('settings').select('*').eq('id', 1).maybeSingle();
+        const { data } = await sb.from('barbershops').select('*').eq('id', currentShopId).maybeSingle();
         if (data) {
+          currentShopName = data.name || 'Barbearia';
           shopSettings.open = data.open_time || '09:00';
           shopSettings.close = data.close_time || '20:30';
           shopSettings.break_start = data.break_start || '';
           shopSettings.break_end = data.break_end || '';
+
+          if (Array.isArray(data.services) && data.services.length > 0) {
+            CATALOG_SERVICES = data.services;
+          }
+
+          // Atualiza Nome e Logo da Barbearia na interface do cliente
+          document.title = currentShopName;
+          document.querySelectorAll('.gold-text, #tab-content-inicio p.text-zinc-400.uppercase').forEach(el => {
+            el.innerText = currentShopName;
+          });
+          document.querySelectorAll('img[src="./icone.png"]').forEach(img => {
+            img.src = data.logo_url || './icone.png';
+          });
+          // Atualiza os links de WhatsApp para o número da barbearia atual
+          if (data.phone) {
+            const cleanWa = String(data.phone).replace(/\D/g, '');
+            document.querySelectorAll('a[href*="wa.me/"]').forEach(a => {
+              a.href = `https://wa.me/${cleanWa}?text=${encodeURIComponent('Olá! Estou no app da ' + currentShopName + ' e gostaria de atendimento.')}`;
+            });
+          }
         }
       } catch (e) {}
     }
@@ -2120,8 +2151,8 @@
       await unifyAndEnterApp(authUser.id, finalInputName, authUser.email, cleanPhone, useSavedName);
     }
 
-    function getExactRedirectUrl() {
-      return window.location.origin + window.location.pathname;
+function getExactRedirectUrl() {
+      return window.location.origin + window.location.pathname + '?b=' + encodeURIComponent(currentShopId);
     }
 
 async function handleGoogleNativeLogin(response) {
@@ -2552,8 +2583,8 @@ async function handleGoogleNativeLogin(response) {
       const parts = targetDate.split('/');
       const targetDateNoZero = `${parseInt(parts[0], 10)}/${parseInt(parts[1], 10)}/${parts[2]}`;
 
-      const { data: booked } = await sb
-        .rpc('get_busy_slots', { p_dates: [targetDate, targetDateNoZero] });
+const { data: booked } = await sb
+        .rpc('get_busy_slots', { p_dates: [targetDate, targetDateNoZero], p_barbershop_id: currentShopId });
 
       let occupiedIntervals = [];
 
@@ -2674,10 +2705,10 @@ async function handleGoogleNativeLogin(response) {
       btn.disabled = true;
       btn.innerText = 'Verificando disponibilidade...';
 
-      const { data: userApts } = await sb.from('appointments')
+ const { data: userApts } = await sb.from('appointments')
         .select('id, date, time, service, calendar_event_id')
-        .eq('user_id', clientUser.id);
-
+        .eq('user_id', clientUser.id)
+        .eq('barbershop_id', currentShopId);
       const now = new Date();
       const activeFutureApts = (userApts || []).filter(apt => isActiveUpcomingAppointment(apt, now));
 
@@ -2690,13 +2721,14 @@ async function handleGoogleNativeLogin(response) {
 
       btn.innerText = 'Confirmando...';
 
-      const { error } = await sb.from('appointments').insert([{
+const { error } = await sb.from('appointments').insert([{
         user_id: clientUser.id,
         service: selectedService,
         price: parseFloat(selectedPrice),
         date: selectedDate,
         time: selectedTime,
-        calendar_event_id: 'internal_system'
+        calendar_event_id: 'internal_system',
+        barbershop_id: currentShopId
       }]);
 
       if (error) {
@@ -2716,11 +2748,11 @@ async function handleGoogleNativeLogin(response) {
     async function syncClientAppointmentsData() {
       if (!clientUser) return;
 
-      const { data, error } = await sb.from('appointments')
+const { data, error } = await sb.from('appointments')
         .select('*')
         .eq('user_id', clientUser.id)
+        .eq('barbershop_id', currentShopId)
         .order('created_at', { ascending: false });
-
       if (error) return;
 
       const validItems = (data || []).filter(item => item.service && !isBlockItem(item));
