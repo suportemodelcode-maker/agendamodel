@@ -2941,9 +2941,15 @@ function getMaxAgendaDateObj() {
   return d;
 }
 
+function getMinAgendaDateObj() {
+  const d = getTodayMidnightObj();
+  d.setMonth(d.getMonth() - 12); // Permite visualizar até 1 ano de histórico no passado
+  return d;
+}
+
 function isDateOutsideThreeMonths(dateObj) {
   const target = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()).getTime();
-  const min = getTodayMidnightObj().getTime();
+  const min = getMinAgendaDateObj().getTime();
   const max = getMaxAgendaDateObj().getTime();
   return target < min || target > max;
 }
@@ -3033,7 +3039,7 @@ function renderCalendarSection() {
 }
 
 function changeCalendarMonth(delta) {
-  const minDate = getTodayMidnightObj();
+  const minDate = getMinAgendaDateObj();
   const maxDate = getMaxAgendaDateObj();
 
   let targetMonth = calCurrentMonth + delta;
@@ -3046,7 +3052,7 @@ function changeCalendarMonth(delta) {
   const maxMonthIndex = maxDate.getFullYear() * 12 + maxDate.getMonth();
 
   if (targetMonthIndex < minMonthIndex || targetMonthIndex > maxMonthIndex) {
-    return alert('A agenda está aberta somente para os próximos 3 meses (até ' + formatBrDate(maxDate) + ').');
+    return alert('Você só pode visualizar o histórico de até 1 ano atrás e agendamentos futuros de até 3 meses.');
   }
 
   calCurrentMonth = targetMonth;
@@ -3065,7 +3071,7 @@ function selectCalendarToday() {
 function selectCalendarDate(dateStr, switchToIndividualDay) {
   const dObj = parseBrDateToObj(dateStr);
   if (isDateOutsideThreeMonths(dObj)) {
-    return alert('A agenda permite acesso somente dentro do período dos próximos 3 meses (até ' + formatBrDate(getMaxAgendaDateObj()) + ').');
+    return alert('Data fora do limite de visualização (1 ano no passado ou 3 meses no futuro).');
   }
   selectedCalendarDateStr = dateStr;
   calCurrentYear = dObj.getFullYear();
@@ -3081,7 +3087,7 @@ function stepSelectedDate(daysDelta) {
   const dObj = parseBrDateToObj(selectedCalendarDateStr);
   dObj.setDate(dObj.getDate() + daysDelta);
   if (isDateOutsideThreeMonths(dObj)) {
-    return alert('A agenda está aberta somente para os próximos 3 meses (até ' + formatBrDate(getMaxAgendaDateObj()) + ').');
+    return alert('Data fora do limite de visualização (1 ano no passado ou 3 meses no futuro).');
   }
   selectCalendarDate(formatBrDate(dObj));
 }
