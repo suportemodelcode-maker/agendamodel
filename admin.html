@@ -3149,20 +3149,16 @@ function renderCalendarGrid() {
       dotHtml = '<span class="w-1.5 h-1.5 rounded-full bg-red-500 mt-0.5"></span>';
     }
 
-    const clsSelected = isSelected ? 'selected ' : '';
+    const clsSelected = isSelected ? 'selected ' : 'text-zinc-300 hover:text-white ';
     const clsToday = isToday ? 'today ' : '';
 
-const clsSelected = isSelected ? 'selected ' : 'text-zinc-300 hover:text-white ';
-        const clsToday = isToday ? 'today ' : '';
-
-        html += '<button type="button" onclick="selectCalendarDate(\'' + dStr + '\')" ondblclick="selectCalendarDate(\'' + dStr + '\', true)" title="1 clique: Seleciona data | 2 cliques: Abre Dia Individual" class="cal-day h-9 rounded-xl border border-zinc-700/50 bg-zinc-800/40 flex flex-col items-center justify-center transition-all ' + clsSelected + clsToday + '">'
-          + '<span class="text-[12px] font-extrabold leading-none drop-shadow-md">' + day + '</span>'
-          + dotHtml
-          + '</button>';
+    html += '<button type="button" onclick="selectCalendarDate(\'' + dStr + '\')" ondblclick="selectCalendarDate(\'' + dStr + '\', true)" title="1 clique: Seleciona data | 2 cliques: Abre Dia Individual" class="cal-day h-9 rounded-xl border border-zinc-700/50 bg-zinc-800/40 flex flex-col items-center justify-center transition-all ' + clsSelected + clsToday + '">'
+      + '<span class="text-[12px] font-extrabold leading-none drop-shadow-md">' + day + '</span>'
+      + dotHtml
+      + '</button>';
   }
   grid.innerHTML = html;
 }
-
 function renderSelectedDaySchedule() {
   const container = document.getElementById('selected-day-schedule-container');
   if (!container) return;
