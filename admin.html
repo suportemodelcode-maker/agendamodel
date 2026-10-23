@@ -3571,7 +3571,9 @@ let badgeIcon = '';
           cardStyle = 'bg-indigo-500/15 border-indigo-500/40 border-l-indigo-400 text-indigo-100 hover:bg-indigo-500/25';
         }
 
-const itemJson = JSON.stringify(activeItem).replace(/'/g, "&apos;");
+        const itemJson = JSON.stringify(activeItem).replace(/'/g, "&apos;");
+
+// Condicional para não renderizar a span do ícone se estiver vazio
         const badgeHtml = badgeIcon ? '<span class="text-[10px] shrink-0">' + badgeIcon + '</span>' : '';
 
         let cardInnerHtml = '';
@@ -3601,6 +3603,23 @@ const itemJson = JSON.stringify(activeItem).replace(/'/g, "&apos;");
           + '<div onclick=\'openDetailsModal(' + itemJson + ')\' style="height:' + cardHeightPx + 'px; top: 2px; left: 2px; width: calc(100% - 4px);" class="absolute rounded-[8px] border border-l-[3px] p-1.5 cursor-pointer transition-all shadow-sm flex flex-col overflow-hidden z-20 backdrop-blur-sm ' + cardStyle + '">'
           + cardInnerHtml
           + '</div></div>';
+      } else if (isBreakSlot) {
+        html += '<div class="border-r border-zinc-800/50 last:border-r-0 bg-zinc-950/70 flex items-center justify-center">'
+          + '<span class="text-[8px] font-bold uppercase text-zinc-700">Descanso</span>'
+          + '</div>';
+      } else {
+        const isoDate = formatIsoDate(dObj);
+        html += '<button type="button" onclick="prefillTimeSlot=\'' + slotStr + '\'; selectCalendarDate(\'' + dStr + '\'); openManualModal(\'' + isoDate + '\')" class="border-r border-zinc-800/50 last:border-r-0 hover:bg-emerald-500/10 group flex items-center justify-center transition-colors ' + colHighlight + '">'
+          + '<span class="opacity-0 group-hover:opacity-100 text-[9px] font-black text-emerald-400 uppercase">+ Agendar</span>'
+          + '</button>';
+      }
+    });
+
+    html += '</div>';
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
 }
 
 function openManualModalForSelectedDate(slotStr) {
