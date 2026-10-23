@@ -5949,10 +5949,7 @@ function generateCardHtml(item) {
   }
 
   const sTheme = getServiceTheme(item.service);
-  const isConflicted = window.currentAgendaConflicts && window.currentAgendaConflicts.some(c => c.apt.id === item.id);
-  if (isConflicted) {
-      sTheme.borderHover = '!border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]';
-  }
+  
   const searchStr = (clientName + ' ' + servWithDur + ' ' + timeLabel).toLowerCase();
   const priceStr = parseFloat(item.price ? item.price : 0).toFixed(2).replace('.', ',');
   const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
