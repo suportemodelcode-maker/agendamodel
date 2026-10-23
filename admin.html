@@ -3919,7 +3919,6 @@ async function saveManualBooking() {
   btn.disabled = true;
   btn.innerText = 'Verificando disponibilidade...';
 
-  // --- TRAVA DE CONFLITO ---
   const parts = dateVal.split('-');
   const dateBr = parts[2] + '/' + parts[1] + '/' + parts[0];
   const hasConflict = await checkOverlap(dateBr, manualSelectedTime, manualSelectedDuration);
@@ -3929,7 +3928,6 @@ async function saveManualBooking() {
     btn.innerText = 'Confirmar Agendamento';
     return alert('⚠️ CONFLITO DE HORÁRIO: Já existe um agendamento neste mesmo horário. Escolha outro.');
   }
-  // -------------------------
 
   btn.innerText = 'Salvando...';
 
@@ -4092,7 +4090,6 @@ async function saveEditedBooking() {
   btn.disabled = true;
   btn.innerText = 'Verificando disponibilidade...';
 
-  // --- TRAVA DE CONFLITO ---
   const dur = getServiceDuration(editingAppointment.service);
   const hasConflict = await checkOverlap(newBrDate, editSelectedTime, dur, editingAppointment.id);
   
@@ -4101,7 +4098,6 @@ async function saveEditedBooking() {
     btn.innerText = 'Salvar Novo Horário';
     return alert('⚠️ CONFLITO DE HORÁRIO: Já existe um agendamento ou bloqueio neste horário. Escolha outro.');
   }
-  // -------------------------
 
   btn.innerText = 'Atualizando...';
 
@@ -6216,12 +6212,52 @@ async function checkOverlap(dateBr, timeStr, durationMins, excludeId = null) {
     const existingDur = isBlockItem(a) ? 30 : getServiceDuration(a.service);
     const existingEnd = existingStart + existingDur;
     
-    // Se baterem no mesmo tempo
     if (newStart < existingEnd && newEnd > existingStart) return true;
   }
   return false;
 }
 
+// --- SISTEMA AUTOMÁTICO DE DETECÇÃO DE CONFLITOS VISUAIS ---
+function getAgendaConflicts() {
+  const conflictsFound = [];
+  const aptsByDate = {};
+  
+  allAppointments.forEach(a => {
+    if (isCancelledItem(a) || isNoShowItem(a)) return;
+    if (!aptsByDate[a.date]) aptsByDate[a.date] = [];
+    aptsByDate[a.date].push(a);
+  });
+
+  for (let date in aptsByDate) {
+    const dayList = aptsByDate[date].sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+    
+    for (let i = 0; i < dayList.length; i++) {
+      const apt1 = dayList[i];
+      const start1 = timeToMinutes(apt1.time);
+      const end1 = start1 + (isBlockItem(apt1) ? 30 : getServiceDuration(apt1.service));
+      
+      for (let j = i + 1; j < dayList.length; j++) {
+        const apt2 = dayList[j];
+        const start2 = timeToMinutes(apt2.time);
+        if (start2 >= end1) break; // Sem sobreposição
+        
+        if (!conflictsFound.some(c => c.apt.id === apt1.id)) conflictsFound.push({ apt: apt1, reason: '⚠️ Sobreposto' });
+        if (!conflictsFound.some(c => c.apt.id === apt2.id)) conflictsFound.push({ apt: apt2, reason: '⚠️ Sobreposto' });
+      }
+    }
+  }
+  return conflictsFound;
+}
+
+function showConflictsWarningModal() {
+  if (!window.currentAgendaConflicts || !window.currentAgendaConflicts.length) return;
+  openConflictsModalWithList(
+    window.currentAgendaConflicts,
+    'Conflitos Encontrados na Agenda',
+    'Os agendamentos abaixo estão sobrepostos no mesmo horário. Edite ou cancele para liberar o painel.',
+    false
+  );
+}
 // --- SISTEMA AUTOMÁTICO DE DETECÇÃO DE CONFLITOS ---
 function getAgendaConflicts() {
   const conflictsFound = [];
