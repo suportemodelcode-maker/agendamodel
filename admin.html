@@ -1025,26 +1025,22 @@
 
 
 
-      <div class="flex items-center gap-2 md:gap-4">
-
+<div class="flex items-center gap-2 md:gap-4">
         <button onclick="openManualModal()" class="hidden md:flex items-center gap-2 px-4 py-2 bg-emerald-950/40 border border-emerald-800/60 text-emerald-400 rounded-xl text-xs hover:bg-emerald-900/40 hover:text-emerald-300 transition-all font-black uppercase tracking-wider">
-
-          <span>✨</span> Novo Agendamento
-
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          Novo Agendamento
         </button>
-
-        <button onclick="openManualModal()" class="flex md:hidden items-center justify-center w-9 h-9 bg-emerald-950/40 border border-emerald-800/60 text-emerald-400 rounded-xl">✨</button>
-
-
+        <button onclick="openManualModal()" class="flex md:hidden items-center justify-center w-9 h-9 bg-emerald-950/40 border border-emerald-800/60 text-emerald-400 rounded-xl">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+        </button>
 
         <button onclick="openBlockModal()" class="hidden md:flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-700/50 text-zinc-300 rounded-xl text-xs hover:bg-zinc-800 hover:text-white transition-all font-bold">
-
-          <span class="text-red-500">🚫</span> Bloquear horários
-
+          <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+          Bloquear horários
         </button>
-
-        <button onclick="openBlockModal()" class="flex md:hidden items-center justify-center w-9 h-9 bg-zinc-900 border border-zinc-700/50 text-zinc-300 rounded-xl">🚫</button>
-
+        <button onclick="openBlockModal()" class="flex md:hidden items-center justify-center w-9 h-9 bg-zinc-900 border border-zinc-700/50 text-red-500 rounded-xl">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+        </button>
         
 
         <div class="h-8 w-px bg-zinc-800 hidden md:block"></div>
@@ -1501,11 +1497,17 @@
         </div>
         <div class="flex flex-col gap-5">
           <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-3xl p-5 shadow-xl">
-            <h3 class="text-[10px] uppercase font-black tracking-widest text-zinc-400 mb-4">🏆 Top Serviços</h3>
+            <h3 class="flex items-center gap-2 text-[10px] uppercase font-black tracking-widest text-zinc-400 mb-4">
+              <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              Top Serviços
+            </h3>
             <div id="dash-top-services" class="flex flex-col gap-2"></div>
           </div>
           <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-3xl p-5 shadow-xl">
-            <h3 class="text-[10px] uppercase font-black tracking-widest text-zinc-400 mb-4">💎 Top Clientes</h3>
+            <h3 class="flex items-center gap-2 text-[10px] uppercase font-black tracking-widest text-zinc-400 mb-4">
+              <svg class="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+              Top Clientes
+            </h3>
             <div id="dash-top-clients" class="flex flex-col gap-2"></div>
           </div>
         </div>
@@ -5498,7 +5500,13 @@ function calculateDashboard() {
     document.getElementById('dash-tx-cancelamento').innerText = txCanc + '%';
     document.getElementById('dash-num-cancelados').innerText = canceladosPeriodo + ' perdidos no período';
 
-    const medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+    const medals = [
+  '<span class="flex items-center justify-center w-5 h-5 rounded bg-yellow-500/10 border border-yellow-500/30 text-yellow-500 text-[10px] font-black">1º</span>',
+  '<span class="flex items-center justify-center w-5 h-5 rounded bg-zinc-300/10 border border-zinc-300/30 text-zinc-300 text-[10px] font-black">2º</span>',
+  '<span class="flex items-center justify-center w-5 h-5 rounded bg-orange-700/20 border border-orange-700/40 text-orange-400 text-[10px] font-black">3º</span>',
+  '<span class="flex items-center justify-center w-5 h-5 rounded bg-zinc-800 border border-zinc-700 text-zinc-500 text-[10px] font-black">4º</span>',
+  '<span class="flex items-center justify-center w-5 h-5 rounded bg-zinc-800 border border-zinc-700 text-zinc-500 text-[10px] font-black">5º</span>'
+];
     const topServ = Object.keys(serviceCounter)
       .map(function(k) { return { name: k, count: serviceCounter[k] }; })
       .sort(function(a, b) { return b.count - a.count; })
