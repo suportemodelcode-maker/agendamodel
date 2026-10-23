@@ -5949,7 +5949,6 @@ function generateCardHtml(item) {
   }
 
   const sTheme = getServiceTheme(item.service);
-  
   const searchStr = (clientName + ' ' + servWithDur + ' ' + timeLabel).toLowerCase();
   const priceStr = parseFloat(item.price ? item.price : 0).toFixed(2).replace('.', ',');
   const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
