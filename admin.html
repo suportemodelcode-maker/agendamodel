@@ -3269,30 +3269,13 @@ function renderSelectedDaySchedule() {
   const overdueList = allAppointments.filter(function(a) { return isOverduePendingItem(a); });
   const overdueBadgeBox = document.getElementById('kanban-overdue-badge-container');
   if (overdueBadgeBox) {
-// Deteção de Conflitos Globais
-      window.currentAgendaConflicts = getAgendaConflicts();
-
-      // Badge de Pendentes e Conflitos
-      const overdueList = allAppointments.filter(function(a) { return isOverduePendingItem(a); });
-      const overdueBadgeBox = document.getElementById('kanban-overdue-badge-container');
-      if (overdueBadgeBox) {
-        let badgesHtml = '<div class="flex items-center gap-2">';
-        
-        if (window.currentAgendaConflicts.length > 0) {
-            badgesHtml += '<button onclick="showConflictsWarningModal()" class="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white border border-red-500/40 text-[9px] font-black uppercase tracking-wider animate-pulse transition-all"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> ' + window.currentAgendaConflicts.length + ' Conflitos (Resolver)</button>';
-        }
-        
-        if (overdueList.length > 0) {
+if (overdueList.length > 0) {
           const firstOverdueJson = JSON.stringify(overdueList[0]).replace(/'/g, "&apos;");
-          badgesHtml += '<button onclick=\'openFinishModal(' + firstOverdueJson + ')\' class="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-zinc-950 border border-amber-500/40 text-[9px] font-black uppercase tracking-wider animate-pulse transition-all"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> ' + overdueList.length + ' sem baixa</button>';
-        } 
-        
-        if (window.currentAgendaConflicts.length === 0 && overdueList.length === 0) {
-          badgesHtml += '<span class="flex items-center gap-1.5 text-[9px] font-black uppercase px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg> Agenda em dia</span>';
+          overdueBadgeBox.innerHTML = '<button onclick=\'openFinishModal(' + firstOverdueJson + ')\' class="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-zinc-950 border border-amber-500/40 text-[9px] font-black uppercase tracking-wider animate-pulse transition-all"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> ' + overdueList.length + ' sem baixa (Resolver)</button>';
+        } else {
+          overdueBadgeBox.innerHTML = '<span class="flex items-center gap-1.5 text-[9px] font-black uppercase px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg> Baixas em dia</span>';
         }
-        badgesHtml += '</div>';
-        overdueBadgeBox.innerHTML = badgesHtml;
-      }
+  }
 
   const searchInput = document.getElementById('cal-day-search');
   const searchQuery = (searchInput && searchInput.value ? searchInput.value : '').toLowerCase().trim();
@@ -3589,7 +3572,6 @@ let badgeIcon = '';
         }
 
         const itemJson = JSON.stringify(activeItem).replace(/'/g, "&apos;");
-        
 
 // Condicional para não renderizar a span do ícone se estiver vazio
         const badgeHtml = badgeIcon ? '<span class="text-[10px] shrink-0">' + badgeIcon + '</span>' : '';
