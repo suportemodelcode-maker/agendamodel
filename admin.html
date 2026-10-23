@@ -216,7 +216,17 @@
 
 
 
-<audio id="notification-sound" src="https://cdnjs.cloudflare.com/ajax/libs/ion-sound/3.0.7/sounds/water_droplet.mp3" preload="auto"></audio>
+<!-- MODAL DE ALERTA PERSONALIZADO -->
+<div id="admin-custom-alert" class="hidden fixed inset-0 z-[100] bg-zinc-950/80 backdrop-blur-sm items-center justify-center p-4">
+  <div class="bg-zinc-900 border border-zinc-700 rounded-[24px] p-6 w-full max-w-xs shadow-2xl text-center flex flex-col items-center">
+    <div id="admin-alert-icon" class="w-14 h-14 rounded-full flex items-center justify-center mb-4"></div>
+    <h3 id="admin-alert-title" class="text-lg font-black uppercase tracking-wider mb-2">Aviso</h3>
+    <p id="admin-alert-message" class="text-xs text-zinc-400 font-medium mb-6 leading-relaxed">Mensagem</p>
+    <button onclick="closeAdminAlert()" class="w-full py-3.5 bg-orange-500 hover:bg-orange-400 text-zinc-950 font-black uppercase tracking-widest rounded-xl transition-all">
+      OK, Entendi
+    </button>
+  </div>
+</div>
 
 
 
@@ -1789,7 +1799,34 @@ try {
 
 
 let realtimeSubscription = null;
+window.alert = function(msg) {
+  const modal = document.getElementById('admin-custom-alert');
+  const titleEl = document.getElementById('admin-alert-title');
+  const iconEl = document.getElementById('admin-alert-icon');
+  
+  document.getElementById('admin-alert-message').innerText = msg;
+  
+  if(msg.toLowerCase().includes('sucesso')) {
+    titleEl.innerText = 'Sucesso!';
+    titleEl.className = 'text-lg font-black text-emerald-400 uppercase tracking-wider mb-2';
+    iconEl.className = 'w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-500 mb-4';
+    iconEl.innerHTML = '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+  } else {
+    titleEl.innerText = 'Aviso';
+    titleEl.className = 'text-lg font-black text-orange-400 uppercase tracking-wider mb-2';
+    iconEl.className = 'w-14 h-14 rounded-full bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-orange-500 mb-4';
+    iconEl.innerHTML = '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+  }
+  
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+};
 
+function closeAdminAlert() {
+  const modal = document.getElementById('admin-custom-alert');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
 let allHistoryData = [];
 
 let currentHistoryFilter = 'hoje';
@@ -3422,10 +3459,10 @@ html += '<div class="p-2 text-center border-r border-zinc-800/60 last:border-r-0
     const isFullHour = (t % 60 === 0);
     const isBreakSlot = (bStartMin >= 0 && bEndMin > bStartMin && t >= bStartMin && t < bEndMin);
 
-    html += '<div class="grid grid-cols-[62px_repeat(7,minmax(0,1fr))] border-b border-zinc-800/45 min-h-[56px]">';
+html += '<div class="grid grid-cols-[62px_repeat(7,minmax(0,1fr))] border-b border-zinc-800/45 min-h-[48px]">';
 
-// Coluna da Hora
-    html += '<div class="pr-2 pt-1.5 text-right border-r border-zinc-800/70 sticky left-0 z-40 bg-zinc-950 ' + (isFullHour ? 'text-[11px] font-black text-zinc-300' : 'text-[9px] font-semibold text-zinc-600') + '">'
+        // Coluna da Hora
+        html += '<div class="pr-2 pt-1 text-right border-r border-zinc-800/70 sticky left-0 z-40 bg-zinc-950 ' + (isFullHour ? 'text-[11px] font-black text-zinc-300' : 'text-[9px] font-semibold text-zinc-600') + '">'
           + slotStr
           + '</div>';
 
@@ -3463,15 +3500,15 @@ html += '<div class="p-2 text-center border-r border-zinc-800/60 last:border-r-0
         const dur = isBlock ? 30 : getServiceDuration(activeItem.service);
         const endStr = minutesToTime(t + dur);
         const spanSlots = Math.max(1, Math.ceil(dur / 30));
-        const cardHeightPx = spanSlots * 56 - 6;
+        const cardHeightPx = spanSlots * 48 - 4;
 
-        if (isBlock) {
+if (isBlock) {
           const bTitle = (activeItem.service || 'Bloqueado').replace('🚫 ', '');
-          html += '<div class="relative border-r border-zinc-800/50 last:border-r-0 p-0.5 ' + colHighlight + '">'
-            + '<div onclick="deleteAppointment(\'' + activeItem.id + '\', true)" title="Clique para liberar horário" style="height:' + cardHeightPx + 'px" class="w-full rounded-xl bg-red-950/40 hover:bg-red-950/70 border border-red-500/30 border-l-4 border-l-red-500 p-2 cursor-pointer transition-all flex flex-col justify-between overflow-hidden z-10 relative">'
+          html += '<div class="relative border-r border-zinc-800/50 last:border-r-0 p-[2px] ' + colHighlight + '">'
+            + '<div onclick="deleteAppointment(\'' + activeItem.id + '\', true)" title="Clique para liberar horário" style="height:' + cardHeightPx + 'px" class="w-full rounded-[10px] bg-red-950/40 hover:bg-red-950/70 border border-red-500/30 border-l-4 border-l-red-500 p-1.5 cursor-pointer transition-all flex flex-col justify-between overflow-hidden z-10 relative">'
             + '<div class="flex items-center justify-between gap-1"><span class="text-[9px] font-black uppercase text-red-400 truncate">🚫 Bloqueio</span><span class="text-[8px] text-zinc-400">✕</span></div>'
-            + '<p class="text-[9px] text-zinc-300 font-bold truncate">' + bTitle + '</p>'
-            + '<p class="text-[8px] text-zinc-500 font-bold">' + slotStr + ' - ' + endStr + '</p>'
+            + '<p class="text-[9px] text-zinc-300 font-bold truncate leading-none mt-0.5">' + bTitle + '</p>'
+            + '<div class="mt-auto"><span class="inline-block bg-black/60 px-1 py-[2px] rounded text-[8.5px] font-black text-zinc-300 tracking-wide">' + slotStr + ' - ' + endStr + '</span></div>'
             + '</div></div>';
           return;
         }
@@ -3518,16 +3555,16 @@ let cardStyle = 'bg-sky-500/15 border-sky-500/40 border-l-sky-400 text-sky-100 h
         const badgeHtml = badgeIcon ? '<span class="text-[10px] shrink-0">' + badgeIcon + '</span>' : '';
 
         // Ajustamos os paddings (py-1 px-1.5) e espaços entre os textos para caber o horário nos serviços curtos (30min)
-        html += '<div class="relative border-r border-zinc-800/50 last:border-r-0 p-0.5 ' + colHighlight + '">'
-          + '<div onclick=\'openDetailsModal(' + itemJson + ')\' style="height:' + cardHeightPx + 'px" class="w-full rounded-xl border border-l-4 py-1 px-1.5 cursor-pointer transition-all shadow-md flex flex-col justify-between overflow-hidden z-20 relative backdrop-blur-sm ' + cardStyle + '">'
+html += '<div class="relative border-r border-zinc-800/50 last:border-r-0 p-[2px] ' + colHighlight + '">'
+          + '<div onclick=\'openDetailsModal(' + itemJson + ')\' style="height:' + cardHeightPx + 'px" class="w-full rounded-[10px] border border-l-4 py-1 px-1.5 cursor-pointer transition-all shadow-md flex flex-col justify-between overflow-hidden z-20 relative backdrop-blur-sm ' + cardStyle + '">'
           + '<div class="flex flex-col space-y-[2px]">'
           + '<div class="flex items-start justify-between gap-1">'
           + '<p class="text-[10px] font-black text-white leading-none truncate">' + clientName + '</p>'
           + badgeHtml
           + '</div>'
-          + '<p class="text-[12px] font-black text-white leading-none truncate drop-shadow-sm">' + servName + '</p>'
+          + '<p class="text-[9px] font-black text-white/90 leading-none truncate drop-shadow-sm">' + servName + '</p>'
           + '</div>'
-          + '<p class="text-[8px] font-extrabold opacity-80 leading-none tracking-tight">' + slotStr + ' - ' + endStr + '</p>'
+          + '<div class="mt-auto"><span class="inline-block bg-black/50 px-1.5 py-[2px] rounded-md text-[8.5px] font-black text-white tracking-wide shadow-sm">' + slotStr + ' - ' + endStr + '</span></div>'
           + '</div></div>';
       } else if (isBreakSlot) {
         html += '<div class="border-r border-zinc-800/50 last:border-r-0 bg-zinc-950/70 flex items-center justify-center">'
