@@ -23,9 +23,10 @@
   <style>
 /* Ajustes de rolagem e usabilidade para a tabela em telas pequenas */
     .table-container-scroll {
-      overflow-x: auto;
+      overflow: auto;
       -webkit-overflow-scrolling: touch;
-      touch-action: pan-y; /* Melhora a rolagem vertical, permitindo o arraste horizontal dentro da tabela */
+      overscroll-behavior: contain; /* Isola a rolagem: impede que a tela puxe junto com a tabela */
+      will-change: transform; /* Força aceleração de hardware para não engasgar */
     }
     * { box-sizing: border-box; }
     <div id="selected-day-schedule-container" class="table-container-scroll flex-1 p-3 md:p-5"></div>
