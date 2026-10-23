@@ -3427,172 +3427,162 @@ if (overdueList.length > 0) {
 }
 
 // RENDERIZA A GRADE SEMANAL (COLUNAS DOM A SÁB x HORÁRIOS) IGUAL À IMAGEM
-function renderWeeklyGridSchedule() {
-  const container = document.getElementById('selected-day-schedule-container');
-  if (!container) return;
+function renderWeeklyGridSchedule(container, weekDays, openMin, closeMin, bStartMin, bEndMin, searchQuery) {
+  const diasCurtos = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+  const todayStr = formatBrDate(new Date());
 
-  const weekDays = getWeekDaysArray(currentWeekStartDate);
-  const slots = generateTimeSlots('09:00', '20:00', 30);
+  let html = '<div class="min-w-[780px] select-none">';
 
-  const appointmentsByDaySlot = {};
-  allAppointments.forEach(function(a) {
-    if (!a.date) return;
-    if (!appointmentsByDaySlot[a.date]) appointmentsByDaySlot[a.date] = {};
-    const timeKey = (a.time || '').substring(0, 5);
-    if (!appointmentsByDaySlot[a.date][timeKey]) appointmentsByDaySlot[a.date][timeKey] = [];
-    appointmentsByDaySlot[a.date][timeKey].push(a);
-  });
-
-  let html = '<div class="w-full overflow-x-auto custom-scroll table-container-scroll pb-10">';
-  html += '<div class="min-w-[900px] flex flex-col">';
-
-  // Cabeçalho com os dias da semana
+  // Cabeçalho dos 7 dias da semana
   html += '<div class="grid grid-cols-[85px_repeat(7,minmax(0,1fr))] border-b border-zinc-800 sticky top-0 z-50 bg-zinc-950">';
   html += '<div class="p-2 flex items-center justify-center text-[9px] font-black uppercase text-zinc-400 border-r border-zinc-800/70 sticky left-0 z-[60] bg-zinc-900 shadow-[3px_0_10px_rgba(0,0,0,0.3)]">Hora</div>';
 
   weekDays.forEach(function(dObj, idx) {
     const dStr = formatBrDate(dObj);
-    const isSelected = dStr === selectedCalendarDateStr;
-    const isToday = dStr === formatBrDate(new Date());
-    const dayNames = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
-    const dName = dayNames[dObj.getDay()];
-    const dayNum = dObj.getDate();
+    const isSel = dStr === selectedCalendarDateStr;
+    const isToday = dStr === todayStr;
+    const headerBg = isSel ? 'bg-orange-500/15 border-b-2 border-b-orange-500' : (isToday ? 'bg-zinc-900/80' : '');
+    const dayNumCls = isSel ? 'bg-orange-500 text-zinc-950' : (isToday ? 'text-orange-400' : 'text-zinc-200');
 
-    const borderStyle = idx < 6 ? 'border-r border-zinc-800/70' : '';
-    const activeHeaderStyle = isSelected 
-      ? 'bg-orange-600/20 text-orange-400 border-b-2 border-orange-500' 
-      : 'text-zinc-300 hover:bg-zinc-900/50';
-
-    html += '<div onclick="selectCalendarDate(\'' + dStr + '\')" class="p-2.5 text-center cursor-pointer transition-all ' + borderStyle + ' ' + activeHeaderStyle + '">'
-          + '<div class="text-[9px] font-black uppercase tracking-widest opacity-80">' + dName + '</div>'
-          + '<div class="text-sm font-black mt-0.5">' + dayNum + '</div>'
-          + (isToday ? '<span class="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-orange-500 text-zinc-950 text-[7.5px] font-black uppercase">Hoje</span>' : '')
-          + '</div>';
+html += '<div class="p-2 text-center border-r border-zinc-800/60 last:border-r-0 transition-all ' + headerBg + '">'
+      + '<button type="button" onclick="selectCalendarDate(\'' + dStr + '\')" class="w-full flex flex-col items-center justify-center group">'
+      + '<span class="text-[9px] font-black uppercase tracking-widest ' + (isSel ? 'text-orange-400' : 'text-zinc-500 group-hover:text-zinc-300') + '">' + diasCurtos[idx] + '</span>'
+      + '<span class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black mt-0.5 ' + dayNumCls + '">' + dObj.getDate() + '</span>'
+      + '</button>'
+      + '</div>';
   });
-  html += '</div>'; // Fim do cabeçalho
+  html += '</div>';
 
-  // Controle para pular slots cobertos por agendamentos longos (ex: 60 minutos)
-  const skipSlotsSet = new Set();
+  // Linhas de Horários (de 30 em 30 min)
+  for (let t = openMin; t <= closeMin - 30; t += 30) {
+    const slotStr = minutesToTime(t);
+    const isFullHour = (t % 60 === 0);
+    const isBreakSlot = (bStartMin >= 0 && bEndMin > bStartMin && t >= bStartMin && t < bEndMin);
 
-  // Linhas de Horários
-  slots.forEach(function(slotStr) {
-    const isFullHour = slotStr.endsWith(':00');
-    const [hStr, mStr] = slotStr.split(':');
-    const slotTotalMin = parseInt(hStr) * 60 + parseInt(mStr);
+html += '<div class="grid grid-cols-[85px_repeat(7,minmax(0,1fr))] border-b border-zinc-800/45 min-h-[48px]">';
 
-    html += '<div class="grid grid-cols-[85px_repeat(7,minmax(0,1fr))] border-b border-zinc-800/45 min-h-[48px]">';
-
-    // Coluna da Hora
-    html += '<div class="pr-3 pt-1.5 whitespace-nowrap text-right border-r border-zinc-800/70 sticky left-0 z-40 bg-zinc-900 shadow-[3px_0_10px_rgba(0,0,0,0.3)] ' + (isFullHour ? 'text-[12px] font-black text-white' : 'text-[10px] font-bold text-zinc-400') + '">'
+        // Coluna da Hora
+        html += '<div class="pr-3 pt-1.5 whitespace-nowrap text-right border-r border-zinc-800/70 sticky left-0 z-40 bg-zinc-900 shadow-[3px_0_10px_rgba(0,0,0,0.3)] ' + (isFullHour ? 'text-[12px] font-black text-white' : 'text-[10px] font-bold text-zinc-400') + '">'
           + slotStr
           + '</div>';
 
-    weekDays.forEach(function(dObj, idx) {
-      const dayDateStr = formatBrDate(dObj);
-      const colHighlight = dayDateStr === selectedCalendarDateStr ? 'bg-orange-950/10' : '';
-      const borderStyle = idx < 6 ? 'border-r border-zinc-800/50' : '';
+    // Células dos 7 dias para este horário
+    weekDays.forEach(function(dObj) {
+      const dStr = formatBrDate(dObj);
+      const isSelDay = dStr === selectedCalendarDateStr;
+      const colHighlight = isSelDay ? 'bg-orange-500/[0.02]' : '';
 
-      // Verificar se o slot está coberto por um serviço longo anterior
-      const skipKey = dayDateStr + '_' + slotStr;
-      if (skipSlotsSet.has(skipKey)) {
-        return; // Pula a célula para não duplicar o card
-      }
+      // Procura agendamentos desta data que cobrem este horário
+      const dayApts = allAppointments.filter(function(a) { return a.date === dStr; });
+      let activeItem = null;
+      let isStartSlot = false;
 
-      const daySlotsMap = appointmentsByDaySlot[dayDateStr] || {};
-      const itemsInSlot = daySlotsMap[slotStr] || [];
-
-      if (itemsInSlot.length === 0) {
-        // Verificar se é horário de descanso/almoço padrão
-        const isRestTime = (slotStr === '12:00' || slotStr === '12:30' || slotStr === '13:00' || slotStr === '13:30');
-        const cellBg = isRestTime ? 'opacity-40 select-none' : '';
-        const cellText = isRestTime ? '<span class="text-[8.5px] font-bold text-zinc-600 uppercase tracking-widest">DESCANSO</span>' : '';
-
-        html += '<div onclick="openManualModalForTime(\'' + dayDateStr + '\', \'' + slotStr + '\')" class="relative ' + borderStyle + ' ' + colHighlight + ' ' + cellBg + ' p-1 cursor-pointer hover:bg-zinc-800/30 transition-colors flex items-center justify-center">'
-              + cellText
-              + '</div>';
-        return;
-      }
-
-      // Renderizar o agendamento/bloqueio do slot
-      const activeItem = itemsInSlot[0];
-      const isBlock = isBlockItem(activeItem);
-
-      let spanSlots = 1;
-      const dur = parseInt(activeItem.duration || 30);
-      if (dur > 30) {
-        spanSlots = Math.ceil(dur / 30);
-      }
-
-      // Marcar os próximos slots como ocupados para serviços longos esticarem perfeitamente
-      if (spanSlots > 1) {
-        for (let s = 0; s < spanSlots; s++) {
-          const futureMin = slotTotalMin + (s * 30);
-          const fH = Math.floor(futureMin / 60);
-          const fM = futureMin % 60;
-          const fStr = pad2(fH) + ':' + pad2(fM);
-          skipSlotsSet.add(dayDateStr + '_' + fStr);
+      for (let i = 0; i < dayApts.length; i++) {
+        const a = dayApts[i];
+        const sMin = timeToMinutes(a.time);
+        const dur = isBlockItem(a) ? 30 : getServiceDuration(a.service);
+        const eMin = sMin + dur;
+        if (t >= sMin && t < eMin) {
+          activeItem = a;
+          isStartSlot = (t === sMin);
+          break;
         }
       }
 
-      const cardHeightPx = (spanSlots * 48) - 6;
+      if (activeItem) {
+        if (!isStartSlot) {
+          // Slot ocupado pela continuação de um serviço longo (ex: 60m ou 120m)
+          html += '<div class="border-r border-zinc-800/50 last:border-r-0 ' + colHighlight + '"></div>';
+          return;
+        }
 
-      if (isBlock) {
-        const bTitle = (activeItem.service || 'Bloqueado').replace('🚫 ', '');
-        html += '<div class="relative ' + borderStyle + ' p-[2px] ' + colHighlight + '">'
-          + '<div onclick="deleteAppointment(\'' + activeItem.id + '\', true)" title="Clique para liberar horário" style="height:' + cardHeightPx + 'px" class="w-full rounded-[10px] bg-red-950/40 hover:bg-red-950/70 border border-red-500/30 border-l-4 border-l-red-500 p-1.5 cursor-pointer transition-all flex flex-col justify-between overflow-hidden z-10 relative">'
-          + '<div class="flex items-center justify-between gap-1"><span class="flex items-center gap-1 text-[9px] font-black uppercase text-red-400 truncate"><svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg> Bloqueio</span><svg class="w-3 h-3 text-zinc-500 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></div>'
-          + '<p class="text-[9px] text-zinc-300 font-bold truncate leading-none mt-0.5">' + bTitle + '</p>'
-          + '<div class="mt-auto"><span class="inline-block bg-black/60 px-1 py-[2px] rounded text-[8.5px] font-black text-zinc-300 tracking-wide">' + slotStr + '</span></div>'
+        const isBlock = isBlockItem(activeItem);
+        const dur = isBlock ? 30 : getServiceDuration(activeItem.service);
+        const endStr = minutesToTime(t + dur);
+        const spanSlots = Math.max(1, Math.ceil(dur / 30));
+        const cardHeightPx = (spanSlots * 48) - 6;
+
+if (isBlock) {
+          const bTitle = (activeItem.service || 'Bloqueado').replace('🚫 ', '');
+          html += '<div class="relative border-r border-zinc-800/50 last:border-r-0 p-[2px] ' + colHighlight + '">'
+            + '<div onclick="deleteAppointment(\'' + activeItem.id + '\', true)" title="Clique para liberar horário" style="height:' + cardHeightPx + 'px" class="w-full rounded-[10px] bg-red-950/40 hover:bg-red-950/70 border border-red-500/30 border-l-4 border-l-red-500 p-1.5 cursor-pointer transition-all flex flex-col justify-between overflow-hidden z-10 relative">'
+            + '<div class="flex items-center justify-between gap-1"><span class="flex items-center gap-1 text-[9px] font-black uppercase text-red-400 truncate"><svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg> Bloqueio</span><svg class="w-3 h-3 text-zinc-500 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></div>'
+            + '<p class="text-[9px] text-zinc-300 font-bold truncate leading-none mt-0.5">' + bTitle + '</p>'
+            + '<div class="mt-auto"><span class="inline-block bg-black/60 px-1 py-[2px] rounded text-[8.5px] font-black text-zinc-300 tracking-wide">' + slotStr + ' - ' + endStr + '</span></div>'
+            + '</div></div>';
+          return;
+        }
+
+        const clientName = activeItem.profiles && activeItem.profiles.full_name ? formatClientName(activeItem.profiles.full_name) : 'Cliente';
+        const servName = activeItem.service || 'Serviço';
+        if (searchQuery && !clientName.toLowerCase().includes(searchQuery) && !servName.toLowerCase().includes(searchQuery)) {
+          html += '<div class="border-r border-zinc-800/50 last:border-r-0 ' + colHighlight + '"></div>';
+          return;
+        }
+
+        const isDone = isCompletedItem(activeItem);
+        const isNoShow = isNoShowItem(activeItem);
+        const isOverdue = isOverduePendingItem(activeItem);
+
+let cardStyle = 'bg-sky-500/15 border-sky-500/40 border-l-sky-400 text-sky-100 hover:bg-sky-500/25'; // Azul para Corte Masculino padrão
+let badgeIcon = ''; 
+
+        const sLower = servName.toLowerCase();
+        if (isDone) {
+          cardStyle = 'bg-emerald-500/20 border-emerald-500/50 border-l-emerald-400 text-emerald-100 hover:bg-emerald-500/30';
+          badgeIcon = '<svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>';
+        } else if (isNoShow) {
+          cardStyle = 'bg-zinc-900/90 border-amber-500/40 border-l-amber-500 text-zinc-400 opacity-60';
+          badgeIcon = '<svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>';
+        } else if (isOverdue) {
+          cardStyle = 'bg-amber-500/20 border-amber-500/50 border-l-amber-400 text-amber-100 hover:bg-amber-500/30';
+          badgeIcon = '<svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+        } else if (sLower.includes('corte e barba')) {
+          // Alterado para roxo (purple) para não conflitar com o verde do "Concluído"
+          cardStyle = 'bg-purple-500/15 border-purple-500/40 border-l-purple-400 text-purple-100 hover:bg-purple-500/25'; 
+        } else if (sLower.includes('barba')) {
+          cardStyle = 'bg-amber-500/15 border-amber-500/40 border-l-amber-400 text-amber-100 hover:bg-amber-500/25';
+        } else if (sLower.includes('progressiva')) {
+          cardStyle = 'bg-pink-500/15 border-pink-500/40 border-l-pink-400 text-pink-100 hover:bg-pink-500/25';
+ } else if (sLower.includes('sobrancelha')) {
+          // Alterado para indigo (azul arroxeado) para diferenciar bem do verde
+          cardStyle = 'bg-indigo-500/15 border-indigo-500/40 border-l-indigo-400 text-indigo-100 hover:bg-indigo-500/25';
+        }
+
+        const itemJson = JSON.stringify(activeItem).replace(/'/g, "&apos;");
+
+        // Condicional para não renderizar a span do ícone se estiver vazio
+        const badgeHtml = badgeIcon ? '<span class="text-[10px] shrink-0">' + badgeIcon + '</span>' : '';
+
+        // Ajustamos os paddings (py-1 px-1.5) e espaços entre os textos para caber o horário nos serviços curtos (30min)
+html += '<div class="relative border-r border-zinc-800/50 last:border-r-0 p-[2px] ' + colHighlight + '">'
+          + '<div onclick=\'openDetailsModal(' + itemJson + ')\' style="height:' + cardHeightPx + 'px" class="w-full rounded-[10px] border border-l-4 py-1 px-1.5 cursor-pointer transition-all shadow-md flex flex-col justify-between overflow-hidden z-20 relative backdrop-blur-sm ' + cardStyle + '">'
+          + '<div class="flex items-center justify-between gap-1">'
+          + '<span class="bg-black/50 px-1 py-0.5 rounded text-[8px] font-black text-white tracking-tighter shrink-0">' + slotStr + '</span>'
+          + badgeHtml
+          + '</div>'
+          + '<div class="flex flex-col justify-center min-w-0 my-auto">'
+          + '<p class="text-[10px] font-black text-white leading-tight truncate">' + clientName + '</p>'
+          + '<p class="text-[9px] font-bold text-white/80 leading-tight truncate">' + servName + '</p>'
+          + '</div>'
+          + '<div class="text-[7.5px] font-extrabold text-white/60 tracking-tight text-right">término ' + endStr + '</div>'
           + '</div></div>';
-        return;
+      } else if (isBreakSlot) {
+        html += '<div class="border-r border-zinc-800/50 last:border-r-0 bg-zinc-950/70 flex items-center justify-center">'
+          + '<span class="text-[8px] font-bold uppercase text-zinc-700">Descanso</span>'
+          + '</div>';
+      } else {
+        const isoDate = formatIsoDate(dObj);
+        html += '<button type="button" onclick="prefillTimeSlot=\'' + slotStr + '\'; selectCalendarDate(\'' + dStr + '\'); openManualModal(\'' + isoDate + '\')" class="border-r border-zinc-800/50 last:border-r-0 hover:bg-emerald-500/10 group flex items-center justify-center transition-colors ' + colHighlight + '">'
+          + '<span class="opacity-0 group-hover:opacity-100 text-[9px] font-black text-emerald-400 uppercase">+ Agendar</span>'
+          + '</button>';
       }
-
-      // Atendimento normal
-      const clientName = formatClientName(activeItem.client_name || 'Cliente');
-      const servName = activeItem.service || 'Corte';
-      const isDone = activeItem.status === 'completed' || activeItem.status === 'concluido';
-      const isNoShow = activeItem.status === 'noshow';
-      const isOverdue = !isDone && !isNoShow && isAppointmentOverdue(activeItem);
-
-      let cardStyle = 'bg-zinc-900/90 border-emerald-500/40 border-l-emerald-500 text-zinc-200 hover:bg-zinc-800';
-      let badgeIcon = '';
-
-      if (isDone) {
-        cardStyle = 'bg-emerald-500/20 border-emerald-500/50 border-l-emerald-400 text-emerald-100 hover:bg-emerald-500/30';
-        badgeIcon = '<svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>';
-      } else if (isNoShow) {
-        cardStyle = 'bg-zinc-900/90 border-amber-500/40 border-l-amber-500 text-zinc-400 opacity-60';
-        badgeIcon = '<svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>';
-      } else if (isOverdue) {
-        cardStyle = 'bg-amber-500/20 border-amber-500/50 border-l-amber-400 text-amber-100 hover:bg-amber-500/30';
-        badgeIcon = '<svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
-      }
-
-      const endHourMin = slotTotalMin + dur;
-      const endH = Math.floor(endHourMin / 60);
-      const endM = endHourMin % 60;
-      const endStr = pad2(endH) + ':' + pad2(endM);
-
-      const itemJson = JSON.stringify(activeItem).replace(/'/g, "&apos;");
-
-      html += '<div class="relative ' + borderStyle + ' p-[2px] ' + colHighlight + '">'
-        + '<div onclick=\'openDetailsModal(' + itemJson + ')\' style="height:' + cardHeightPx + 'px" class="w-full rounded-[10px] border border-l-4 py-1 px-1.5 cursor-pointer transition-all shadow-md flex flex-col justify-between overflow-hidden z-20 relative backdrop-blur-sm ' + cardStyle + '">'
-        + '<div class="flex items-center justify-between gap-1">'
-        + '<span class="bg-black/50 px-1 py-0.5 rounded text-[8px] font-black text-white tracking-tighter shrink-0">' + slotStr + '</span>'
-        + badgeIcon
-        + '</div>'
-        + '<div class="flex flex-col justify-center min-w-0 my-auto">'
-        + '<p class="text-[10px] font-black text-white leading-tight truncate">' + clientName + '</p>'
-        + '<p class="text-[9px] font-bold text-white/80 leading-tight truncate">' + servName + '</p>'
-        + '</div>'
-        + '<div class="text-[7.5px] font-extrabold text-white/60 tracking-tight text-right">término ' + endStr + '</div>'
-        + '</div></div>';
     });
 
-    html += '</div>'; // Fim da linha de horário
-  });
+    html += '</div>';
+  }
 
-  html += '</div></div>';
+  html += '</div>';
   container.innerHTML = html;
 }
 
