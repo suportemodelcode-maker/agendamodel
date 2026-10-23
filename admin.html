@@ -3589,31 +3589,27 @@ let badgeIcon = '';
         }
 
         const itemJson = JSON.stringify(activeItem).replace(/'/g, "&apos;");
-        const isConflicted = window.currentAgendaConflicts && window.currentAgendaConflicts.some(c => c.apt.id === activeItem.id);
-        if (isConflicted) {
-            cardStyle += ' !border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]';
-            badgeIcon = '<svg class="w-3.5 h-3.5 text-red-500 animate-pulse shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>';
-        }
+        
 
-        const itemJson = JSON.stringify(activeItem).replace(/'/g, "&apos;");
+// Condicional para não renderizar a span do ícone se estiver vazio
         const badgeHtml = badgeIcon ? '<span class="text-[10px] shrink-0">' + badgeIcon + '</span>' : '';
 
         let cardInnerHtml = '';
         if (spanSlots === 1) {
-            cardInnerHtml = '<div class="flex items-start justify-between gap-1 w-full min-w-0">'
+            cardInnerHtml = '<div class="flex items-start justify-between gap-1 w-full">'
               + '<p class="text-[10px] font-black text-white leading-none truncate flex-1">' + clientName + '</p>'
               + badgeHtml
               + '</div>'
-              + '<div class="flex items-end justify-between gap-1 w-full mt-auto min-w-0">'
+              + '<div class="flex items-end justify-between gap-1 w-full mt-auto">'
               + '<p class="text-[8.5px] font-bold text-white/80 leading-none truncate flex-1">' + servName + '</p>'
               + '<span class="bg-black/40 px-1 py-[1px] rounded text-[7px] font-black text-white tracking-tighter shrink-0">' + slotStr + '</span>'
               + '</div>';
         } else {
-            cardInnerHtml = '<div class="flex items-start justify-between gap-1 w-full min-w-0">'
+            cardInnerHtml = '<div class="flex items-start justify-between gap-1 w-full">'
               + '<p class="text-[10px] font-black text-white leading-none truncate flex-1">' + clientName + '</p>'
               + badgeHtml
               + '</div>'
-              + '<p class="text-[8.5px] font-bold text-white/80 leading-none truncate mt-1 w-full min-w-0">' + servName + '</p>'
+              + '<p class="text-[8.5px] font-bold text-white/80 leading-none truncate mt-1 w-full">' + servName + '</p>'
               + '<div class="mt-auto flex w-full">'
               + '<span class="bg-black/40 px-1.5 py-[2px] rounded text-[8px] font-black text-white tracking-tighter">' + slotStr + ' às ' + endStr + '</span>'
               + '</div>';
@@ -3633,6 +3629,14 @@ let badgeIcon = '';
           + '<span class="opacity-0 group-hover:opacity-100 text-[9px] font-black text-emerald-400 uppercase">+ Agendar</span>'
           + '</button>';
       }
+    });
+
+    html += '</div>';
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+}
 
 function openManualModalForSelectedDate(slotStr) {
   prefillTimeSlot = slotStr ? slotStr : null;
