@@ -3434,7 +3434,7 @@ function renderWeeklyGridSchedule(container, weekDays, openMin, closeMin, bStart
   let html = '<div class="min-w-[780px] select-none">';
 
   // Cabeçalho dos 7 dias da semana
-  html += '<div class="grid grid-cols-[72px_repeat(7,minmax(0,1fr))] border-b border-zinc-800 sticky top-0 z-50 bg-zinc-950">';
+  html += '<div class="grid grid-cols-[85px_repeat(7,minmax(0,1fr))] border-b border-zinc-800 sticky top-0 z-50 bg-zinc-950">';
   html += '<div class="p-2 flex items-center justify-center text-[9px] font-black uppercase text-zinc-400 border-r border-zinc-800/70 sticky left-0 z-[60] bg-zinc-900 shadow-[3px_0_10px_rgba(0,0,0,0.3)]">Hora</div>';
 
   weekDays.forEach(function(dObj, idx) {
@@ -3459,10 +3459,10 @@ html += '<div class="p-2 text-center border-r border-zinc-800/60 last:border-r-0
     const isFullHour = (t % 60 === 0);
     const isBreakSlot = (bStartMin >= 0 && bEndMin > bStartMin && t >= bStartMin && t < bEndMin);
 
-html += '<div class="grid grid-cols-[72px_repeat(7,minmax(0,1fr))] border-b border-zinc-800/45 min-h-[48px]">';
+html += '<div class="grid grid-cols-[85px_repeat(7,minmax(0,1fr))] border-b border-zinc-800/45 min-h-[48px]">';
 
         // Coluna da Hora
-        html += '<div class="pr-2.5 pt-1.5 text-right border-r border-zinc-800/70 sticky left-0 z-40 bg-zinc-900 shadow-[3px_0_10px_rgba(0,0,0,0.3)] ' + (isFullHour ? 'text-[12px] font-black text-white' : 'text-[10px] font-bold text-zinc-400') + '">'
+        html += '<div class="pr-3 pt-1.5 whitespace-nowrap text-right border-r border-zinc-800/70 sticky left-0 z-40 bg-zinc-900 shadow-[3px_0_10px_rgba(0,0,0,0.3)] ' + (isFullHour ? 'text-[12px] font-black text-white' : 'text-[10px] font-bold text-zinc-400') + '">'
           + slotStr
           + '</div>';
 
