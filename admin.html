@@ -21,8 +21,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
-
+/* Ajustes de rolagem e usabilidade para a tabela em telas pequenas */
+    .table-container-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y; /* Melhora a rolagem vertical, permitindo o arraste horizontal dentro da tabela */
+    }
     * { box-sizing: border-box; }
+    <div id="selected-day-schedule-container" class="table-container-scroll flex-1 p-3 md:p-5"></div>
 
     body { font-family: 'Inter', sans-serif; background: #09090b; color: #fafafa; overscroll-behavior-y: none; }
 
