@@ -3578,29 +3578,27 @@ let badgeIcon = '';
 
         let cardInnerHtml = '';
         if (spanSlots === 1) {
-            // Ultra compacto para 30 minutos (Horário vai para a lateral do serviço)
-            cardInnerHtml = '<div class="flex items-center justify-between gap-1">'
-              + '<p class="text-[10px] font-black text-white leading-none truncate">' + clientName + '</p>'
+            cardInnerHtml = '<div class="flex items-start justify-between gap-1 w-full">'
+              + '<p class="text-[10px] font-black text-white leading-none truncate flex-1">' + clientName + '</p>'
               + badgeHtml
               + '</div>'
-              + '<div class="flex items-center justify-between gap-1 mt-1.5">'
-              + '<p class="text-[8.5px] font-bold text-white/80 leading-none truncate">' + servName + '</p>'
-              + '<span class="bg-black/40 px-1 py-[1.5px] rounded text-[7px] font-black text-white tracking-tighter shrink-0">' + slotStr + '</span>'
+              + '<div class="flex items-end justify-between gap-1 w-full mt-auto">'
+              + '<p class="text-[8.5px] font-bold text-white/80 leading-none truncate flex-1">' + servName + '</p>'
+              + '<span class="bg-black/40 px-1 py-[1px] rounded text-[7px] font-black text-white tracking-tighter shrink-0">' + slotStr + '</span>'
               + '</div>';
         } else {
-            // Folgado para 60+ minutos
-            cardInnerHtml = '<div class="flex items-start justify-between gap-1">'
-              + '<p class="text-[10px] font-black text-white leading-none truncate">' + clientName + '</p>'
+            cardInnerHtml = '<div class="flex items-start justify-between gap-1 w-full">'
+              + '<p class="text-[10px] font-black text-white leading-none truncate flex-1">' + clientName + '</p>'
               + badgeHtml
               + '</div>'
-              + '<p class="text-[8.5px] font-bold text-white/80 leading-none truncate mt-1">' + servName + '</p>'
-              + '<div class="mt-auto flex">'
+              + '<p class="text-[8.5px] font-bold text-white/80 leading-none truncate mt-1 w-full">' + servName + '</p>'
+              + '<div class="mt-auto flex w-full">'
               + '<span class="bg-black/40 px-1.5 py-[2px] rounded text-[8px] font-black text-white tracking-tighter">' + slotStr + ' às ' + endStr + '</span>'
               + '</div>';
         }
 
         html += '<div class="relative border-r border-zinc-800/50 last:border-r-0 p-[2px] ' + colHighlight + '">'
-          + '<div onclick=\'openDetailsModal(' + itemJson + ')\' style="height:' + cardHeightPx + 'px; top: 2px; left: 2px; width: calc(100% - 4px);" class="absolute rounded-[8px] border border-l-[3px] p-1.5 cursor-pointer transition-all shadow-sm flex flex-col overflow-hidden z-20 backdrop-blur-sm ' + cardStyle + '">'
+          + '<div onclick=\'openDetailsModal(' + itemJson + ')\' style="height:' + cardHeightPx + 'px; top: 2px; left: 2px; width: calc(100% - 4px);" class="absolute rounded-[6px] border border-l-[3px] p-1 cursor-pointer transition-all shadow-sm flex flex-col overflow-hidden z-20 backdrop-blur-sm ' + cardStyle + '">'
           + cardInnerHtml
           + '</div></div>';
       } else if (isBreakSlot) {
@@ -3919,6 +3917,20 @@ async function saveManualBooking() {
 
   const btn = document.getElementById('btn-save-manual');
   btn.disabled = true;
+  btn.innerText = 'Verificando disponibilidade...';
+
+  // --- TRAVA DE CONFLITO ---
+  const parts = dateVal.split('-');
+  const dateBr = parts[2] + '/' + parts[1] + '/' + parts[0];
+  const hasConflict = await checkOverlap(dateBr, manualSelectedTime, manualSelectedDuration);
+  
+  if (hasConflict) {
+    btn.disabled = false;
+    btn.innerText = 'Confirmar Agendamento';
+    return alert('⚠️ CONFLITO DE HORÁRIO: Já existe um agendamento neste mesmo horário. Escolha outro.');
+  }
+  // -------------------------
+
   btn.innerText = 'Salvando...';
 
   let finalUserId = generateUUID();
@@ -3934,12 +3946,11 @@ async function saveManualBooking() {
     await sb.from('profiles').insert([{ id: finalUserId, full_name: name, phone: null }]);
   }
 
-  const parts = dateVal.split('-');
-const resIns = await sb.from('appointments').insert([{
+  const resIns = await sb.from('appointments').insert([{
     user_id: finalUserId,
     service: service,
     price: manualSelectedPrice,
-    date: parts[2] + '/' + parts[1] + '/' + parts[0],
+    date: dateBr,
     time: manualSelectedTime,
     calendar_event_id: 'internal_system',
     barbershop_id: currentShopId
@@ -4079,6 +4090,19 @@ async function saveEditedBooking() {
 
   const btn = document.getElementById('btn-save-edit');
   btn.disabled = true;
+  btn.innerText = 'Verificando disponibilidade...';
+
+  // --- TRAVA DE CONFLITO ---
+  const dur = getServiceDuration(editingAppointment.service);
+  const hasConflict = await checkOverlap(newBrDate, editSelectedTime, dur, editingAppointment.id);
+  
+  if (hasConflict) {
+    btn.disabled = false;
+    btn.innerText = 'Salvar Novo Horário';
+    return alert('⚠️ CONFLITO DE HORÁRIO: Já existe um agendamento ou bloqueio neste horário. Escolha outro.');
+  }
+  // -------------------------
+
   btn.innerText = 'Atualizando...';
 
   const res = await sb.from('appointments')
@@ -6164,6 +6188,38 @@ function copyDaySummary() {
   } else {
     alert(text);
   }
+}
+// --- TRAVA DE SEGURANÇA (VERIFICA SOBREPOSIÇÃO NO BANCO ANTES DE SALVAR) ---
+async function checkOverlap(dateBr, timeStr, durationMins, excludeId = null) {
+  if (!sb) return false;
+  const { data } = await sb.from('appointments').select('id, time, service, calendar_event_id, date').eq('barbershop_id', currentShopId);
+  if (!data) return false;
+  
+  const newStart = timeToMinutes(timeStr);
+  const newEnd = newStart + durationMins;
+  
+  for (let a of data) {
+    let aDate = a.date;
+    if (aDate && aDate.includes('-')) {
+        const p = aDate.split('-');
+        aDate = pad2(p[2]) + '/' + pad2(p[1]) + '/' + p[0];
+    } else if (aDate && aDate.includes('/')) {
+        const p = aDate.split('/');
+        aDate = pad2(p[0]) + '/' + pad2(p[1]) + '/' + p[2];
+    }
+    
+    if (aDate !== dateBr) continue;
+    if (excludeId && String(a.id) === String(excludeId)) continue;
+    if (isCancelledItem(a) || isNoShowItem(a)) continue;
+    
+    const existingStart = timeToMinutes(a.time);
+    const existingDur = isBlockItem(a) ? 30 : getServiceDuration(a.service);
+    const existingEnd = existingStart + existingDur;
+    
+    // Se baterem no mesmo tempo
+    if (newStart < existingEnd && newEnd > existingStart) return true;
+  }
+  return false;
 }
 function handleAdminLogoUpload(event) {
   const file = event.target.files && event.target.files[0];
