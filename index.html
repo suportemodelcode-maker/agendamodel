@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>RB Barbearia</title>
+  <title>Agenda Model</title>
 <!-- Ícone da aba e atalho do celular -->
-  <link rel="icon" type="image/png" href="https://rb-barbearia.vercel.app/icone.png">
-  <link rel="apple-touch-icon" href="https://rb-barbearia.vercel.app/icone.png">
+  <link rel="icon" type="image/png" href="./icone.png">
+  <link rel="apple-touch-icon" href="./icone.png">
 
   <!-- Pré-visualização de compartilhamento (WhatsApp / Redes Sociais) -->
-  <meta name="description" content="Agende seu horário online na RB Barbearia.">
+  <meta name="description" content="Agende seu horário online.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://rb-barbearia.vercel.app/">
-  <meta property="og:title" content="RB Barbearia">
+  <meta property="og:url" content="https://agendamodel.vercel.app/">
+  <meta property="og:title" content="Agendamento Online">
   <meta property="og:description" content="Agende seu horário online, acompanhe em tempo real e muito mais.">
-  <meta property="og:image" content="https://rb-barbearia.vercel.app/icone.png">
+  <meta property="og:image" content="https://agendamodel.vercel.app/icone.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="512">
   <meta property="og:image:height" content="512">
@@ -1072,7 +1072,7 @@ let CATALOG_SERVICES = [
       if (error) {
         const errMsg = String(error.message || '').toLowerCase();
         if (errMsg.includes('signups not allowed') || errMsg.includes('user not found') || errMsg.includes('invalid') || error.status === 400 || error.status === 422) {
-          await appAlert('Este e-mail ainda não possui cadastro na RB Barbearia. O código de acesso único funciona somente para clientes já cadastrados. Use a opção "Novo cadastro" na tela inicial.', 'E-mail Não Cadastrado');
+          await appAlert('Este e-mail ainda não possui cadastro em ' + currentShopName + '. O código de acesso único funciona somente para clientes já cadastrados. Use a opção "Novo cadastro" na tela inicial.', 'E-mail Não Cadastrado');
         } else {
           await appAlert('Não foi possível enviar o código: ' + error.message, 'Erro no Envio');
         }
@@ -1450,7 +1450,7 @@ let CATALOG_SERVICES = [
     /* ==============================================================
        MODAIS PERSONALIZADOS DO APP
        ============================================================== */
-    function appAlert(message, title = 'RB Barbearia') {
+    function appAlert(message, title = currentShopName) {
       return new Promise(resolve => {
         const modal = document.getElementById('custom-app-modal');
         const titleEl = document.getElementById('custom-modal-title');
@@ -1883,14 +1883,18 @@ let CATALOG_SERVICES = [
             CATALOG_SERVICES = data.services;
           }
 
-          // Atualiza Nome e Logo da Barbearia na interface do cliente
+          // Atualiza Nome, Sigla e Logo da Barbearia na interface do cliente
           document.title = currentShopName;
           document.querySelectorAll('.gold-text, #tab-content-inicio p.text-zinc-400.uppercase').forEach(el => {
             el.innerText = currentShopName;
           });
-          document.querySelectorAll('img[src="./icone.png"]').forEach(img => {
+          document.querySelectorAll('#view-login img, #oauth-loading-overlay img').forEach(img => {
             img.src = data.logo_url || './icone.png';
+            img.alt = currentShopName;
           });
+          const shortBadge = document.querySelector('#modal-mandatory-phone .gold-gradient');
+          if (shortBadge && data.short_name) shortBadge.innerText = data.short_name;
+
           // Atualiza os links de WhatsApp para o número da barbearia atual
           if (data.phone) {
             const cleanWa = String(data.phone).replace(/\D/g, '');
@@ -1910,7 +1914,7 @@ let CATALOG_SERVICES = [
           triggerImmediateSync(true);
           renderPopularAndCatalogServices();
         })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, async () => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'barbershops' }, async () => {
           await fetchSettings();
           triggerImmediateSync(true);
         })
@@ -2010,6 +2014,10 @@ let CATALOG_SERVICES = [
       renderLastLoginPill();
       enableCarouselDragScroll();
 
+      // Carrega os dados e serviços da barbearia ativa PRIMEIRO
+      await fetchSettings();
+      await renderPopularAndCatalogServices();
+
       // 1. Verifica sessão local existente
       const savedSessionRaw = localStorage.getItem('rb_client_session');
       if (savedSessionRaw && !isOAuthCallback) {
@@ -2031,8 +2039,6 @@ let CATALOG_SERVICES = [
               };
               localStorage.setItem('rb_client_session', JSON.stringify(clientUser));
               enterApp();
-              fetchSettings();
-              renderPopularAndCatalogServices();
               return;
             }
           }
@@ -2046,9 +2052,6 @@ let CATALOG_SERVICES = [
       } else {
         document.getElementById('oauth-loading-overlay').classList.add('hidden');
       }
-
-      await fetchSettings();
-      renderPopularAndCatalogServices();
     });
 
     /* ==============================================================

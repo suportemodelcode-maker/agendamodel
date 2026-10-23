@@ -230,11 +230,11 @@
 
     </div>
 
-    <p class="text-[10px] text-orange-500 font-black tracking-[.35em] uppercase mb-2">RB Barbearia</p>
+    <p class="text-[10px] text-orange-500 font-black tracking-[.35em] uppercase mb-2">Agenda Model</p>
 
-    <h2 class="text-2xl font-black text-white tracking-tight uppercase">Painel RB Barbearia</h2>
+    <h2 class="text-2xl font-black text-white tracking-tight uppercase">Painel Administrativo</h2>
 
-    <p class="text-[11px] text-zinc-500 mt-2 mb-8 font-medium">Gestão inteligente da sua barbearia</p>
+    <p class="text-[11px] text-zinc-500 mt-2 mb-8 font-medium">Gestão inteligente do seu negócio</p>
 
 <div id="login-form" class="space-y-3">
       <input type="email" id="admin-email" placeholder="E-MAIL DO ADMIN" class="w-full py-4 px-4 rounded-2xl bg-zinc-950 border border-zinc-700 text-white focus:border-orange-500 outline-none text-center font-bold transition-all placeholder:text-zinc-600">
@@ -2604,10 +2604,10 @@ async function processLogin() {
       savedTab = stored;
     }
   } catch (err) {}
-  switchTab(savedTab);
 
   if (sb) {
     await loadSettings();
+    switchTab(savedTab);
     await loadAgendaData();
     fetchHistoryData();
     subscribeToRealtime();
@@ -2989,7 +2989,7 @@ function setAgendaScope(scope) {
       : 'px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all';
   }
   if (dayControls) dayControls.classList.toggle('hidden', scope !== 'day');
-  if (mainTitle) mainTitle.innerText = scope === 'week' ? 'Agenda semanal: RB Barbearia' : 'Agenda do Dia: RB Barbearia';
+  if (mainTitle) mainTitle.innerText = scope === 'week' ? ('Agenda semanal: ' + currentShopName) : ('Agenda do Dia: ' + currentShopName);
   if (quickBtn) quickBtn.innerText = scope === 'week' ? 'Ver Só o Dia' : 'Ver Semana';
 
   renderSelectedDaySchedule();
@@ -3652,7 +3652,8 @@ function openManualModal(customIsoDate) {
 
   manualSelectedTime = null;
   if (prefillTimeSlot) {
-    document.getElementById('manual-service').value = 'Corte Masculino';
+    const firstServ = Object.keys(servicesMap)[0] || '';
+    document.getElementById('manual-service').value = firstServ;
     fetchManualTimes();
   } else {
     document.getElementById('manual-service').value = '';
@@ -4365,7 +4366,7 @@ async function loadSettings() {
       if (el.id === 'agenda-main-title') el.innerText = 'Agenda semanal: ' + currentShopName;
       else el.innerText = currentShopName;
     });
-    document.querySelectorAll('img[src="./icone.png"]').forEach(function(img) {
+    document.querySelectorAll('header img, aside img, #auth-screen img').forEach(function(img) {
       img.src = currentShopLogo;
     });
   }
