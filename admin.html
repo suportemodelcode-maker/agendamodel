@@ -1524,6 +1524,20 @@
         <h2 class="text-xl font-black text-zinc-100 tracking-wide">Configurações</h2>
 
       </div>
+      <!-- LOGO DA BARBEARIA -->
+      <div class="mb-6 flex items-center gap-5 bg-zinc-900/80 border border-zinc-800 rounded-3xl p-5 shadow-xl w-full max-w-5xl">
+        <div class="relative w-20 h-20 rounded-2xl overflow-hidden border-2 border-zinc-700 bg-zinc-950 shrink-0 group cursor-pointer" onclick="document.getElementById('admin-logo-upload').click()">
+          <img id="admin-logo-preview" src="./icone.png" class="w-full h-full object-cover">
+          <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+            <span class="text-white text-[10px] font-bold uppercase tracking-wider">📷 Alterar</span>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-sm font-black tracking-widest uppercase text-white">Logo da Unidade</h3>
+          <p class="text-[10px] text-zinc-400 mt-1">Clique na imagem ao lado para alterar a logo exclusiva desta barbearia.</p>
+          <input type="file" id="admin-logo-upload" accept="image/*" class="hidden" onchange="handleAdminLogoUpload(event)">
+        </div>
+      </div>
 
 
 
@@ -4390,8 +4404,8 @@ async function loadSettings() {
       if (el.id === 'agenda-main-title') el.innerText = 'Agenda semanal: ' + currentShopName;
       else el.innerText = currentShopName;
     });
-    document.querySelectorAll('header img, aside img, #auth-screen img').forEach(function(img) {
-      img.src = currentShopLogo;
+    document.querySelectorAll('header img, aside img, #auth-screen img, #admin-logo-preview').forEach(function(img) {
+      if(img) img.src = currentShopLogo;
     });
   }
   ['set-open', 'set-close', 'set-break-start', 'set-break-end'].forEach(syncTimeDisplay);
@@ -5512,7 +5526,17 @@ function calculateDashboard() {
 
 if (!window.Chart) return;
     const chartData = chartLabels.map(function(l) { return chartMap[l] ? chartMap[l] : 0; });
-    if (revenueChartInstance) revenueChartInstance.destroy();
+    
+    if (revenueChartInstance) {
+      revenueChartInstance.data.labels = chartLabels;
+      revenueChartInstance.data.datasets[0].data = chartData;
+      revenueChartInstance.data.datasets[0].pointBackgroundColor = chartData.map(function(v) { return v > 0 ? '#f97316' : '#27272a'; });
+      revenueChartInstance.data.datasets[0].pointBorderColor = chartData.map(function(v) { return v > 0 ? '#fff' : '#52525b'; });
+      revenueChartInstance.data.datasets[0].pointRadius = chartData.map(function(v) { return v > 0 ? 5 : 2.5; });
+      revenueChartInstance.update('none'); 
+      return; 
+    }
+
     const canvas = document.getElementById('revenueChart');
     if (!canvas) return;
     canvas.style.touchAction = 'pan-y';
@@ -6059,6 +6083,41 @@ function copyDaySummary() {
   } else {
     alert(text);
   }
+}
+function handleAdminLogoUpload(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = async function() {
+      const canvas = document.createElement('canvas');
+      const size = 300;
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      const minSide = Math.min(img.width, img.height);
+      const sx = (img.width - minSide) / 2;
+      const sy = (img.height - minSide) / 2;
+
+      ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+      document.querySelectorAll('header img, aside img, #auth-screen img, #admin-logo-preview').forEach(function(el) {
+        if(el) el.src = dataUrl;
+      });
+      currentShopLogo = dataUrl;
+
+      if (sb && currentShopId) {
+        const { error } = await sb.from('barbershops').update({ logo_url: dataUrl }).eq('id', currentShopId);
+        if (error) alert('Erro ao salvar no banco: ' + error.message);
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 </script>
 </body>
