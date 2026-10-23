@@ -28,9 +28,9 @@
       overscroll-behavior: contain; /* Isola a rolagem: impede que a tela puxe junto com a tabela */
       will-change: transform; /* Força aceleração de hardware para não engasgar */
     }
-    * { box-sizing: border-box; }
-    <div id="selected-day-schedule-container" class="table-container-scroll flex-1 p-3 md:p-5"></div>
+* { box-sizing: border-box; }
 
+    body { font-family: 'Inter', sans-serif; background: #09090b; color: #fafafa; overscroll-behavior-y: none; }
     body { font-family: 'Inter', sans-serif; background: #09090b; color: #fafafa; overscroll-behavior-y: none; }
 
     ::selection { background: rgba(249,115,22,.35); color: white; }
@@ -6603,6 +6603,46 @@ async function checkOverlap(dateBr, timeStr, durationMins, excludeId = null) {
 }
 
 // --- SISTEMA AUTOMÁTICO DE DETECÇÃO DE CONFLITOS VISUAIS ---
+  const conflictsFound = [];
+  const aptsByDate = {};
+  
+  allAppointments.forEach(a => {
+    if (isCancelledItem(a) || isNoShowItem(a)) return;
+    if (!aptsByDate[a.date]) aptsByDate[a.date] = [];
+    aptsByDate[a.date].push(a);
+  });
+
+  for (let date in aptsByDate) {
+    const dayList = aptsByDate[date].sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+    
+    for (let i = 0; i < dayList.length; i++) {
+      const apt1 = dayList[i];
+      const start1 = timeToMinutes(apt1.time);
+      const end1 = start1 + (isBlockItem(apt1) ? 30 : getServiceDuration(apt1.service));
+      
+      for (let j = i + 1; j < dayList.length; j++) {
+        const apt2 = dayList[j];
+        const start2 = timeToMinutes(apt2.time);
+        if (start2 >= end1) break; // Sem sobreposição
+        
+        if (!conflictsFound.some(c => c.apt.id === apt1.id)) conflictsFound.push({ apt: apt1, reason: '⚠️ Sobreposto' });
+        if (!conflictsFound.some(c => c.apt.id === apt2.id)) conflictsFound.push({ apt: apt2, reason: '⚠️ Sobreposto' });
+      }
+    }
+  }
+  return conflictsFound;
+}
+
+  if (!window.currentAgendaConflicts || !window.currentAgendaConflicts.length) return;
+  openConflictsModalWithList(
+    window.currentAgendaConflicts,
+    'Conflitos Encontrados na Agenda',
+    'Os agendamentos abaixo estão sobrepostos no mesmo horário. Edite ou cancele para liberar o painel.',
+    false
+  );
+}
+// --- SISTEMA AUTOMÁTICO DE DETECÇÃO DE CONFLITOS ---
+// --- SISTEMA AUTOMÁTICO DE DETECÇÃO DE CONFLITOS ---
 function getAgendaConflicts() {
   const conflictsFound = [];
   const aptsByDate = {};
@@ -6643,8 +6683,6 @@ function showConflictsWarningModal() {
     false
   );
 }
-// --- SISTEMA AUTOMÁTICO DE DETECÇÃO DE CONFLITOS ---
-function getAgendaConflicts() {
   const conflictsFound = [];
   const aptsByDate = {};
   
@@ -6675,7 +6713,6 @@ function getAgendaConflicts() {
   return conflictsFound;
 }
 
-function showConflictsWarningModal() {
   if (!window.currentAgendaConflicts || !window.currentAgendaConflicts.length) return;
   openConflictsModalWithList(
     window.currentAgendaConflicts,
