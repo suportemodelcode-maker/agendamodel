@@ -967,6 +967,32 @@
 
     </nav>
 
+    <!-- ... seu nav de botões (Agenda, Histórico, etc) ... -->
+    </nav>
+
+    <!-- NOVO: FILTRO DE BARBEIROS -->
+    <div class="hidden md:flex flex-col w-full px-4 mt-6 border-t border-zinc-800/80 pt-4 shrink-0">
+      <p class="text-[9px] font-black uppercase text-zinc-500 mb-3 tracking-widest">Filtrar por Barbeiro</p>
+      <div class="space-y-2.5" id="barber-filters">
+        <label class="flex items-center gap-3 text-xs font-bold text-white cursor-pointer group">
+          <input type="checkbox" value="all" checked onchange="filterAgendaCards()" class="w-4 h-4 rounded border-zinc-700 bg-zinc-900 accent-orange-500 cursor-pointer">
+          Todos
+        </label>
+        <label class="flex items-center gap-3 text-xs font-medium text-zinc-300 cursor-pointer hover:text-white transition-colors">
+          <input type="checkbox" value="Carlos" checked onchange="filterAgendaCards()" class="barber-checkbox w-4 h-4 rounded border-zinc-700 bg-zinc-900 accent-orange-500 cursor-pointer">
+          <img src="https://i.pravatar.cc/150?u=carlos" class="w-5 h-5 rounded-full border border-zinc-700"> Carlos
+        </label>
+        <label class="flex items-center gap-3 text-xs font-medium text-zinc-300 cursor-pointer hover:text-white transition-colors">
+          <input type="checkbox" value="Bruno" checked onchange="filterAgendaCards()" class="barber-checkbox w-4 h-4 rounded border-zinc-700 bg-zinc-900 accent-orange-500 cursor-pointer">
+          <img src="https://i.pravatar.cc/150?u=bruno" class="w-5 h-5 rounded-full border border-zinc-700"> Bruno
+        </label>
+        <label class="flex items-center gap-3 text-xs font-medium text-zinc-300 cursor-pointer hover:text-white transition-colors">
+          <input type="checkbox" value="Felipe" checked onchange="filterAgendaCards()" class="barber-checkbox w-4 h-4 rounded border-zinc-700 bg-zinc-900 accent-orange-500 cursor-pointer">
+          <img src="https://i.pravatar.cc/150?u=felipe" class="w-5 h-5 rounded-full border border-zinc-700"> Felipe
+        </label>
+      </div>
+    </div>
+
 
 
     <div class="md:pt-3 md:border-t md:border-zinc-800/80 shrink-0">
@@ -3598,25 +3624,44 @@ function renderWeeklyGridSchedule(container, weekDays, openMin, closeMin, bStart
           const badgeHtml = badgeIcon ? '<span class="text-[10px] shrink-0">' + badgeIcon + '</span>' : '';
 
           let cardInnerHtml = '';
-          if (spanSlots === 1) {
-            cardInnerHtml = '<div class="flex items-start justify-between gap-1 w-full min-w-0">'
-              + '<p class="text-[10px] font-black text-white leading-none truncate flex-1">' + clientName + '</p>'
-              + badgeHtml
-              + '</div>'
-              + '<div class="flex items-end justify-between gap-1 w-full mt-auto min-w-0">'
-              + '<p class="text-[8.5px] font-bold text-white/80 leading-none truncate flex-1">' + servName + '</p>'
-              + '<span class="bg-black/40 px-1 py-[1px] rounded text-[7px] font-black text-white tracking-tighter shrink-0">' + slotStr + '</span>'
-              + '</div>';
-          } else {
-            cardInnerHtml = '<div class="flex items-start justify-between gap-1 w-full min-w-0">'
-              + '<p class="text-[10px] font-black text-white leading-none truncate flex-1">' + clientName + '</p>'
-              + badgeHtml
-              + '</div>'
-              + '<p class="text-[8.5px] font-bold text-white/80 leading-none truncate mt-1 w-full min-w-0">' + servName + '</p>'
-              + '<div class="mt-auto flex w-full">'
-              + '<span class="bg-black/40 px-1.5 py-[2px] rounded text-[8px] font-black text-white tracking-tighter">' + slotStr + ' às ' + endStr + '</span>'
-              + '</div>';
-          }
+// Substitua o bloco de renderização do cartão dentro de renderWeeklyGridSchedule por este:
+
+let borderColor = 'border-l-blue-500';
+let badgeLabel = 'Confirmado';
+let badgeColor = 'bg-blue-600 text-white';
+
+if (isDone) {
+  borderColor = 'border-l-emerald-500';
+  badgeLabel = 'Concluído';
+  badgeColor = 'bg-emerald-600 text-white';
+} else if (isInProgressItem(activeItem)) {
+  borderColor = 'border-l-orange-500';
+  badgeLabel = 'Em andamento';
+  badgeColor = 'bg-orange-500 text-black';
+} else if (isNoShow) {
+  borderColor = 'border-l-red-500';
+  badgeLabel = 'Falta';
+  badgeColor = 'bg-red-600 text-white';
+}
+
+const timeDisplay = slotStr + ' - ' + endStr;
+
+// Design minimalista transparente idêntico à imagem
+cardInnerHtml = `
+  <div class="flex flex-col h-full bg-[#09090b] border border-zinc-800 rounded p-1.5 border-l-[3px] ${borderColor}">
+    <div class="flex justify-between items-start gap-1">
+      <p class="text-[9px] font-bold text-white leading-tight truncate">${timeDisplay} | ${clientName}</p>
+      <span class="${badgeColor} px-1.5 py-[1px] rounded-full text-[8px] font-bold leading-none shrink-0">${badgeLabel}</span>
+    </div>
+    <p class="text-[8.5px] text-zinc-400 font-medium truncate mt-1">Serviço: ${servName}</p>
+    <p class="text-[8.5px] text-zinc-300 font-bold">R$ ${parseFloat(activeItem.price||0).toFixed(2).replace('.',',')}</p>
+  </div>
+`;
+
+// Quando jogar para o HTML principal, remova as cores antigas e coloque fundo transparente
+html += '<div onclick=\'openDetailsModal(' + itemJson + ')\' style="' + posStyle + '" class="absolute cursor-pointer transition-all z-20">'
+      + cardInnerHtml
+      + '</div>';
 
           html += '<div onclick=\'openDetailsModal(' + itemJson + ')\' style="' + posStyle + '" class="absolute rounded-[6px] border border-l-[3px] p-1 cursor-pointer transition-all shadow-sm flex flex-col overflow-hidden z-20 backdrop-blur-sm ' + cardStyle + '">'
             + cardInnerHtml
@@ -5927,80 +5972,71 @@ function renderOverduePendingSection() {
 
 function generateCardHtml(item) {
   const isBlock = item.type === 'block';
-  const clientName = item.profiles && item.profiles.full_name ? formatClientName(item.profiles.full_name) : (isBlock ? 'Barbearia' : 'Cliente Não Id.');
-  const rawPhone = item.profiles && item.profiles.phone ? item.profiles.phone : '';
-  const cleanPhone = rawPhone.replace(/\D/g, '');
-  const servLabel = item.service ? item.service : 'atendimento';
-  const servWithDur = formatServiceWithDuration(item.service);
-  const durMins = getServiceDuration(item.service);
-  const dateLabel = item.date ? item.date : '';
-  const timeLabel = item.time ? item.time : '';
-  const msg = 'Olá ' + clientName + ', confirmando seu horário de ' + servLabel + ' na RB Barbearia dia ' + dateLabel + ' às ' + timeLabel + '!';
-  const whatsLink = cleanPhone ? ('https://wa.me/55' + cleanPhone + '?text=' + encodeURIComponent(msg)) : '#';
-
+  const clientName = item.profiles && item.profiles.full_name ? formatClientName(item.profiles.full_name) : (isBlock ? 'Barbearia' : 'Cliente');
+  
   if (isBlock) {
-    const idsArr = item.block_ids ? item.block_ids : [item.id];
-    const idsStr = idsArr.join(',');
-    const timeDisplay = item.time === item.end_time ? ('Das ' + item.time + ' até ' + add30Mins(item.time)) : ('Das ' + item.time + ' até ' + add30Mins(item.end_time));
-    const blockServ = (item.service ? item.service : '').replace('🚫 ', '');
-    const searchData = ('bloqueio ' + blockServ + ' ' + timeDisplay).toLowerCase();
-    return '<div class="agenda-card bg-red-950/25 border border-red-900/40 border-l-4 border-l-red-600 rounded-2xl p-4 relative shrink-0 shadow-md backdrop-blur-sm w-full" data-search="' + searchData + '">'
-      + '<div class="flex items-center justify-between mb-2.5">'
-      + '<span class="text-[8px] font-black text-red-400 bg-red-500/10 px-2 py-1 rounded uppercase tracking-widest border border-red-500/20">🚫 Bloqueio</span>'
-      + '<button onclick="deleteAppointment(\'' + idsStr + '\', true)" class="text-zinc-400 hover:text-red-400 text-[9px] font-black uppercase tracking-wider">Liberar Dia</button>'
-      + '</div>'
-      + '<p class="font-black text-zinc-100 text-sm">' + timeDisplay + '</p>'
-      + '<p class="text-[10px] text-zinc-400 mt-1.5 truncate uppercase font-bold tracking-wide">' + blockServ + '</p>'
-      + '</div>';
+    const idsStr = (item.block_ids || [item.id]).join(',');
+    const blockEnd = item.time === item.end_time ? add30Mins(item.time) : item.end_time;
+    const timeDisplay = item.time + ' - ' + blockEnd;
+    const blockServ = (item.service || 'Bloqueio').replace('🚫 ', '');
+    
+    return `<div class="bg-transparent border border-zinc-800 rounded-lg p-3 relative shrink-0 w-full border-l-[3px] border-l-red-600 mb-2">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs font-bold text-white">${timeDisplay} | <span class="text-zinc-400">Bloqueio</span></span>
+        <span class="bg-red-500/20 text-red-500 px-2 py-0.5 rounded-full text-[9px] font-bold">Bloqueado</span>
+      </div>
+      <p class="text-[11px] text-zinc-400 font-medium">Motivo: ${blockServ}</p>
+      <button onclick="deleteAppointment('${idsStr}', true)" class="mt-2 text-zinc-400 hover:text-red-400 text-[10px] font-bold uppercase tracking-wider bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded w-full">Liberar Horário</button>
+    </div>`;
   }
 
-  const sTheme = getServiceTheme(item.service);
-  const searchStr = (clientName + ' ' + servWithDur + ' ' + timeLabel).toLowerCase();
-  const priceStr = parseFloat(item.price ? item.price : 0).toFixed(2).replace('.', ',');
+  const durMins = getServiceDuration(item.service);
+  const endTime = minutesToTime(timeToMinutes(item.time) + durMins);
+  const timeDisplay = `${item.time} - ${endTime}`;
+  const priceStr = parseFloat(item.price || 0).toFixed(2).replace('.', ',');
   const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
-  const whatsHtml = cleanPhone
-    ? '<a href="' + whatsLink + '" target="_blank" class="text-emerald-400 hover:text-zinc-950 text-[9px] uppercase tracking-widest font-black flex items-center gap-1 bg-emerald-500/10 hover:bg-emerald-500 px-2.5 py-1.5 rounded-lg border border-emerald-500/20 transition-all backdrop-blur-sm">WhatsApp</a>'
-    : '<span class="text-zinc-400 font-bold text-[9px] uppercase tracking-widest drop-shadow-md">Sem contato</span>';
 
   const isDone = isCompletedItem(item);
   const isNoShow = isNoShowItem(item);
-  const isOverdue = isOverduePendingItem(item);
-  const payLabel = getPaymentMethod(item);
-
-  let statusChipHtml = '';
-  let finishBtnHtml = '<button onclick=\'openFinishModal(' + itemJson + ')\' class="w-full py-2.5 mt-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-[10px] uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-1.5">✓ Finalizar Atendimento</button>';
+  const isInProg = isInProgressItem(item);
+  
+  // Definição de Cores e Badges baseados no status da imagem
+  let borderColor = 'border-l-blue-500';
+  let badgeHtml = `<span class="bg-blue-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold">Confirmado</span>`;
+  let actionButtons = `
+    <button onclick="startAppointment('${item.id}')" class="bg-orange-400/10 hover:bg-orange-400/20 text-orange-400 border border-orange-400/30 px-3 py-1.5 rounded text-[10px] font-bold w-full transition-colors">Iniciar Atendimento</button>
+    <button onclick='openFinishModal(${itemJson})' class="bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 px-3 py-1.5 rounded text-[10px] font-bold w-full transition-colors">Encerrar</button>
+  `;
 
   if (isDone) {
-    statusChipHtml = '<div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[9px] font-black uppercase tracking-wider">✅ Concluído · Pago (' + payLabel + ')</div>';
-    finishBtnHtml = '<button onclick=\'openFinishModal(' + itemJson + ')\' class="w-full py-2 mt-3 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 text-emerald-400 border border-emerald-500/30 font-black text-[9px] uppercase tracking-widest transition-all">Alterar Status / Pagamento</button>';
+    borderColor = 'border-l-emerald-500';
+    badgeHtml = `<span class="bg-emerald-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold">Concluído</span>`;
+    actionButtons = `<button onclick='openFinishModal(${itemJson})' class="bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 px-3 py-1.5 rounded text-[10px] font-bold w-full">Editar Fechamento</button>`;
+  } else if (isInProg) {
+    borderColor = 'border-l-orange-500';
+    badgeHtml = `<span class="bg-orange-500 text-black px-2 py-0.5 rounded-full text-[10px] font-bold">Em andamento</span>`;
+    actionButtons = `<button onclick='openFinishModal(${itemJson})' class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-[10px] font-bold w-full transition-colors">Encerrar Atendimento</button>`;
   } else if (isNoShow) {
-    statusChipHtml = '<div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[9px] font-black uppercase tracking-wider">⚠️ Não Apareceu · Não Concluído</div>';
-    finishBtnHtml = '<button onclick=\'openFinishModal(' + itemJson + ')\' class="w-full py-2 mt-3 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 text-amber-400 border border-amber-500/30 font-black text-[9px] uppercase tracking-widest transition-all">Alterar Status</button>';
-  } else if (isOverdue) {
-    statusChipHtml = '<div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-500/25 border border-red-500/50 text-red-300 text-[9px] font-black uppercase tracking-wider animate-pulse">⏳ Horário Passado · Não Concluído</div>';
+    borderColor = 'border-l-red-500';
+    badgeHtml = `<span class="bg-red-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold">Falta</span>`;
+    actionButtons = `<button onclick='openFinishModal(${itemJson})' class="bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 px-3 py-1.5 rounded text-[10px] font-bold w-full">Reverter Falta</button>`;
   }
 
-  return '<div class="agenda-card card-bg-image rounded-2xl flex flex-col shrink-0 transition-all transform hover:-translate-y-1 shadow-lg group w-full border border-zinc-800 ' + sTheme.borderHover + ' relative overflow-hidden" data-search="' + searchStr + '" style="background-image:url(\'' + sTheme.img + '\')">'
-    + '<div class="absolute inset-0 bg-zinc-950/65 backdrop-blur-sm group-hover:bg-zinc-950/50 transition-all"></div>'
-    + '<div class="absolute left-0 top-0 bottom-0 w-1.5 ' + sTheme.borderL + ' z-20"></div>'
-    + '<div class="relative z-10 p-4 w-full drop-shadow-md">'
-    + '<div class="flex items-center justify-between mb-3">'
-    + '<div class="flex items-center gap-1.5">'
-    + '<span class="text-[11px] font-black text-white bg-zinc-900/90 px-2.5 py-1 rounded-lg border border-zinc-700/50 shadow-sm">' + (timeLabel ? timeLabel : '-') + '</span>'
-    + '<span class="text-[10px] font-extrabold text-orange-300 bg-zinc-900/90 px-2 py-1 rounded-lg border border-orange-500/30 shadow-sm">⏱ ' + durMins + ' min</span>'
-    + '</div>'
-    + '<span class="text-[11px] font-black text-emerald-400 bg-zinc-900/90 px-2.5 py-1 rounded-lg border border-emerald-500/30 shadow-sm">R$ ' + priceStr + '</span>'
-    + '</div>'
-    + '<p class="font-black text-white text-[15px] leading-tight truncate tracking-wide drop-shadow-lg">' + clientName + '</p>'
-    + '<p class="text-[10px] ' + sTheme.text + ' truncate mt-1.5 font-bold uppercase tracking-widest drop-shadow-md">' + servWithDur + '</p>'
-    + statusChipHtml
-    + finishBtnHtml
-    + '<div class="pt-3 mt-3 border-t border-zinc-500/30 flex items-center justify-between gap-1.5">'
-    + whatsHtml
-    + '<div class="flex items-center gap-1.5">'
-    + '<button onclick=\'openEditModal(' + itemJson + ')\' class="text-orange-300 hover:text-zinc-950 text-[9px] uppercase font-black tracking-wider bg-zinc-900/85 hover:bg-orange-500 px-2.5 py-1.5 rounded-lg border border-orange-500/30 transition-all backdrop-blur-sm">Editar</button>'
-    + '<button onclick="deleteAppointment(\'' + item.id + '\', false)" class="text-zinc-300 hover:text-white text-[9px] uppercase font-black tracking-wider bg-zinc-900/85 hover:bg-red-600 px-2.5 py-1.5 rounded-lg border border-zinc-700/50 transition-all backdrop-blur-sm">Cancelar</button>'
-    + '</div></div></div></div>';
+  // Card Limpo igual à foto
+  return `
+    <div class="bg-transparent border border-zinc-800 hover:border-zinc-700 rounded-lg p-3 relative shrink-0 w-full border-l-[3px] ${borderColor} mb-2 transition-colors">
+      <div class="flex items-start justify-between mb-2">
+        <span class="text-xs font-bold text-white tracking-wide">${timeDisplay} | ${clientName}</span>
+        ${badgeHtml}
+      </div>
+      <p class="text-[11px] text-zinc-400 font-medium">Serviço: ${item.service}</p>
+      <p class="text-[11px] text-zinc-300 font-bold mb-3">R$ ${priceStr}</p>
+      
+      <div class="flex gap-2 mt-auto">
+        ${actionButtons}
+      </div>
+    </div>
+  `;
 }
 
 async function loadAgendaData(silent) {
@@ -6281,6 +6317,33 @@ function showConflictsWarningModal() {
     'Os agendamentos abaixo estão sobrepostos no mesmo horário. Edite ou cancele para liberar o painel.',
     false
   );
+}
+
+// Adicione isto no seu script
+function isInProgressItem(item) {
+  return item && item.calendar_event_id === 'in_progress';
+}
+
+async function startAppointment(id) {
+  if (!sb) return;
+  const res = await sb.from('appointments').update({ calendar_event_id: 'in_progress' }).eq('id', id);
+  if (res.error) return alert('Erro ao iniciar: ' + res.error.message);
+  await loadAgendaData();
+}
+
+// Atualiza a função base para entender o novo status (Substitua a sua atual)
+function isOverduePendingItem(item) {
+  if (!item || isBlockItem(item) || isCancelledItem(item) || isCompletedItem(item) || isNoShowItem(item) || isInProgressItem(item)) return false;
+  const now = new Date();
+  const todayMidnight = getTodayMidnightObj().getTime();
+  const dObj = parseBrDateToObj(item.date);
+  const aptMidnight = new Date(dObj.getFullYear(), dObj.getMonth(), dObj.getDate()).getTime();
+  if (aptMidnight < todayMidnight) return true;
+  if (aptMidnight === todayMidnight) {
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+    return timeToMinutes(item.time) <= nowMins;
+  }
+  return false;
 }
 
 function handleAdminLogoUpload(event) {
