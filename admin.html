@@ -1098,7 +1098,7 @@
                 </button>
                 <div>
                   <div class="flex items-center gap-2">
-                    <h2 id="agenda-main-title" class="text-sm md:text-base font-black text-white tracking-tight">Agenda semanal: RB Barbearia</h2>
+                    <h2 id="agenda-main-title" class="text-sm md:text-base font-black text-white tracking-tight">Agenda do Dia: RB Barbearia</h2>
                     <span id="selected-day-relative-tag" class="text-[8px] font-black uppercase px-2 py-0.5 rounded bg-orange-500/15 text-orange-400 border border-orange-500/30">Hoje</span>
                   </div>
                   <p id="selected-day-full-title" class="text-[11px] font-bold text-zinc-400 capitalize mt-0.5">--/--/----</p>
@@ -1112,7 +1112,11 @@
 
 <!-- Busca da Agenda -->
             <div class="flex flex-wrap items-center gap-2">
-              <div class="flex items-center bg-zinc-900 border border-zinc-800 rounded-xl px-2.5 py-1.5 flex-1 sm:flex-initial">
+              <div class="inline-flex items-center gap-1 rounded-xl border border-zinc-800 bg-zinc-900 p-1 shrink-0" role="group" aria-label="Visualização da agenda">
+                <button type="button" id="btn-scope-day" onclick="setAgendaScope('day')" class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-orange-500 text-zinc-950 transition-all">Dia</button>
+                <button type="button" id="btn-scope-week" onclick="setAgendaScope('week')" class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-all">Semana</button>
+              </div>
+              <div class="flex items-center bg-zinc-900 border border-zinc-800 rounded-xl px-2.5 py-1.5 flex-1 sm:flex-initial min-w-[135px]">
                 <svg class="w-3.5 h-3.5 text-zinc-500 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 <input id="cal-day-search" oninput="renderSelectedDaySchedule()" placeholder="Filtrar cliente..." class="bg-transparent outline-none text-xs text-white placeholder:text-zinc-600 w-full sm:w-32">
               </div>
@@ -3125,7 +3129,7 @@ function isOverduePendingItem(item) {
   return false;
 }
 
-let agendaScope = 'week'; // 'week' (Grade Semanal igual à foto) ou 'day' (Dia Individual)
+let agendaScope = 'day'; // Abre no dia selecionado; a semana continua disponível no seletor.
 
 // Redireciona qualquer chamada antiga da aba 'hoje' direto para 'kanban'
 const _baseSwitchTab = switchTab;
@@ -3403,13 +3407,20 @@ function renderSelectedDaySchedule() {
   const searchInput = document.getElementById('cal-day-search');
   const searchQuery = (searchInput && searchInput.value ? searchInput.value : '').toLowerCase().trim();
 
-  // MODO 1: GRADE SEMANAL (IGUAL À IMAGEM)
+  // MODO 1: GRADE SEMANAL
   if (agendaScope === 'week') {
     renderWeeklyGridSchedule(container, weekDays, metrics.openMin, metrics.closeMin, metrics.bStartMin, metrics.bEndMin, searchQuery);
     return;
   }
 
-  // MODO 2: DIA INDIVIDUAL (CARDS OU HORÁRIOS)
+  // MODO 2: GRADE DO DIA — ocupa a largura disponível e posiciona os cartões por horário.
+  // A largura só é dividida quando existem atendimentos realmente sobrepostos.
+  if (agendaScope === 'day') {
+    renderDailyTimelineGrid(container, dObj, metrics.openMin, metrics.closeMin, metrics.bStartMin, metrics.bEndMin, searchQuery);
+    return;
+  }
+
+  // Compatibilidade com o modo antigo de cartões agrupados.
   if (calendarViewMode === 'cards') {
     const merged = mergeBlocks(dayAptsRaw).filter(function(item) {
       if (!searchQuery) return true;
@@ -5831,180 +5842,306 @@ function renderOverduePendingSection() {
     + '</div>';
 }
 
-// RENDERIZA A GRADE SEMANAL (COLUNAS DOM A SÁB x HORÁRIOS) IGUAL À IMAGEM
-// RENDERIZA A GRADE SEMANAL (COLUNAS DOM A SÁB x HORÁRIOS) IGUAL À IMAGEM
-function renderWeeklyGridSchedule(container, weekDays, openMin, closeMin, bStartMin, bEndMin, searchQuery) {
-  const diasCurtos = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
-  const todayStr = formatBrDate(new Date());
+// Gera os agendamentos de um dia e distribui em faixas consistentes.
+// Diferente da versão anterior, a largura de um cartão não muda a cada linha:
+// todos os cartões que se sobrepõem compartilham faixas estáveis durante todo o intervalo.
+function buildAgendaDayLayout(dayAppointments, searchQuery) {
+  const query = (searchQuery || '').toLowerCase().trim();
+  const entries = [];
 
-  let html = '<div class="min-w-[780px] select-none pb-10">';
+  (dayAppointments || []).forEach(function(item) {
+    if (!item || !item.time) return;
 
-  // Cabeçalho dos 7 dias
-  html += '<div class="grid grid-cols-[60px_repeat(7,minmax(0,1fr))] border-b border-zinc-800 sticky top-0 z-50 bg-zinc-950">';
-  html += '<div class="p-2 border-r border-zinc-800/70 sticky left-0 z-[60] bg-zinc-950"></div>'; // Canto vazio
+    const start = timeToMinutes(item.time);
+    if (!Number.isFinite(start)) return;
 
-  weekDays.forEach(function(dObj, idx) {
-    const dStr = formatBrDate(dObj);
-    const isSel = dStr === selectedCalendarDateStr;
-    const isToday = dStr === todayStr;
-    const headerBg = isSel ? 'bg-zinc-900 border-b-2 border-b-orange-500' : (isToday ? 'bg-zinc-900/50' : 'bg-zinc-950');
-    const dayNumCls = isSel ? 'text-orange-500' : (isToday ? 'text-white' : 'text-zinc-400');
+    const isBlock = isBlockItem(item);
+    const duration = isBlock ? 30 : Math.max(1, getServiceDuration(item.service));
+    const end = start + duration;
+    const clientName = item.profiles && item.profiles.full_name
+      ? formatClientName(item.profiles.full_name)
+      : (isBlock ? 'Barbearia' : 'Cliente');
+    const serviceName = item.service || (isBlock ? 'Bloqueio' : 'Serviço');
 
-    html += '<div class="p-2 text-center border-r border-zinc-800/60 last:border-r-0 transition-all ' + headerBg + '">'
-      + '<button type="button" onclick="selectCalendarDate(\'' + dStr + '\')" class="w-full flex flex-col items-center justify-center group">'
-      + '<span class="text-[10px] font-bold uppercase ' + (isSel ? 'text-orange-500' : 'text-zinc-500') + '">' + diasCurtos[idx] + '</span>'
-      + '<span class="text-sm font-black mt-0.5 ' + dayNumCls + '">' + pad2(dObj.getDate()) + '</span>'
-      + '</button>'
+    if (query) {
+      const searchable = (clientName + ' ' + serviceName + ' ' + item.time + (isBlock ? ' bloqueio' : '')).toLowerCase();
+      if (!searchable.includes(query)) return;
+    }
+
+    entries.push({
+      item: item,
+      start: start,
+      end: end,
+      duration: duration,
+      isBlock: isBlock,
+      lane: 0,
+      laneCount: 1
+    });
+  });
+
+  entries.sort(function(a, b) {
+    return a.start - b.start || b.end - a.end || String(a.item.id || '').localeCompare(String(b.item.id || ''));
+  });
+
+  // Divide o dia em grupos de intervalos conectados. Cada grupo usa o menor
+  // número de faixas necessário, e os cartões mantêm essas faixas até o fim.
+  const clusters = [];
+  let cluster = [];
+  let clusterEnd = -Infinity;
+
+  entries.forEach(function(entry) {
+    if (cluster.length && entry.start >= clusterEnd) {
+      clusters.push(cluster);
+      cluster = [];
+      clusterEnd = -Infinity;
+    }
+    cluster.push(entry);
+    clusterEnd = Math.max(clusterEnd, entry.end);
+  });
+  if (cluster.length) clusters.push(cluster);
+
+  clusters.forEach(function(group) {
+    const laneEnds = [];
+    group.forEach(function(entry) {
+      let lane = laneEnds.findIndex(function(endMinute) { return endMinute <= entry.start; });
+      if (lane < 0) lane = laneEnds.length;
+      laneEnds[lane] = entry.end;
+      entry.lane = lane;
+    });
+    group.forEach(function(entry) {
+      entry.laneCount = Math.max(1, laneEnds.length);
+    });
+  });
+
+  return entries;
+}
+
+function agendaEscapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Desenha um cartão posicionado na faixa correta, sem depender dos cartões
+// que começam nas linhas seguintes.
+function renderAgendaPositionedCard(entry, rowStartMinute) {
+  const item = entry.item;
+  const startLabel = item.time || minutesToTime(entry.start);
+  const endLabel = minutesToTime(entry.end);
+  const timeDisplay = startLabel + '–' + endLabel;
+  const cardHeight = Math.max(22, Math.round((entry.duration / 30) * 40) - 2);
+  const topPx = Math.max(1, ((entry.start - rowStartMinute) / 30) * 40 + 1);
+  const laneCount = Math.max(1, entry.laneCount || 1);
+  const widthPct = 100 / laneCount;
+  const leftPct = (entry.lane || 0) * widthPct;
+  const style = 'top:' + topPx + 'px;height:' + cardHeight + 'px;left:calc(' + leftPct + '% + 2px);width:calc(' + widthPct + '% - 4px);';
+  const itemJson = JSON.stringify(item).replace(/'/g, '&apos;');
+
+  if (entry.isBlock) {
+    const blockTitle = agendaEscapeHtml((item.service || 'Bloqueio').replace(/^🚫\s*/, ''));
+    const shortBlock = cardHeight < 38;
+    const blockInner = shortBlock
+      ? '<div class="flex items-center justify-between gap-1 min-w-0"><span class="text-[8px] font-black text-red-400 truncate">BLOQUEIO</span><span class="text-[7px] text-zinc-400 shrink-0">' + agendaEscapeHtml(startLabel) + '</span></div><p class="text-[8px] text-zinc-300 truncate leading-tight" title="' + blockTitle + '">' + blockTitle + '</p>'
+      : '<div class="flex items-center justify-between gap-2 min-w-0"><span class="text-[9px] font-black text-red-300 truncate">BLOQUEIO</span><span class="text-[8px] text-zinc-400 shrink-0">' + agendaEscapeHtml(startLabel) + '–' + agendaEscapeHtml(endLabel) + '</span></div><p class="text-[9px] text-zinc-200 font-semibold truncate mt-1" title="' + blockTitle + '">' + blockTitle + '</p>';
+
+    return '<div onclick="deleteAppointment(\'' + String(item.id || '') + '\', true)" title="Clique para liberar o horário" style="' + style + '" class="absolute z-20 cursor-pointer overflow-hidden rounded-md border border-red-500/30 border-l-[3px] border-l-red-500 bg-red-950/45 hover:bg-red-950/70 p-1 flex flex-col min-w-0">'
+      + '<div class="h-full min-w-0 flex flex-col overflow-hidden">' + blockInner + '</div></div>';
+  }
+
+  const clientName = agendaEscapeHtml(item.profiles && item.profiles.full_name
+    ? formatClientName(item.profiles.full_name)
+    : 'Cliente');
+  const serviceName = agendaEscapeHtml(item.service || 'Serviço');
+  const price = parseFloat(item.price || 0).toFixed(2).replace('.', ',');
+  const isDone = isCompletedItem(item);
+  const isNoShow = isNoShowItem(item);
+  const isInProgress = typeof isInProgressItem === 'function' ? isInProgressItem(item) : false;
+  const conflictList = window.currentAgendaConflicts || [];
+  const isConflicted = conflictList.some(function(conflict) {
+    return conflict && conflict.apt && String(conflict.apt.id) === String(item.id);
+  });
+
+  let borderColor = 'border-l-blue-500';
+  let statusText = 'Confirmado';
+  let statusShort = 'CONF.';
+  let statusClass = 'bg-blue-600 text-white';
+
+  if (isDone) {
+    borderColor = 'border-l-emerald-500';
+    statusText = 'Concluído';
+    statusShort = 'OK';
+    statusClass = 'bg-emerald-600 text-white';
+  } else if (isInProgress) {
+    borderColor = 'border-l-yellow-500';
+    statusText = 'Em andamento';
+    statusShort = 'EM';
+    statusClass = 'bg-yellow-500 text-zinc-950';
+  } else if (isNoShow) {
+    borderColor = 'border-l-red-500';
+    statusText = 'Falta';
+    statusShort = 'FALTA';
+    statusClass = 'bg-red-600 text-white';
+  }
+
+  const conflictClass = isConflicted ? ' border border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.25)]' : '';
+  const useCompact = cardHeight < 43;
+  const badgeText = laneCount > 1 ? statusShort : statusText;
+  let inner = '';
+
+  if (useCompact) {
+    inner = '<div class="h-full min-w-0 overflow-hidden rounded-[5px] border border-zinc-800 bg-[#121214] p-1 flex flex-col border-l-[3px] ' + borderColor + conflictClass + '">'
+      + '<div class="flex items-center justify-between gap-1 min-w-0 leading-none">'
+      + '<span class="text-[8px] font-black text-zinc-200 shrink-0">' + agendaEscapeHtml(startLabel) + '</span>'
+      + '<span class="' + statusClass + ' px-1 py-[1px] rounded text-[6.5px] font-black leading-none shrink-0" title="' + statusText + '">' + badgeText + '</span>'
+      + '</div>'
+      + '<p class="text-[9px] leading-tight font-bold text-white truncate mt-0.5" title="' + clientName + '">' + clientName + '</p>'
+      + '<p class="text-[7.5px] leading-tight text-zinc-400 truncate mt-auto" title="' + serviceName + ' · R$ ' + price + '">' + serviceName + ' · R$ ' + price + '</p>'
       + '</div>';
+  } else {
+    inner = '<div class="h-full min-w-0 overflow-hidden rounded-md border border-zinc-800 bg-[#121214] hover:border-zinc-600 p-1.5 flex flex-col border-l-[3px] ' + borderColor + conflictClass + '">'
+      + '<div class="flex items-start justify-between gap-2 min-w-0">'
+      + '<div class="min-w-0 flex-1">'
+      + '<p class="text-[10px] font-black text-white leading-tight truncate" title="' + clientName + '">' + clientName + '</p>'
+      + '<p class="text-[8px] text-zinc-400 font-semibold mt-0.5 truncate">' + agendaEscapeHtml(timeDisplay) + '</p>'
+      + '</div>'
+      + '<span class="' + statusClass + ' px-1.5 py-0.5 rounded-full text-[7px] font-black leading-none shrink-0" title="' + statusText + '">' + badgeText + '</span>'
+      + '</div>'
+      + '<p class="text-[9px] text-zinc-300 font-medium truncate mt-1" title="' + serviceName + '">' + serviceName + '</p>'
+      + '<div class="mt-auto pt-1 flex items-end justify-between gap-2 min-w-0">'
+      + '<span class="text-[9px] text-zinc-300 font-black whitespace-nowrap">R$ ' + price + '</span>'
+      + (isConflicted ? '<span class="text-[7px] font-black text-red-400 uppercase shrink-0">Conflito</span>' : '<span class="text-[7px] text-zinc-500 uppercase font-bold">Detalhes ↗</span>')
+      + '</div></div>';
+  }
+
+  return '<div onclick=\'openDetailsModal(' + itemJson + ')\' title="' + agendaEscapeHtml(timeDisplay + ' · ' + (item.profiles && item.profiles.full_name ? formatClientName(item.profiles.full_name) : 'Cliente') + ' · ' + (item.service || 'Serviço') + ' · R$ ' + price) + '" style="' + style + '" class="absolute z-20 min-w-0 cursor-pointer transition-colors overflow-hidden rounded-md ' + (isConflicted ? 'ring-1 ring-red-500/70 ' : '') + '">' + inner + '</div>';
+}
+
+function renderWeeklyGridSchedule(container, weekDays, openMin, closeMin, bStartMin, bEndMin, searchQuery) {
+  const dayShortNames = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+  const todayStr = formatBrDate(new Date());
+  const slotHeight = 40;
+  const slotMinutes = 30;
+  const dayLayouts = {};
+
+  weekDays.forEach(function(dayObj) {
+    const dateStr = formatBrDate(dayObj);
+    const appointments = allAppointments.filter(function(a) { return a.date === dateStr; });
+    dayLayouts[dateStr] = buildAgendaDayLayout(appointments, searchQuery);
+  });
+
+  let html = '<div class="min-w-[900px] select-none pb-10">';
+  html += '<div class="grid grid-cols-[60px_repeat(7,minmax(120px,1fr))] border-b border-zinc-800 sticky top-0 z-50 bg-zinc-950">';
+  html += '<div class="p-2 border-r border-zinc-800/70 sticky left-0 z-[60] bg-zinc-950"></div>';
+
+  weekDays.forEach(function(dayObj, index) {
+    const dateStr = formatBrDate(dayObj);
+    const isSelected = dateStr === selectedCalendarDateStr;
+    const isToday = dateStr === todayStr;
+    const headerClass = isSelected ? 'bg-zinc-900 border-b-2 border-b-orange-500' : (isToday ? 'bg-zinc-900/50' : 'bg-zinc-950');
+    const numberClass = isSelected ? 'text-orange-400' : (isToday ? 'text-white' : 'text-zinc-300');
+
+    html += '<div class="p-2 text-center border-r border-zinc-800/60 last:border-r-0 transition-colors ' + headerClass + '">'
+      + '<button type="button" onclick="selectCalendarDate(\'' + dateStr + '\')" class="w-full flex flex-col items-center justify-center group">'
+      + '<span class="text-[10px] font-black uppercase tracking-wider ' + (isSelected ? 'text-orange-400' : 'text-zinc-500 group-hover:text-zinc-300') + '">' + dayShortNames[index] + '</span>'
+      + '<span class="text-sm font-black mt-0.5 ' + numberClass + '">' + pad2(dayObj.getDate()) + '</span>'
+      + '</button></div>';
   });
   html += '</div>';
 
-  // Linhas de Horários
-  for (let t = openMin; t <= closeMin - 30; t += 30) {
-    const slotStr = minutesToTime(t);
-    const isFullHour = (t % 60 === 0);
-    const isBreakSlot = (bStartMin >= 0 && bEndMin > bStartMin && t >= bStartMin && t < bEndMin);
+  for (let minute = openMin; minute < closeMin; minute += slotMinutes) {
+    const slotLabel = minutesToTime(minute);
+    const fullHour = minute % 60 === 0;
+    const isBreakSlot = bStartMin >= 0 && bEndMin > bStartMin && minute >= bStartMin && minute < bEndMin;
+    html += '<div class="grid grid-cols-[60px_repeat(7,minmax(120px,1fr))] min-h-[40px] ' + (fullHour ? 'border-t border-zinc-800' : 'border-t border-zinc-800/40') + '">';
+    html += '<div class="pr-2 whitespace-nowrap text-right border-r border-zinc-800/70 sticky left-0 z-40 bg-zinc-950 pt-1.5 ' + (fullHour ? 'text-[11px] font-black text-white' : 'text-[10px] font-bold text-zinc-500') + '">' + (fullHour ? slotLabel : '') + '</div>';
 
-    // Altura base reduzida para 40px por linha de 30min -> 1h = 80px (Isso faz caber na tela sem rolar)
-    html += '<div class="grid grid-cols-[60px_repeat(7,minmax(0,1fr))] min-h-[40px] ' + (isFullHour ? 'border-t border-zinc-800' : 'border-t border-zinc-800/30') + '">';
-
-    // Coluna da Hora (Mostra só hora cheia igual na imagem)
-    const timeLabel = isFullHour ? slotStr : '';
-    html += '<div class="pr-2 whitespace-nowrap text-right border-r border-zinc-800/70 sticky left-0 z-40 bg-zinc-950 pt-1.5">'
-      + '<span class="text-[11px] font-bold text-zinc-400">' + timeLabel + '</span>'
-      + '</div>';
-
-    // Dias
-    weekDays.forEach(function(dObj) {
-      const dStr = formatBrDate(dObj);
-      const isSelDay = dStr === selectedCalendarDateStr;
-      const colHighlight = isSelDay ? 'bg-zinc-900/30' : '';
-
-      const dayApts = allAppointments.filter(function(a) { return a.date === dStr; });
-      const startingItems = [];
-      const continuingItems = [];
-
-      dayApts.forEach(function(a) {
-        const sMin = timeToMinutes(a.time);
-        const dur = isBlockItem(a) ? 30 : getServiceDuration(a.service);
-        const eMin = sMin + dur;
-        if (sMin === t) {
-          startingItems.push(a);
-        } else if (t > sMin && t < eMin) {
-          continuingItems.push(a);
-        }
+    weekDays.forEach(function(dayObj) {
+      const dateStr = formatBrDate(dayObj);
+      const selectedClass = dateStr === selectedCalendarDateStr ? 'bg-zinc-900/25' : '';
+      const entries = dayLayouts[dateStr] || [];
+      const activeEntries = entries.filter(function(entry) {
+        return entry.start < minute + slotMinutes && entry.end > minute;
       });
+      const startingEntries = activeEntries.filter(function(entry) {
+        return entry.start >= minute && entry.start < minute + slotMinutes;
+      });
+      const hasContinuation = activeEntries.some(function(entry) { return entry.start < minute; });
 
-      if (startingItems.length > 0) {
-        html += '<div class="relative border-r border-zinc-800/50 last:border-r-0 ' + colHighlight + '">';
-
-        const totalCols = startingItems.length + (continuingItems.length > 0 ? 1 : 0);
-        const colOffset = continuingItems.length > 0 ? 1 : 0;
-
-        startingItems.forEach(function(activeItem, idx) {
-          const isBlock = isBlockItem(activeItem);
-          const dur = isBlock ? 30 : getServiceDuration(activeItem.service);
-          const endStr = minutesToTime(t + dur);
-          const spanSlots = Math.max(1, Math.ceil(dur / 30));
-          
-          // Nova altura baseada em 40px por slot
-          const cardHeightPx = (spanSlots * 40) - 2;
-          const widthPct = (100 / totalCols);
-          const leftPct = ((idx + colOffset) * widthPct);
-          const posStyle = 'height:' + cardHeightPx + 'px; top: 1px; left: calc(' + leftPct + '% + 1px); width: calc(' + widthPct + '% - 2px);';
-
-          if (isBlock) {
-            const bTitle = (activeItem.service || 'Bloqueado').replace('🚫 ', '');
-            let blockInnerHtml = spanSlots === 1
-                ? '<div class="flex items-center justify-between w-full min-w-0"><span class="text-[9px] font-black uppercase text-red-500 truncate bg-red-500/10 px-1 rounded">Bloqueio</span><span class="text-[8px] text-zinc-400">' + slotStr + '</span></div><p class="text-[9px] text-zinc-300 font-bold truncate mt-1">' + bTitle + '</p>'
-                : '<div class="flex items-center justify-between w-full min-w-0"><span class="text-[9px] font-black uppercase text-red-500 truncate bg-red-500/10 px-1 rounded">Bloqueio</span></div><p class="text-[9px] text-zinc-300 font-bold truncate mt-1">' + bTitle + '</p><div class="mt-auto"><span class="text-[8px] text-zinc-400">' + slotStr + ' - ' + endStr + '</span></div>';
-
-            html += '<div onclick="deleteAppointment(\'' + activeItem.id + '\', true)" title="Clique para liberar horário" style="' + posStyle + '" class="absolute rounded bg-red-950/20 hover:bg-red-950/40 border border-zinc-800 border-l-[3px] border-l-red-600 p-1.5 cursor-pointer transition-all flex flex-col overflow-hidden z-10">' + blockInnerHtml + '</div>';
-            return;
-          }
-
-          const clientName = activeItem.profiles && activeItem.profiles.full_name ? formatClientName(activeItem.profiles.full_name) : 'Cliente';
-          const servName = activeItem.service || 'Serviço';
-          if (searchQuery && !clientName.toLowerCase().includes(searchQuery) && !servName.toLowerCase().includes(searchQuery)) return;
-
-          const isDone = isCompletedItem(activeItem);
-          const isNoShow = isNoShowItem(activeItem);
-          // Verifica se adicionou a função isInProgressItem, se não, assume false
-          const isInProg = typeof isInProgressItem === 'function' ? isInProgressItem(activeItem) : false;
-          const isConflicted = window.currentAgendaConflicts && window.currentAgendaConflicts.some(c => c.apt.id === activeItem.id);
-
-          let borderColor = 'border-l-blue-500';
-          let badgeLabel = 'Confirmado';
-          let badgeColor = 'bg-blue-600 text-white';
-
-          if (isDone) {
-            borderColor = 'border-l-emerald-500';
-            badgeLabel = 'Concluído';
-            badgeColor = 'bg-emerald-600 text-white';
-          } else if (isInProg) {
-            borderColor = 'border-l-yellow-500';
-            badgeLabel = 'Em andamento';
-            badgeColor = 'bg-yellow-500 text-black';
-          } else if (isNoShow) {
-            borderColor = 'border-l-red-500';
-            badgeLabel = 'Falta';
-            badgeColor = 'bg-red-600 text-white';
-          }
-
-          if (isConflicted) borderColor += ' border border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]';
-
-          const timeDisplay = slotStr + ' - ' + endStr;
-          const itemJson = JSON.stringify(activeItem).replace(/'/g, "&apos;");
-          const cardPrice = parseFloat(activeItem.price||0).toFixed(2).replace('.',',');
-
-          let cardInnerHtml = '';
-          
-          // Layout Inteligente: Muda a forma de exibir o texto dependendo se o serviço é 30min ou 1h+
-          if (spanSlots === 1) {
-            // Caixa de 30 minutos (Layout horizontal compactado para não esmagar)
-            cardInnerHtml = `
-              <div class="flex flex-col justify-center h-full bg-[#121214] border border-zinc-800 hover:border-zinc-700 rounded p-1.5 border-l-[3px] ${borderColor}">
-                <div class="flex justify-between items-center gap-1">
-                  <p class="text-[9px] font-bold text-white truncate">${timeDisplay} | ${clientName}</p>
-                  <span class="${badgeColor} px-1.5 py-[1px] rounded-full text-[7px] font-bold leading-none shrink-0">${badgeLabel}</span>
-                </div>
-                <div class="flex justify-between items-center gap-1 mt-0.5">
-                  <p class="text-[8px] text-zinc-400 font-medium truncate">Serviço: ${servName}</p>
-                  <p class="text-[8.5px] text-zinc-300 font-bold">R$ ${cardPrice}</p>
-                </div>
-              </div>
-            `;
-          } else {
-            // Caixa de 1 hora ou mais (Layout espaçoso igual a foto)
-            cardInnerHtml = `
-              <div class="flex flex-col h-full bg-[#121214] border border-zinc-800 hover:border-zinc-700 rounded p-2 border-l-[3px] ${borderColor}">
-                <p class="text-[10px] font-bold text-white truncate">${timeDisplay} | ${clientName}</p>
-                <p class="text-[9px] text-zinc-400 font-medium truncate mt-1">Serviço: ${servName}</p>
-                <div class="mt-auto flex justify-between items-end">
-                  <p class="text-[10px] text-zinc-300 font-bold">R$ ${cardPrice}</p>
-                  <span class="${badgeColor} px-2 py-[2px] rounded-full text-[8px] font-bold leading-none">${badgeLabel}</span>
-                </div>
-              </div>
-            `;
-          }
-
-          html += '<div onclick=\'openDetailsModal(' + itemJson + ')\' style="' + posStyle + '" class="absolute cursor-pointer transition-all z-20">' + cardInnerHtml + '</div>';
+      if (startingEntries.length) {
+        html += '<div class="relative min-w-0 border-r border-zinc-800/50 last:border-r-0 ' + selectedClass + '" style="min-height:' + slotHeight + 'px">';
+        startingEntries.forEach(function(entry) {
+          html += renderAgendaPositionedCard(entry, minute);
         });
-
         html += '</div>';
-      } else if (continuingItems.length > 0) {
-        html += '<div class="border-r border-zinc-800/50 last:border-r-0 ' + colHighlight + '"></div>';
+      } else if (hasContinuation) {
+        html += '<div class="relative min-w-0 border-r border-zinc-800/50 last:border-r-0 ' + selectedClass + '" style="min-height:' + slotHeight + 'px"></div>';
       } else if (isBreakSlot) {
-        html += '<div class="border-r border-zinc-800/50 last:border-r-0 bg-zinc-900/40 flex items-center justify-center"><span class="text-[8px] font-bold uppercase text-zinc-600">Descanso</span></div>';
+        html += '<div class="min-w-0 border-r border-zinc-800/50 last:border-r-0 bg-zinc-900/35 flex items-center justify-center" style="min-height:' + slotHeight + 'px"><span class="text-[8px] font-bold uppercase tracking-wider text-zinc-600">Descanso</span></div>';
+      } else if (searchQuery) {
+        html += '<div class="min-w-0 border-r border-zinc-800/50 last:border-r-0 ' + selectedClass + '" style="min-height:' + slotHeight + 'px"></div>';
       } else {
-        const isoDate = formatIsoDate(dObj);
-        html += '<button type="button" onclick="prefillTimeSlot=\'' + slotStr + '\'; selectCalendarDate(\'' + dStr + '\'); openManualModal(\'' + isoDate + '\')" class="border-r border-zinc-800/50 last:border-r-0 hover:bg-zinc-800/50 group flex items-center justify-center transition-colors ' + colHighlight + '"><span class="opacity-0 group-hover:opacity-100 text-[10px] font-black text-zinc-500 uppercase">+</span></button>';
+        const isoDate = formatIsoDate(dayObj);
+        html += '<button type="button" onclick="prefillTimeSlot=\'' + slotLabel + '\'; selectCalendarDate(\'' + dateStr + '\'); openManualModal(\'' + isoDate + '\')" class="min-w-0 border-r border-zinc-800/50 last:border-r-0 hover:bg-zinc-800/40 group flex items-center justify-center transition-colors ' + selectedClass + '" style="min-height:' + slotHeight + 'px"><span class="opacity-0 group-hover:opacity-100 text-[10px] font-black text-zinc-500">+</span></button>';
       }
     });
-
     html += '</div>';
   }
+  html += '</div>';
+  container.innerHTML = html;
+}
 
+// Grade diária. Como o modelo atual não relaciona cada agendamento a um barbeiro,
+// a agenda ocupa toda a largura disponível; faixas paralelas só aparecem em conflitos reais.
+function renderDailyTimelineGrid(container, dayObj, openMin, closeMin, bStartMin, bEndMin, searchQuery) {
+  const dateStr = formatBrDate(dayObj);
+  const entries = buildAgendaDayLayout(allAppointments.filter(function(a) { return a.date === dateStr; }), searchQuery);
+  const slotHeight = 40;
+  const slotMinutes = 30;
+  const fullDateLabel = dayObj.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const hasSearch = Boolean((searchQuery || '').trim());
+  let html = '<div class="min-w-[500px] pb-10">';
+
+  html += '<div class="sticky top-0 z-40 grid grid-cols-[72px_minmax(0,1fr)] border-b border-zinc-800 bg-zinc-950 shadow-sm">'
+    + '<div class="p-2 border-r border-zinc-800/70 text-[9px] font-black uppercase tracking-wider text-zinc-500 text-center">Hora</div>'
+    + '<div class="p-3 bg-zinc-950/95">'
+    + '<p class="text-[10px] font-black uppercase tracking-[0.16em] text-orange-400">Agenda do dia</p>'
+    + '<p class="text-sm md:text-base font-black text-white capitalize">' + agendaEscapeHtml(fullDateLabel) + '</p>'
+    + '</div></div>';
+
+  for (let minute = openMin; minute < closeMin; minute += slotMinutes) {
+    const slotLabel = minutesToTime(minute);
+    const fullHour = minute % 60 === 0;
+    const isBreakSlot = bStartMin >= 0 && bEndMin > bStartMin && minute >= bStartMin && minute < bEndMin;
+    const activeEntries = entries.filter(function(entry) {
+      return entry.start < minute + slotMinutes && entry.end > minute;
+    });
+    const startingEntries = activeEntries.filter(function(entry) {
+      return entry.start >= minute && entry.start < minute + slotMinutes;
+    });
+    const hasContinuation = activeEntries.some(function(entry) { return entry.start < minute; });
+
+    html += '<div class="grid grid-cols-[72px_minmax(0,1fr)] min-h-[40px] ' + (fullHour ? 'border-t border-zinc-800' : 'border-t border-zinc-800/40') + '">';
+    html += '<div class="sticky left-0 z-30 bg-zinc-950 pr-3 pt-1.5 text-right border-r border-zinc-800/70 ' + (fullHour ? 'text-[11px] font-black text-white' : 'text-[10px] font-bold text-zinc-500') + '">' + (fullHour ? slotLabel : '') + '</div>';
+
+    if (startingEntries.length) {
+      html += '<div class="relative min-w-0 border-l border-zinc-800/60 bg-zinc-950/10" style="min-height:' + slotHeight + 'px">';
+      startingEntries.forEach(function(entry) { html += renderAgendaPositionedCard(entry, minute); });
+      html += '</div>';
+    } else if (hasContinuation) {
+      html += '<div class="relative min-w-0 border-l border-zinc-800/60 bg-zinc-950/10" style="min-height:' + slotHeight + 'px"></div>';
+    } else if (isBreakSlot) {
+      html += '<div class="border-l border-zinc-800/60 bg-zinc-900/35 flex items-center px-4" style="min-height:' + slotHeight + 'px"><span class="text-[9px] font-black uppercase tracking-widest text-zinc-600">☕ Intervalo / descanso</span></div>';
+    } else if (hasSearch) {
+      html += '<div class="border-l border-zinc-800/60 bg-zinc-950/10" style="min-height:' + slotHeight + 'px"></div>';
+    } else {
+      const isoDate = formatIsoDate(dayObj);
+      html += '<button type="button" onclick="prefillTimeSlot=\'' + slotLabel + '\'; selectCalendarDate(\'' + dateStr + '\'); openManualModal(\'' + isoDate + '\')" class="border-l border-zinc-800/60 bg-zinc-950/10 hover:bg-zinc-800/30 group flex items-center justify-center transition-colors" style="min-height:' + slotHeight + 'px"><span class="opacity-0 group-hover:opacity-100 text-[10px] font-black text-zinc-500">+ Agendar neste horário</span></button>';
+    }
+    html += '</div>';
+  }
   html += '</div>';
   container.innerHTML = html;
 }
