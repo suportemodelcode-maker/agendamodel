@@ -5926,7 +5926,76 @@ function renderWeeklyGridSchedule(container, weekDays, openMin, closeMin, bStart
   html += '</div>';
   container.innerHTML = html;
 }
-  const diasCurtos = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+
+// Cartão de dia individual idêntico à imagem
+function generateCardHtml(item) {
+  const isBlock = item.type === 'block';
+  const clientName = item.profiles && item.profiles.full_name ? formatClientName(item.profiles.full_name) : (isBlock ? 'Barbearia' : 'Cliente');
+  
+  if (isBlock) {
+    const idsStr = (item.block_ids || [item.id]).join(',');
+    const blockEnd = item.time === item.end_time ? add30Mins(item.time) : item.end_time;
+    const timeDisplay = item.time + ' - ' + blockEnd;
+    const blockServ = (item.service || 'Bloqueio').replace('🚫 ', '');
+    
+    return `<div class="bg-transparent border border-zinc-800 rounded-lg p-3 relative shrink-0 w-full border-l-[3px] border-l-red-600 mb-2">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs font-bold text-white">${timeDisplay} | <span class="text-zinc-400">Bloqueio</span></span>
+        <span class="bg-red-500/20 text-red-500 px-2 py-0.5 rounded-full text-[9px] font-bold">Bloqueado</span>
+      </div>
+      <p class="text-[11px] text-zinc-400 font-medium">Motivo: ${blockServ}</p>
+      <button onclick="deleteAppointment('${idsStr}', true)" class="mt-2 text-zinc-400 hover:text-red-400 text-[10px] font-bold uppercase tracking-wider bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded w-full">Liberar Horário</button>
+    </div>`;
+  }
+
+  const durMins = getServiceDuration(item.service);
+  const endTime = minutesToTime(timeToMinutes(item.time) + durMins);
+  const timeDisplay = `${item.time} - ${endTime}`;
+  const priceStr = parseFloat(item.price || 0).toFixed(2).replace('.', ',');
+  const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
+
+  const isDone = isCompletedItem(item);
+  const isNoShow = isNoShowItem(item);
+  const isInProg = typeof isInProgressItem === 'function' ? isInProgressItem(item) : false;
+  
+  let borderColor = 'border-l-blue-500';
+  let badgeHtml = `<span class="bg-blue-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold">Confirmado</span>`;
+  let actionButtons = `
+    <button onclick="startAppointment('${item.id}')" class="bg-orange-400/10 hover:bg-orange-400/20 text-orange-400 border border-orange-400/30 px-3 py-1.5 rounded text-[10px] font-bold w-full transition-colors">Iniciar Atendimento</button>
+    <button onclick='openFinishModal(${itemJson})' class="bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 px-3 py-1.5 rounded text-[10px] font-bold w-full transition-colors">Encerrar</button>
+  `;
+
+  if (isDone) {
+    borderColor = 'border-l-emerald-500';
+    badgeHtml = `<span class="bg-emerald-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold">Concluído</span>`;
+    actionButtons = `<button onclick='openFinishModal(${itemJson})' class="bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 px-3 py-1.5 rounded text-[10px] font-bold w-full">Editar Fechamento</button>`;
+  } else if (isInProg) {
+    borderColor = 'border-l-yellow-500';
+    badgeHtml = `<span class="bg-yellow-500 text-black px-2 py-0.5 rounded-full text-[10px] font-bold">Em andamento</span>`;
+    actionButtons = `<button onclick='openFinishModal(${itemJson})' class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-[10px] font-bold w-full transition-colors">Encerrar Atendimento</button>`;
+  } else if (isNoShow) {
+    borderColor = 'border-l-red-500';
+    badgeHtml = `<span class="bg-red-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold">Falta</span>`;
+    actionButtons = `<button onclick='openFinishModal(${itemJson})' class="bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 px-3 py-1.5 rounded text-[10px] font-bold w-full">Reverter Falta</button>`;
+  }
+
+  return `
+    <div class="bg-[#121214] border border-zinc-800 hover:border-zinc-700 rounded-lg p-3 relative shrink-0 w-full border-l-[3px] ${borderColor} mb-2 transition-colors">
+      <div class="flex items-start justify-between mb-2">
+        <span class="text-xs font-bold text-white tracking-wide">${timeDisplay} | ${clientName}</span>
+        ${badgeHtml}
+      </div>
+      <p class="text-[11px] text-zinc-400 font-medium">Serviço: ${item.service}</p>
+      <p class="text-[11px] text-zinc-300 font-bold mb-3">R$ ${priceStr}</p>
+      
+      <div class="flex gap-2 mt-auto">
+        ${actionButtons}
+      </div>
+    </div>
+  `;
+}
+
+const diasCurtos = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
   const todayStr = formatBrDate(new Date());
 
   let html = '<div class="min-w-[780px] select-none">';
