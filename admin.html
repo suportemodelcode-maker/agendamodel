@@ -253,6 +253,7 @@
 
     <h2 class="text-2xl font-black text-white tracking-tight uppercase">Painel Admin</h2>
     <p class="text-[11px] text-zinc-300 mt-2 mb-8 font-medium">Faça login para gerenciar a sua barbearia</p>
+    <div id="admin-connection-error" class="hidden mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-left text-[11px] font-medium leading-relaxed text-amber-200" role="status" aria-live="polite"></div>
 
     <div id="login-form" class="space-y-3.5">
       <input type="email" id="admin-email" placeholder="E-MAIL" class="w-full py-4 px-4 rounded-2xl bg-zinc-950/70 border border-white/5 text-white focus:border-orange-500 outline-none text-center font-bold transition-all placeholder:text-zinc-500">
@@ -1824,14 +1825,38 @@ try {
 
 
 let realtimeSubscription = null;
+
+function showAdminConnectionError(message) {
+  const status = document.getElementById('admin-connection-error');
+  if (status) {
+    status.textContent = String(message || 'Não foi possível conectar ao servidor.');
+    status.classList.remove('hidden');
+  }
+  console.error('[RB Barbearia Admin]', message);
+}
+
+function clearAdminConnectionError() {
+  const status = document.getElementById('admin-connection-error');
+  if (status) {
+    status.textContent = '';
+    status.classList.add('hidden');
+  }
+}
+
 window.alert = function(msg) {
   const modal = document.getElementById('admin-custom-alert');
   const titleEl = document.getElementById('admin-alert-title');
   const iconEl = document.getElementById('admin-alert-icon');
+  const messageEl = document.getElementById('admin-alert-message');
+  const safeMessage = String(msg == null ? '' : msg);
+
+  if (!modal || !titleEl || !iconEl || !messageEl) {
+    console.warn('[RB Barbearia Admin]', safeMessage);
+    return;
+  }
+  messageEl.innerText = safeMessage;
   
-  document.getElementById('admin-alert-message').innerText = msg;
-  
-  if(msg.toLowerCase().includes('sucesso')) {
+  if(safeMessage.toLowerCase().includes('sucesso')) {
     titleEl.innerText = 'Sucesso!';
     titleEl.className = 'text-lg font-black text-emerald-400 uppercase tracking-wider mb-2';
     iconEl.className = 'w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-500 mb-4';
@@ -2624,32 +2649,62 @@ function toggleAdminPassVisibility() {
 }
 async function checkAdmin(e) {
   if (e && e.preventDefault) e.preventDefault();
-  if (!sb) return alert('Erro ao conectar ao servidor.');
 
-  const email = (document.getElementById('admin-email')?.value || '').trim();
-  const password = (document.getElementById('admin-pass')?.value || '').trim();
+  if (!sb) {
+    showAdminConnectionError('O sistema de autenticação não carregou. Confira sua conexão e recarregue a página.');
+    return false;
+  }
+
+  const emailInput = document.getElementById('admin-email');
+  const passwordInput = document.getElementById('admin-pass');
   const btn = document.getElementById('btn-admin-login');
+  const email = (emailInput && emailInput.value ? emailInput.value : '').trim();
+  const password = (passwordInput && passwordInput.value ? passwordInput.value : '').trim();
 
-  if (!email || !password) return alert('Preencha e-mail e senha.');
-
-  if (btn) { btn.disabled = true; btn.innerText = 'Autenticando...'; }
-
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-
-  if (btn) { btn.disabled = false; btn.innerText = 'Entrar'; }
-
-  if (error || !data.session) {
-    return alert('Acesso negado: E-mail ou senha incorretos.');
+  if (!email || !password) {
+    alert('Preencha e-mail e senha.');
+    return false;
   }
 
-  const { data: isAdm } = await sb.rpc('is_admin');
-  if (!isAdm) {
-    await sb.auth.signOut();
-    return alert('Esta conta não possui permissão de Administrador.');
+  clearAdminConnectionError();
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = 'Autenticando...';
   }
 
-  processLogin();
-  return false;
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      alert('Acesso negado: e-mail ou senha incorretos.');
+      return false;
+    }
+    if (!data || !data.session) {
+      alert('O login não gerou uma sessão. Tente novamente.');
+      return false;
+    }
+
+    const { data: isAdm, error: adminError } = await sb.rpc('is_admin');
+    if (adminError) {
+      throw adminError;
+    }
+    if (!isAdm) {
+      await sb.auth.signOut();
+      alert('Esta conta não possui permissão de Administrador.');
+      return false;
+    }
+
+    await processLogin();
+    return false;
+  } catch (err) {
+    console.error('Erro ao autenticar administrador:', err);
+    alert('Não foi possível concluir o login. Verifique a conexão e tente novamente.');
+    return false;
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerText = 'Acessar Painel';
+    }
+  }
 }
 
 async function processLogin() {
@@ -2705,31 +2760,58 @@ document.addEventListener('DOMContentLoaded', async function() {
     Chart.defaults.color = '#71717a';
     Chart.defaults.font.family = "'Inter', sans-serif";
   }
-  updateHeaderDate();
-  ['set-open', 'set-close', 'set-break-start', 'set-break-end', 'block-start', 'block-end'].forEach(syncTimeDisplay);
 
-  if (sb) {
-    const { data: { session } } = await sb.auth.getSession();
-    
+  updateHeaderDate();
+  ['set-open', 'set-close', 'set-break-start', 'set-break-end', 'block-start', 'block-end'].forEach(function(id) {
+    try { syncTimeDisplay(id); } catch (err) { console.warn('Não foi possível inicializar o campo ' + id, err); }
+  });
+
+  const authScreen = document.getElementById('auth-screen');
+  const mainPanel = document.getElementById('main-panel');
+
+  // Evita o estado em que as duas telas ficam ocultas (fundo preto sem conteúdo).
+  if (mainPanel) {
+    mainPanel.classList.add('hidden');
+    mainPanel.style.display = 'none';
+  }
+  if (authScreen) {
+    authScreen.classList.remove('hidden');
+    authScreen.classList.add('flex');
+    authScreen.style.display = 'flex';
+  }
+
+  if (!sb) {
+    showAdminConnectionError('Não foi possível carregar a conexão com o banco de dados. Confira sua internet e se o script do Supabase está acessível; depois recarregue a página.');
+    return;
+  }
+
+  try {
+    const { data: sessionData, error: sessionError } = await sb.auth.getSession();
+    if (sessionError) throw sessionError;
+
+    const session = sessionData && sessionData.session;
     if (session) {
-      const { data: isAdm } = await sb.rpc('is_admin');
+      const { data: isAdm, error: adminError } = await sb.rpc('is_admin');
+      if (adminError) throw adminError;
+
       if (isAdm) {
-        processLogin();
-        return; // Interrompe aqui, você já está logado e o painel vai carregar!
-      } else {
-        await sb.auth.signOut();
+        clearAdminConnectionError();
+        await processLogin();
+        return;
       }
+
+      await sb.auth.signOut();
+      showAdminConnectionError('A sessão encontrada não tem permissão de administrador. Entre com uma conta autorizada.');
+      return;
     }
-    
-    // Se chegou até aqui, é porque a pessoa NÃO está logada.
-    // Então habilitamos a tela de login para aparecer:
-    const authScreen = document.getElementById('auth-screen');
-    if (authScreen) {
-      authScreen.classList.remove('hidden');
-      authScreen.classList.add('flex');
-    }
+
+    clearAdminConnectionError();
+  } catch (err) {
+    console.error('Erro ao verificar sessão do administrador:', err);
+    showAdminConnectionError('Não foi possível verificar sua sessão. Confira sua conexão e tente entrar novamente.');
   }
 });
+
 function switchTab(tab) {
   try { localStorage.setItem('rb_active_tab', tab); } catch (err) {}
 
@@ -5917,222 +5999,6 @@ function renderWeeklyGridSchedule(container, weekDays, openMin, closeMin, bStart
       } else {
         const isoDate = formatIsoDate(dObj);
         html += '<button type="button" onclick="prefillTimeSlot=\'' + slotStr + '\'; selectCalendarDate(\'' + dStr + '\'); openManualModal(\'' + isoDate + '\')" class="border-r border-zinc-800/50 last:border-r-0 hover:bg-zinc-800/50 group flex items-center justify-center transition-colors ' + colHighlight + '"><span class="opacity-0 group-hover:opacity-100 text-[10px] font-black text-zinc-500 uppercase">+</span></button>';
-      }
-    });
-
-    html += '</div>';
-  }
-
-  html += '</div>';
-  container.innerHTML = html;
-}
-
-// Cartão de dia individual idêntico à imagem
-function generateCardHtml(item) {
-  const isBlock = item.type === 'block';
-  const clientName = item.profiles && item.profiles.full_name ? formatClientName(item.profiles.full_name) : (isBlock ? 'Barbearia' : 'Cliente');
-  
-  if (isBlock) {
-    const idsStr = (item.block_ids || [item.id]).join(',');
-    const blockEnd = item.time === item.end_time ? add30Mins(item.time) : item.end_time;
-    const timeDisplay = item.time + ' - ' + blockEnd;
-    const blockServ = (item.service || 'Bloqueio').replace('🚫 ', '');
-    
-    return `<div class="bg-transparent border border-zinc-800 rounded-lg p-3 relative shrink-0 w-full border-l-[3px] border-l-red-600 mb-2">
-      <div class="flex items-center justify-between mb-1">
-        <span class="text-xs font-bold text-white">${timeDisplay} | <span class="text-zinc-400">Bloqueio</span></span>
-        <span class="bg-red-500/20 text-red-500 px-2 py-0.5 rounded-full text-[9px] font-bold">Bloqueado</span>
-      </div>
-      <p class="text-[11px] text-zinc-400 font-medium">Motivo: ${blockServ}</p>
-      <button onclick="deleteAppointment('${idsStr}', true)" class="mt-2 text-zinc-400 hover:text-red-400 text-[10px] font-bold uppercase tracking-wider bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded w-full">Liberar Horário</button>
-    </div>`;
-  }
-
-  const durMins = getServiceDuration(item.service);
-  const endTime = minutesToTime(timeToMinutes(item.time) + durMins);
-  const timeDisplay = `${item.time} - ${endTime}`;
-  const priceStr = parseFloat(item.price || 0).toFixed(2).replace('.', ',');
-  const itemJson = JSON.stringify(item).replace(/'/g, "&apos;");
-
-  const isDone = isCompletedItem(item);
-  const isNoShow = isNoShowItem(item);
-  const isInProg = typeof isInProgressItem === 'function' ? isInProgressItem(item) : false;
-  
-  let borderColor = 'border-l-blue-500';
-  let badgeHtml = `<span class="bg-blue-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold">Confirmado</span>`;
-  let actionButtons = `
-    <button onclick="startAppointment('${item.id}')" class="bg-orange-400/10 hover:bg-orange-400/20 text-orange-400 border border-orange-400/30 px-3 py-1.5 rounded text-[10px] font-bold w-full transition-colors">Iniciar Atendimento</button>
-    <button onclick='openFinishModal(${itemJson})' class="bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 px-3 py-1.5 rounded text-[10px] font-bold w-full transition-colors">Encerrar</button>
-  `;
-
-  if (isDone) {
-    borderColor = 'border-l-emerald-500';
-    badgeHtml = `<span class="bg-emerald-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold">Concluído</span>`;
-    actionButtons = `<button onclick='openFinishModal(${itemJson})' class="bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 px-3 py-1.5 rounded text-[10px] font-bold w-full">Editar Fechamento</button>`;
-  } else if (isInProg) {
-    borderColor = 'border-l-yellow-500';
-    badgeHtml = `<span class="bg-yellow-500 text-black px-2 py-0.5 rounded-full text-[10px] font-bold">Em andamento</span>`;
-    actionButtons = `<button onclick='openFinishModal(${itemJson})' class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-[10px] font-bold w-full transition-colors">Encerrar Atendimento</button>`;
-  } else if (isNoShow) {
-    borderColor = 'border-l-red-500';
-    badgeHtml = `<span class="bg-red-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold">Falta</span>`;
-    actionButtons = `<button onclick='openFinishModal(${itemJson})' class="bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 px-3 py-1.5 rounded text-[10px] font-bold w-full">Reverter Falta</button>`;
-  }
-
-  return `
-    <div class="bg-[#121214] border border-zinc-800 hover:border-zinc-700 rounded-lg p-3 relative shrink-0 w-full border-l-[3px] ${borderColor} mb-2 transition-colors">
-      <div class="flex items-start justify-between mb-2">
-        <span class="text-xs font-bold text-white tracking-wide">${timeDisplay} | ${clientName}</span>
-        ${badgeHtml}
-      </div>
-      <p class="text-[11px] text-zinc-400 font-medium">Serviço: ${item.service}</p>
-      <p class="text-[11px] text-zinc-300 font-bold mb-3">R$ ${priceStr}</p>
-      
-      <div class="flex gap-2 mt-auto">
-        ${actionButtons}
-      </div>
-    </div>
-  `;
-}
-
-const diasCurtos = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
-  const todayStr = formatBrDate(new Date());
-
-  let html = '<div class="min-w-[780px] select-none">';
-
-  html += '<div class="grid grid-cols-[85px_repeat(7,minmax(0,1fr))] border-b border-zinc-800 sticky top-0 z-50 bg-zinc-950">';
-  html += '<div class="p-2 flex items-center justify-center text-[9px] font-black uppercase text-zinc-400 border-r border-zinc-800/70 sticky left-0 z-[60] bg-zinc-900 shadow-[3px_0_10px_rgba(0,0,0,0.3)]">Hora</div>';
-
-  weekDays.forEach(function(dObj, idx) {
-    const dStr = formatBrDate(dObj);
-    const isSel = dStr === selectedCalendarDateStr;
-    const isToday = dStr === todayStr;
-    const headerBg = isSel ? 'bg-orange-500/15 border-b-2 border-b-orange-500' : (isToday ? 'bg-zinc-900/80' : '');
-    const dayNumCls = isSel ? 'bg-orange-500 text-zinc-950' : (isToday ? 'text-orange-400' : 'text-zinc-200');
-
-    html += '<div class="p-2 text-center border-r border-zinc-800/60 last:border-r-0 transition-all ' + headerBg + '">'
-      + '<button type="button" onclick="selectCalendarDate(\'' + dStr + '\')" class="w-full flex flex-col items-center justify-center group">'
-      + '<span class="text-[9px] font-black uppercase tracking-widest ' + (isSel ? 'text-orange-400' : 'text-zinc-500 group-hover:text-zinc-300') + '">' + diasCurtos[idx] + '</span>'
-      + '<span class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black mt-0.5 ' + dayNumCls + '">' + dObj.getDate() + '</span>'
-      + '</button>'
-      + '</div>';
-  });
-  html += '</div>';
-
-  for (let t = openMin; t <= closeMin - 30; t += 30) {
-    const slotStr = minutesToTime(t);
-    const isFullHour = (t % 60 === 0);
-    const isBreakSlot = (bStartMin >= 0 && bEndMin > bStartMin && t >= bStartMin && t < bEndMin);
-
-    html += '<div class="grid grid-cols-[85px_repeat(7,minmax(0,1fr))] border-b border-zinc-800/45 min-h-[48px]">';
-
-    html += '<div class="pr-3 pt-1.5 whitespace-nowrap text-right border-r border-zinc-800/70 sticky left-0 z-40 bg-zinc-900 shadow-[3px_0_10px_rgba(0,0,0,0.3)] ' + (isFullHour ? 'text-[12px] font-black text-white' : 'text-[10px] font-bold text-zinc-400') + '">'
-      + slotStr
-      + '</div>';
-
-    weekDays.forEach(function(dObj) {
-      const dStr = formatBrDate(dObj);
-      const isSelDay = dStr === selectedCalendarDateStr;
-      const colHighlight = isSelDay ? 'bg-orange-500/[0.02]' : '';
-
-      const dayApts = allAppointments.filter(function(a) { return a.date === dStr; });
-
-      const startingItems = [];
-      const continuingItems = [];
-
-      dayApts.forEach(function(a) {
-        const sMin = timeToMinutes(a.time);
-        const dur = isBlockItem(a) ? 30 : getServiceDuration(a.service);
-        const eMin = sMin + dur;
-        if (sMin === t) {
-          startingItems.push(a);
-        } else if (t > sMin && t < eMin) {
-          continuingItems.push(a);
-        }
-      });
-
-      if (startingItems.length > 0) {
-        html += '<div class="relative border-r border-zinc-800/50 last:border-r-0 p-[2px] ' + colHighlight + '">';
-
-        const totalCols = startingItems.length + (continuingItems.length > 0 ? 1 : 0);
-        const colOffset = continuingItems.length > 0 ? 1 : 0;
-
-        startingItems.forEach(function(activeItem, idx) {
-          const isBlock = isBlockItem(activeItem);
-          const dur = isBlock ? 30 : getServiceDuration(activeItem.service);
-          const endStr = minutesToTime(t + dur);
-          const spanSlots = Math.max(1, Math.ceil(dur / 30));
-          const cardHeightPx = (spanSlots * 48) - 6;
-
-          const widthPct = (100 / totalCols);
-          const leftPct = ((idx + colOffset) * widthPct);
-          const posStyle = 'height:' + cardHeightPx + 'px; top: 2px; left: calc(' + leftPct + '% + 2px); width: calc(' + widthPct + '% - 4px);';
-
-          if (isBlock) {
-            const bTitle = (activeItem.service || 'Bloqueado').replace('🚫 ', '');
-            let blockInnerHtml = spanSlots === 1
-                ? '<div class="flex items-center justify-between gap-1 w-full min-w-0"><span class="text-[9px] font-black uppercase text-red-400 truncate flex items-center gap-1">Bloqueio</span></div><div class="flex items-center justify-between gap-1 mt-0.5 w-full min-w-0"><p class="text-[9px] text-zinc-300 font-bold truncate leading-none flex-1">' + bTitle + '</p><span class="bg-black/50 px-1 py-[1px] rounded text-[7.5px] font-black text-zinc-300 tracking-wide shrink-0">' + slotStr + '</span></div>'
-                : '<div class="flex items-center justify-between gap-1 w-full min-w-0"><span class="text-[9px] font-black uppercase text-red-400 truncate flex items-center gap-1">Bloqueio</span></div><p class="text-[9px] text-zinc-300 font-bold truncate leading-none mt-1 w-full min-w-0">' + bTitle + '</p><div class="mt-auto flex w-full"><span class="bg-black/60 px-1.5 py-[2px] rounded text-[8px] font-black text-zinc-300 tracking-wide shrink-0">' + slotStr + ' às ' + endStr + '</span></div>';
-
-            html += '<div onclick="deleteAppointment(\'' + activeItem.id + '\', true)" title="Clique para liberar horário" style="' + posStyle + '" class="absolute rounded-[6px] bg-red-950/40 hover:bg-red-950/70 border border-red-500/30 border-l-[3px] border-l-red-500 p-1 cursor-pointer transition-all flex flex-col overflow-hidden z-10">' + blockInnerHtml + '</div>';
-            return;
-          }
-
-          const clientName = activeItem.profiles && activeItem.profiles.full_name ? formatClientName(activeItem.profiles.full_name) : 'Cliente';
-          const servName = activeItem.service || 'Serviço';
-          if (searchQuery && !clientName.toLowerCase().includes(searchQuery) && !servName.toLowerCase().includes(searchQuery)) return;
-
-          const isDone = isCompletedItem(activeItem);
-          const isNoShow = isNoShowItem(activeItem);
-          const isInProg = isInProgressItem(activeItem);
-          const isConflicted = window.currentAgendaConflicts && window.currentAgendaConflicts.some(c => c.apt.id === activeItem.id);
-
-          let borderColor = 'border-l-blue-500';
-          let badgeLabel = 'Confirmado';
-          let badgeColor = 'bg-blue-600 text-white';
-
-          if (isDone) {
-            borderColor = 'border-l-emerald-500';
-            badgeLabel = 'Concluído';
-            badgeColor = 'bg-emerald-600 text-white';
-          } else if (isInProg) {
-            borderColor = 'border-l-orange-500';
-            badgeLabel = 'Em andamento';
-            badgeColor = 'bg-orange-500 text-black';
-          } else if (isNoShow) {
-            borderColor = 'border-l-red-500';
-            badgeLabel = 'Falta';
-            badgeColor = 'bg-red-600 text-white';
-          }
-
-          if (isConflicted) borderColor += ' border border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]';
-
-          const timeDisplay = slotStr + ' - ' + endStr;
-          const itemJson = JSON.stringify(activeItem).replace(/'/g, "&apos;");
-          const cardPrice = parseFloat(activeItem.price||0).toFixed(2).replace('.',',');
-
-          let cardInnerHtml = `
-            <div class="flex flex-col h-full bg-[#09090b] border border-zinc-800 hover:border-zinc-700 rounded p-1.5 border-l-[3px] ${borderColor}">
-              <div class="flex justify-between items-start gap-1">
-                <p class="text-[9px] font-bold text-white leading-tight truncate">${timeDisplay} | ${clientName}</p>
-                <span class="${badgeColor} px-1.5 py-[1px] rounded-full text-[8px] font-bold leading-none shrink-0">${badgeLabel}</span>
-              </div>
-              <p class="text-[8.5px] text-zinc-400 font-medium truncate mt-1">Serviço: ${servName}</p>
-              <p class="text-[8.5px] text-zinc-300 font-bold">R$ ${cardPrice}</p>
-            </div>
-          `;
-
-          html += '<div onclick=\'openDetailsModal(' + itemJson + ')\' style="' + posStyle + '" class="absolute cursor-pointer transition-all z-20">' + cardInnerHtml + '</div>';
-        });
-
-        html += '</div>';
-      } else if (continuingItems.length > 0) {
-        html += '<div class="border-r border-zinc-800/50 last:border-r-0 ' + colHighlight + '"></div>';
-      } else if (isBreakSlot) {
-        html += '<div class="border-r border-zinc-800/50 last:border-r-0 bg-zinc-950/70 flex items-center justify-center"><span class="text-[8px] font-bold uppercase text-zinc-700">Descanso</span></div>';
-      } else {
-        const isoDate = formatIsoDate(dObj);
-        html += '<button type="button" onclick="prefillTimeSlot=\'' + slotStr + '\'; selectCalendarDate(\'' + dStr + '\'); openManualModal(\'' + isoDate + '\')" class="border-r border-zinc-800/50 last:border-r-0 hover:bg-emerald-500/10 group flex items-center justify-center transition-colors ' + colHighlight + '"><span class="opacity-0 group-hover:opacity-100 text-[9px] font-black text-emerald-400 uppercase">+ Agendar</span></button>';
       }
     });
 
