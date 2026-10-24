@@ -5750,7 +5750,182 @@ function renderOverduePendingSection() {
 }
 
 // RENDERIZA A GRADE SEMANAL (COLUNAS DOM A SÁB x HORÁRIOS) IGUAL À IMAGEM
+// RENDERIZA A GRADE SEMANAL (COLUNAS DOM A SÁB x HORÁRIOS) IGUAL À IMAGEM
 function renderWeeklyGridSchedule(container, weekDays, openMin, closeMin, bStartMin, bEndMin, searchQuery) {
+  const diasCurtos = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+  const todayStr = formatBrDate(new Date());
+
+  let html = '<div class="min-w-[780px] select-none pb-10">';
+
+  // Cabeçalho dos 7 dias
+  html += '<div class="grid grid-cols-[60px_repeat(7,minmax(0,1fr))] border-b border-zinc-800 sticky top-0 z-50 bg-zinc-950">';
+  html += '<div class="p-2 border-r border-zinc-800/70 sticky left-0 z-[60] bg-zinc-950"></div>'; // Canto vazio
+
+  weekDays.forEach(function(dObj, idx) {
+    const dStr = formatBrDate(dObj);
+    const isSel = dStr === selectedCalendarDateStr;
+    const isToday = dStr === todayStr;
+    const headerBg = isSel ? 'bg-zinc-900 border-b-2 border-b-orange-500' : (isToday ? 'bg-zinc-900/50' : 'bg-zinc-950');
+    const dayNumCls = isSel ? 'text-orange-500' : (isToday ? 'text-white' : 'text-zinc-400');
+
+    html += '<div class="p-2 text-center border-r border-zinc-800/60 last:border-r-0 transition-all ' + headerBg + '">'
+      + '<button type="button" onclick="selectCalendarDate(\'' + dStr + '\')" class="w-full flex flex-col items-center justify-center group">'
+      + '<span class="text-[10px] font-bold uppercase ' + (isSel ? 'text-orange-500' : 'text-zinc-500') + '">' + diasCurtos[idx] + '</span>'
+      + '<span class="text-sm font-black mt-0.5 ' + dayNumCls + '">' + pad2(dObj.getDate()) + '</span>'
+      + '</button>'
+      + '</div>';
+  });
+  html += '</div>';
+
+  // Linhas de Horários
+  for (let t = openMin; t <= closeMin - 30; t += 30) {
+    const slotStr = minutesToTime(t);
+    const isFullHour = (t % 60 === 0);
+    const isBreakSlot = (bStartMin >= 0 && bEndMin > bStartMin && t >= bStartMin && t < bEndMin);
+
+    // Altura base reduzida para 40px por linha de 30min -> 1h = 80px (Isso faz caber na tela sem rolar)
+    html += '<div class="grid grid-cols-[60px_repeat(7,minmax(0,1fr))] min-h-[40px] ' + (isFullHour ? 'border-t border-zinc-800' : 'border-t border-zinc-800/30') + '">';
+
+    // Coluna da Hora (Mostra só hora cheia igual na imagem)
+    const timeLabel = isFullHour ? slotStr : '';
+    html += '<div class="pr-2 whitespace-nowrap text-right border-r border-zinc-800/70 sticky left-0 z-40 bg-zinc-950 pt-1.5">'
+      + '<span class="text-[11px] font-bold text-zinc-400">' + timeLabel + '</span>'
+      + '</div>';
+
+    // Dias
+    weekDays.forEach(function(dObj) {
+      const dStr = formatBrDate(dObj);
+      const isSelDay = dStr === selectedCalendarDateStr;
+      const colHighlight = isSelDay ? 'bg-zinc-900/30' : '';
+
+      const dayApts = allAppointments.filter(function(a) { return a.date === dStr; });
+      const startingItems = [];
+      const continuingItems = [];
+
+      dayApts.forEach(function(a) {
+        const sMin = timeToMinutes(a.time);
+        const dur = isBlockItem(a) ? 30 : getServiceDuration(a.service);
+        const eMin = sMin + dur;
+        if (sMin === t) {
+          startingItems.push(a);
+        } else if (t > sMin && t < eMin) {
+          continuingItems.push(a);
+        }
+      });
+
+      if (startingItems.length > 0) {
+        html += '<div class="relative border-r border-zinc-800/50 last:border-r-0 ' + colHighlight + '">';
+
+        const totalCols = startingItems.length + (continuingItems.length > 0 ? 1 : 0);
+        const colOffset = continuingItems.length > 0 ? 1 : 0;
+
+        startingItems.forEach(function(activeItem, idx) {
+          const isBlock = isBlockItem(activeItem);
+          const dur = isBlock ? 30 : getServiceDuration(activeItem.service);
+          const endStr = minutesToTime(t + dur);
+          const spanSlots = Math.max(1, Math.ceil(dur / 30));
+          
+          // Nova altura baseada em 40px por slot
+          const cardHeightPx = (spanSlots * 40) - 2;
+          const widthPct = (100 / totalCols);
+          const leftPct = ((idx + colOffset) * widthPct);
+          const posStyle = 'height:' + cardHeightPx + 'px; top: 1px; left: calc(' + leftPct + '% + 1px); width: calc(' + widthPct + '% - 2px);';
+
+          if (isBlock) {
+            const bTitle = (activeItem.service || 'Bloqueado').replace('🚫 ', '');
+            let blockInnerHtml = spanSlots === 1
+                ? '<div class="flex items-center justify-between w-full min-w-0"><span class="text-[9px] font-black uppercase text-red-500 truncate bg-red-500/10 px-1 rounded">Bloqueio</span><span class="text-[8px] text-zinc-400">' + slotStr + '</span></div><p class="text-[9px] text-zinc-300 font-bold truncate mt-1">' + bTitle + '</p>'
+                : '<div class="flex items-center justify-between w-full min-w-0"><span class="text-[9px] font-black uppercase text-red-500 truncate bg-red-500/10 px-1 rounded">Bloqueio</span></div><p class="text-[9px] text-zinc-300 font-bold truncate mt-1">' + bTitle + '</p><div class="mt-auto"><span class="text-[8px] text-zinc-400">' + slotStr + ' - ' + endStr + '</span></div>';
+
+            html += '<div onclick="deleteAppointment(\'' + activeItem.id + '\', true)" title="Clique para liberar horário" style="' + posStyle + '" class="absolute rounded bg-red-950/20 hover:bg-red-950/40 border border-zinc-800 border-l-[3px] border-l-red-600 p-1.5 cursor-pointer transition-all flex flex-col overflow-hidden z-10">' + blockInnerHtml + '</div>';
+            return;
+          }
+
+          const clientName = activeItem.profiles && activeItem.profiles.full_name ? formatClientName(activeItem.profiles.full_name) : 'Cliente';
+          const servName = activeItem.service || 'Serviço';
+          if (searchQuery && !clientName.toLowerCase().includes(searchQuery) && !servName.toLowerCase().includes(searchQuery)) return;
+
+          const isDone = isCompletedItem(activeItem);
+          const isNoShow = isNoShowItem(activeItem);
+          // Verifica se adicionou a função isInProgressItem, se não, assume false
+          const isInProg = typeof isInProgressItem === 'function' ? isInProgressItem(activeItem) : false;
+          const isConflicted = window.currentAgendaConflicts && window.currentAgendaConflicts.some(c => c.apt.id === activeItem.id);
+
+          let borderColor = 'border-l-blue-500';
+          let badgeLabel = 'Confirmado';
+          let badgeColor = 'bg-blue-600 text-white';
+
+          if (isDone) {
+            borderColor = 'border-l-emerald-500';
+            badgeLabel = 'Concluído';
+            badgeColor = 'bg-emerald-600 text-white';
+          } else if (isInProg) {
+            borderColor = 'border-l-yellow-500';
+            badgeLabel = 'Em andamento';
+            badgeColor = 'bg-yellow-500 text-black';
+          } else if (isNoShow) {
+            borderColor = 'border-l-red-500';
+            badgeLabel = 'Falta';
+            badgeColor = 'bg-red-600 text-white';
+          }
+
+          if (isConflicted) borderColor += ' border border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]';
+
+          const timeDisplay = slotStr + ' - ' + endStr;
+          const itemJson = JSON.stringify(activeItem).replace(/'/g, "&apos;");
+          const cardPrice = parseFloat(activeItem.price||0).toFixed(2).replace('.',',');
+
+          let cardInnerHtml = '';
+          
+          // Layout Inteligente: Muda a forma de exibir o texto dependendo se o serviço é 30min ou 1h+
+          if (spanSlots === 1) {
+            // Caixa de 30 minutos (Layout horizontal compactado para não esmagar)
+            cardInnerHtml = `
+              <div class="flex flex-col justify-center h-full bg-[#121214] border border-zinc-800 hover:border-zinc-700 rounded p-1.5 border-l-[3px] ${borderColor}">
+                <div class="flex justify-between items-center gap-1">
+                  <p class="text-[9px] font-bold text-white truncate">${timeDisplay} | ${clientName}</p>
+                  <span class="${badgeColor} px-1.5 py-[1px] rounded-full text-[7px] font-bold leading-none shrink-0">${badgeLabel}</span>
+                </div>
+                <div class="flex justify-between items-center gap-1 mt-0.5">
+                  <p class="text-[8px] text-zinc-400 font-medium truncate">Serviço: ${servName}</p>
+                  <p class="text-[8.5px] text-zinc-300 font-bold">R$ ${cardPrice}</p>
+                </div>
+              </div>
+            `;
+          } else {
+            // Caixa de 1 hora ou mais (Layout espaçoso igual a foto)
+            cardInnerHtml = `
+              <div class="flex flex-col h-full bg-[#121214] border border-zinc-800 hover:border-zinc-700 rounded p-2 border-l-[3px] ${borderColor}">
+                <p class="text-[10px] font-bold text-white truncate">${timeDisplay} | ${clientName}</p>
+                <p class="text-[9px] text-zinc-400 font-medium truncate mt-1">Serviço: ${servName}</p>
+                <div class="mt-auto flex justify-between items-end">
+                  <p class="text-[10px] text-zinc-300 font-bold">R$ ${cardPrice}</p>
+                  <span class="${badgeColor} px-2 py-[2px] rounded-full text-[8px] font-bold leading-none">${badgeLabel}</span>
+                </div>
+              </div>
+            `;
+          }
+
+          html += '<div onclick=\'openDetailsModal(' + itemJson + ')\' style="' + posStyle + '" class="absolute cursor-pointer transition-all z-20">' + cardInnerHtml + '</div>';
+        });
+
+        html += '</div>';
+      } else if (continuingItems.length > 0) {
+        html += '<div class="border-r border-zinc-800/50 last:border-r-0 ' + colHighlight + '"></div>';
+      } else if (isBreakSlot) {
+        html += '<div class="border-r border-zinc-800/50 last:border-r-0 bg-zinc-900/40 flex items-center justify-center"><span class="text-[8px] font-bold uppercase text-zinc-600">Descanso</span></div>';
+      } else {
+        const isoDate = formatIsoDate(dObj);
+        html += '<button type="button" onclick="prefillTimeSlot=\'' + slotStr + '\'; selectCalendarDate(\'' + dStr + '\'); openManualModal(\'' + isoDate + '\')" class="border-r border-zinc-800/50 last:border-r-0 hover:bg-zinc-800/50 group flex items-center justify-center transition-colors ' + colHighlight + '"><span class="opacity-0 group-hover:opacity-100 text-[10px] font-black text-zinc-500 uppercase">+</span></button>';
+      }
+    });
+
+    html += '</div>';
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+}
   const diasCurtos = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
   const todayStr = formatBrDate(new Date());
 
