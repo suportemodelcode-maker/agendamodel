@@ -205,28 +205,92 @@
     .pay-method-btn { transition: all 0.18s ease; }
 
     .pay-method-btn.active { border-color: #10b981; background: rgba(16, 185, 129, 0.18); color: #fff; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2); }
-/* ANIMAÇÕES DE IMPACTO PARA O LOGIN */
-    @keyframes revealForm {
-      0% { opacity: 0; transform: translateY(40px) scale(0.95); filter: blur(10px); }
-      100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+/* CORRIGE O FUNDO BRANCO AUTOMÁTICO DO CHROME NO LOGIN */
+    #auth-screen input:-webkit-autofill,
+    #auth-screen input:-webkit-autofill:hover,
+    #auth-screen input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 1000px rgba(15, 10, 6, 0.85) inset !important;
+      -webkit-text-fill-color: #ffffff !important;
+      caret-color: #ff7b00 !important;
+      border-color: rgba(255, 123, 0, 0.6) !important;
+      transition: background-color 5000s ease-in-out 0s;
     }
-    @keyframes revealItem {
-      0% { opacity: 0; transform: translateY(20px); }
-      100% { opacity: 1; transform: translateY(0); }
+
+    /* EFEITO DE ABERTURA PROGRESSIVA DOS CAMPOS (SINCRONIZADO COM O VÍDEO) */
+    @keyframes neonUnfoldCard {
+      0% { max-height: 4px; opacity: 0; transform: scaleX(0.2) translateY(40px); border-color: #ff7b00; box-shadow: 0 0 50px #ff7b00; }
+      35% { max-height: 4px; opacity: 1; transform: scaleX(1) translateY(0); }
+      100% { max-height: 520px; opacity: 1; transform: scaleX(1) translateY(0); }
     }
-    
-    .animate-form-card {
-      animation: revealForm 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+    @keyframes neonOpenField {
+      0% { max-height: 0; opacity: 0; transform: translateY(-12px) scale(0.95); margin-top: 0; }
+      100% { max-height: 80px; opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes neonFlicker {
+      0%, 18%, 22%, 25%, 53%, 57%, 100% {
+        text-shadow: 0 0 8px rgba(255, 136, 0, 0.9), 0 0 22px rgba(255, 94, 0, 0.7), 0 0 45px rgba(255, 60, 0, 0.5);
+      }
+      20%, 24%, 55% { text-shadow: none; opacity: 0.7; }
+    }
+
+    .neon-login-shell {
+      overflow: hidden;
+      animation: neonUnfoldCard 1.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+      max-height: 0;
       opacity: 0;
+      background: rgba(12, 8, 5, 0.35);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 136, 0, 0.45);
+      box-shadow: 0 0 35px rgba(255, 102, 0, 0.25), inset 0 0 20px rgba(255, 102, 0, 0.12);
+      transition: transform 0.2s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     }
-    .animate-item-1 { animation: revealItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 0.4s; opacity: 0; }
-    .animate-item-2 { animation: revealItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 0.6s; opacity: 0; }
-    .animate-item-3 { animation: revealItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 0.8s; opacity: 0; }
-    .animate-item-4 { animation: revealItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 1.0s; opacity: 0; }
-    
-    /* Escurece sutilmente o vídeo para dar leitura ao login */
-    .video-overlay {
-      background: radial-gradient(circle at center, transparent 0%, rgba(9,9,11,0.85) 100%), rgba(0,0,0,0.3);
+
+    .neon-login-shell:hover {
+      border-color: rgba(255, 145, 0, 0.85);
+      box-shadow: 0 0 50px rgba(255, 102, 0, 0.4), inset 0 0 25px rgba(255, 102, 0, 0.2);
+    }
+
+    .neon-title {
+      color: #fff6ec;
+      animation: neonFlicker 4s infinite alternate;
+    }
+
+    .neon-slot-1 { overflow: hidden; max-height: 0; opacity: 0; animation: neonOpenField 0.9s cubic-bezier(0.16, 1, 0.3, 1) 1.2s forwards; }
+    .neon-slot-2 { overflow: hidden; max-height: 0; opacity: 0; animation: neonOpenField 0.9s cubic-bezier(0.16, 1, 0.3, 1) 1.6s forwards; }
+    .neon-slot-3 { overflow: hidden; max-height: 0; opacity: 0; animation: neonOpenField 0.9s cubic-bezier(0.16, 1, 0.3, 1) 2.0s forwards; }
+    .neon-slot-4 { overflow: hidden; max-height: 0; opacity: 0; animation: neonOpenField 0.9s cubic-bezier(0.16, 1, 0.3, 1) 2.4s forwards; }
+
+    .neon-input {
+      background: rgba(10, 7, 5, 0.65);
+      border: 1px solid rgba(255, 136, 0, 0.3);
+      color: #ffffff;
+      transition: all 0.25s ease;
+    }
+    .neon-input:hover {
+      border-color: rgba(255, 145, 0, 0.65);
+      box-shadow: 0 0 15px rgba(255, 115, 0, 0.2);
+    }
+    .neon-input:focus {
+      background: rgba(15, 9, 5, 0.85);
+      border-color: #ff8800;
+      box-shadow: 0 0 25px rgba(255, 123, 0, 0.5), inset 0 0 12px rgba(255, 123, 0, 0.2);
+      transform: scale(1.015);
+    }
+
+    .neon-btn {
+      background: linear-gradient(90deg, #ff5e00 0%, #ff9100 50%, #ff5e00 100%);
+      background-size: 200% auto;
+      color: #09090b;
+      box-shadow: 0 0 25px rgba(255, 115, 0, 0.55);
+      transition: all 0.3s ease;
+    }
+    .neon-btn:hover {
+      background-position: right center;
+      box-shadow: 0 0 40px rgba(255, 136, 0, 0.9);
+      transform: translateY(-2px) scale(1.02);
     }
   </style>
 
@@ -253,43 +317,35 @@
 
 
 <!-- LOGIN -->
-<div id="auth-screen" class="hidden fixed inset-0 z-50 items-center justify-center p-4 overflow-hidden">
+<div id="auth-screen" class="hidden fixed inset-0 z-50 items-end justify-center p-4 pb-8 md:pb-12 overflow-hidden">
   
-  <!-- VÍDEO DE FUNDO (Certifique-se de que o arquivo se chame video.mp4 na mesma pasta) -->
-  <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover scale-105">
-    <source src="./video.mp4" type="video/mp4">
-  </video>
+  <!-- VÍDEO 100% PURO E SEM MÁSCARA ESCURA (Qualidade Original) -->
+  <video id="login-bg-video" src="./video.mp4" autoplay loop muted playsinline preload="auto" class="fixed inset-0 w-full h-full object-cover z-0 pointer-events-none"></video>
 
-  <!-- MÁSCARA NEGRA COM BRILHO NEON PARA VALORIZAR O VÍDEO E DAR LEITURA -->
-  <div class="absolute inset-0 video-overlay pointer-events-none"></div>
-  <div class="absolute inset-0 overflow-hidden pointer-events-none">
-    <div class="absolute top-[15%] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-orange-600/20 blur-[130px] rounded-full"></div>
-  </div>
-
-  <!-- CARD DE LOGIN COM ANIMAÇÃO DE IMPACTO (Glassmorphism mais denso) -->
-  <div class="animate-form-card relative z-10 bg-black/60 border border-orange-500/20 p-8 rounded-[32px] w-full max-w-sm text-center shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-xl">
+  <!-- PAINEL NEON INTERATIVO (Posicionado mais abaixo para deixar o letreiro BARBER do vídeo livre no topo) -->
+  <div id="neon-login-card" class="neon-login-shell relative z-10 px-7 py-6 rounded-[28px] w-full max-w-md text-center">
     
-    <div class="animate-item-1">
-      <div class="w-20 h-20 rounded-2xl mx-auto mb-5 flex items-center justify-center bg-gradient-to-br from-zinc-900 to-black border border-orange-500/30 shadow-[0_0_30px_rgba(249,115,22,.20)] text-orange-400">
-        <svg class="w-10 h-10 drop-shadow-[0_0_10px_rgba(249,115,22,0.5)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-        </svg>
-      </div>
-      <h2 class="text-2xl font-black text-white tracking-tight uppercase drop-shadow-md">Painel Admin</h2>
-      <p class="text-[11px] text-zinc-400 mt-1 mb-8 font-medium">Faça login para gerenciar a sua barbearia</p>
+    <!-- Linha de Luz Superior Tipo Tubo de Neon -->
+    <div class="w-24 h-1 bg-orange-400 rounded-full mx-auto mb-4 shadow-[0_0_20px_#ff7b00,0_0_40px_#ff5500]"></div>
+
+    <div class="neon-slot-1">
+      <h2 class="neon-title text-2xl md:text-3xl font-black tracking-[0.22em] uppercase">Painel Admin</h2>
+      <p class="text-[10px] text-orange-200/80 mt-1 mb-4 font-bold uppercase tracking-[0.18em]">Acesso Exclusivo · Barbearia</p>
     </div>
 
-    <div id="admin-connection-error" class="hidden mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-left text-[11px] font-medium leading-relaxed text-amber-200" role="status" aria-live="polite"></div>
+    <div id="admin-connection-error" class="hidden mb-4 rounded-xl border border-amber-500/40 bg-black/80 p-3 text-left text-[11px] font-medium leading-relaxed text-amber-200" role="status" aria-live="polite"></div>
 
-    <div id="login-form" class="space-y-4">
-      <div class="animate-item-2">
-        <input type="email" id="admin-email" placeholder="E-MAIL" class="w-full py-4 px-4 rounded-2xl bg-black/50 border border-white/10 text-white focus:border-orange-500 focus:bg-black/80 outline-none text-center font-black tracking-widest transition-all placeholder:text-zinc-600 shadow-inner">
+    <div id="login-form" class="space-y-3">
+      <!-- Campo E-mail abre aos poucos -->
+      <div class="neon-slot-2 pt-1">
+        <input type="email" id="admin-email" placeholder="SEU E-MAIL" class="neon-input w-full py-3.5 px-4 rounded-2xl outline-none text-center font-black tracking-wider text-sm placeholder:text-orange-200/40">
       </div>
       
-      <div class="animate-item-3 flex items-center gap-2">
-        <input type="password" id="admin-pass" placeholder="SENHA" onkeydown="if(event.key==='Enter'){event.preventDefault();checkAdmin(event);}" class="flex-1 py-4 px-4 rounded-2xl bg-black/50 border border-white/10 text-white focus:border-orange-500 focus:bg-black/80 outline-none text-center tracking-widest font-black transition-all placeholder:text-zinc-600 shadow-inner">
+      <!-- Campo Senha abre na sequência -->
+      <div class="neon-slot-3 flex items-center gap-2 pt-1">
+        <input type="password" id="admin-pass" placeholder="SUA SENHA" onkeydown="if(event.key==='Enter'){event.preventDefault();checkAdmin(event);}" class="neon-input flex-1 py-3.5 px-4 rounded-2xl outline-none text-center tracking-widest font-black text-sm placeholder:text-orange-200/40">
         
-        <button type="button" onclick="toggleAdminPassVisibility()" class="w-[56px] h-[56px] flex items-center justify-center rounded-2xl bg-black/50 border border-white/10 text-zinc-500 hover:text-orange-400 hover:border-orange-500 transition-all shrink-0 shadow-inner">
+        <button type="button" onclick="toggleAdminPassVisibility()" class="neon-input w-[50px] h-[50px] flex items-center justify-center rounded-2xl text-orange-300 hover:text-white shrink-0">
           <svg id="admin-pass-eye" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -297,13 +353,53 @@
         </button>
       </div>
 
-      <div class="animate-item-4 pt-2">
-        <button type="button" id="btn-admin-login" onclick="checkAdmin(event)" class="w-full py-4 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-black font-black uppercase tracking-widest rounded-2xl shadow-[0_0_30px_rgba(249,115,22,.25)] transition-all transform hover:scale-[1.03] active:scale-[0.98]">
+      <!-- Botão Neon acende por último -->
+      <div class="neon-slot-4 pt-2">
+        <button type="button" id="btn-admin-login" onclick="checkAdmin(event)" class="neon-btn w-full py-4 font-black uppercase tracking-[0.2em] rounded-2xl text-xs">
           Acessar Painel
         </button>
       </div>
     </div>
   </div>
+
+  <!-- SCRIPT QUE FORÇA O VÍDEO A RODAR E ADICIONA INTERAÇÃO 3D AO MOUSE -->
+  <script>
+    (function() {
+      const vid = document.getElementById('login-bg-video');
+      const card = document.getElementById('neon-login-card');
+      const screen = document.getElementById('auth-screen');
+
+      function forcePlayVideo() {
+        if (!vid) return;
+        vid.muted = true;
+        vid.currentTime = 0;
+        vid.play().catch(function() {
+          document.addEventListener('click', function() { vid.play(); }, { once: true });
+        });
+      }
+
+      // Dispara o vídeo assim que a tela de login fica visível
+      const observer = new MutationObserver(function() {
+        if (screen && !screen.classList.contains('hidden')) {
+          forcePlayVideo();
+        }
+      });
+      if (screen) observer.observe(screen, { attributes: true, attributeFilter: ['class', 'style'] });
+      window.addEventListener('DOMContentLoaded', forcePlayVideo);
+
+      // Efeito interativo: o card acompanha sutilmente o movimento do mouse
+      if (screen && card) {
+        screen.addEventListener('mousemove', function(e) {
+          const x = (window.innerWidth / 2 - e.clientX) / 35;
+          const y = (window.innerHeight / 2 - e.clientY) / 35;
+          card.style.transform = ' rotateY(' + (-x) + 'deg) rotateX(' + y + 'deg)';
+        });
+        screen.addEventListener('mouseleave', function() {
+          card.style.transform = 'rotateY(0deg) rotateX(0deg)';
+        });
+      }
+    })();
+  </script>
 </div>
 
 
