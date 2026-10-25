@@ -205,7 +205,29 @@
     .pay-method-btn { transition: all 0.18s ease; }
 
     .pay-method-btn.active { border-color: #10b981; background: rgba(16, 185, 129, 0.18); color: #fff; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2); }
-
+/* ANIMAÇÕES DE IMPACTO PARA O LOGIN */
+    @keyframes revealForm {
+      0% { opacity: 0; transform: translateY(40px) scale(0.95); filter: blur(10px); }
+      100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+    @keyframes revealItem {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-form-card {
+      animation: revealForm 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+    }
+    .animate-item-1 { animation: revealItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 0.4s; opacity: 0; }
+    .animate-item-2 { animation: revealItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 0.6s; opacity: 0; }
+    .animate-item-3 { animation: revealItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 0.8s; opacity: 0; }
+    .animate-item-4 { animation: revealItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 1.0s; opacity: 0; }
+    
+    /* Escurece sutilmente o vídeo para dar leitura ao login */
+    .video-overlay {
+      background: radial-gradient(circle at center, transparent 0%, rgba(9,9,11,0.85) 100%), rgba(0,0,0,0.3);
+    }
   </style>
 
 </head>
@@ -231,38 +253,43 @@
 
 
 <!-- LOGIN -->
-<div id="auth-screen" class="hidden fixed inset-0 z-50 items-center justify-center p-4">
+<div id="auth-screen" class="hidden fixed inset-0 z-50 items-center justify-center p-4 overflow-hidden">
   
-  <!-- Imagem de Fundo 100% Original -->
-  <div class="absolute inset-0 bg-[url('./fundo-admin.jpg')] bg-cover bg-center"></div>
+  <!-- VÍDEO DE FUNDO (Certifique-se de que o arquivo se chame video.mp4 na mesma pasta) -->
+  <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover scale-105">
+    <source src="./video.mp4" type="video/mp4">
+  </video>
 
-  <!-- Brilho Laranja no Fundo -->
+  <!-- MÁSCARA NEGRA COM BRILHO NEON PARA VALORIZAR O VÍDEO E DAR LEITURA -->
+  <div class="absolute inset-0 video-overlay pointer-events-none"></div>
   <div class="absolute inset-0 overflow-hidden pointer-events-none">
-    <div class="absolute top-[15%] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-orange-600/15 blur-[120px] rounded-full"></div>
+    <div class="absolute top-[15%] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-orange-600/20 blur-[130px] rounded-full"></div>
   </div>
 
-  <!-- Card de Login Glassmorphism (Mais discreto: fundo mais escuro, blur mais suave e borda fina) -->
-  <div class="relative z-10 bg-black/40 border border-white/5 p-8 rounded-[32px] w-full max-w-sm text-center shadow-[0_8px_30px_rgb(0,0,0,0.5)] backdrop-blur-md">
+  <!-- CARD DE LOGIN COM ANIMAÇÃO DE IMPACTO (Glassmorphism mais denso) -->
+  <div class="animate-form-card relative z-10 bg-black/60 border border-orange-500/20 p-8 rounded-[32px] w-full max-w-sm text-center shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-xl">
     
-    <!-- Ícone do Sistema Admin -->
-    <div class="w-20 h-20 rounded-2xl mx-auto mb-6 flex items-center justify-center bg-gradient-to-br from-zinc-800/80 to-zinc-950/80 border border-orange-500/20 shadow-[0_0_20px_rgba(249,115,22,.10)] text-orange-400">
-      <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-      </svg>
+    <div class="animate-item-1">
+      <div class="w-20 h-20 rounded-2xl mx-auto mb-5 flex items-center justify-center bg-gradient-to-br from-zinc-900 to-black border border-orange-500/30 shadow-[0_0_30px_rgba(249,115,22,.20)] text-orange-400">
+        <svg class="w-10 h-10 drop-shadow-[0_0_10px_rgba(249,115,22,0.5)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      </div>
+      <h2 class="text-2xl font-black text-white tracking-tight uppercase drop-shadow-md">Painel Admin</h2>
+      <p class="text-[11px] text-zinc-400 mt-1 mb-8 font-medium">Faça login para gerenciar a sua barbearia</p>
     </div>
 
-    <h2 class="text-2xl font-black text-white tracking-tight uppercase">Painel Admin</h2>
-    <p class="text-[11px] text-zinc-300 mt-2 mb-8 font-medium">Faça login para gerenciar a sua barbearia</p>
     <div id="admin-connection-error" class="hidden mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-left text-[11px] font-medium leading-relaxed text-amber-200" role="status" aria-live="polite"></div>
 
-    <div id="login-form" class="space-y-3.5">
-      <input type="email" id="admin-email" placeholder="E-MAIL" class="w-full py-4 px-4 rounded-2xl bg-zinc-950/70 border border-white/5 text-white focus:border-orange-500 outline-none text-center font-bold transition-all placeholder:text-zinc-500">
+    <div id="login-form" class="space-y-4">
+      <div class="animate-item-2">
+        <input type="email" id="admin-email" placeholder="E-MAIL" class="w-full py-4 px-4 rounded-2xl bg-black/50 border border-white/10 text-white focus:border-orange-500 focus:bg-black/80 outline-none text-center font-black tracking-widest transition-all placeholder:text-zinc-600 shadow-inner">
+      </div>
       
-      <!-- Container Flex para manter a senha 100% centralizada e o olho do lado de fora -->
-      <div class="flex items-center gap-2">
-        <input type="password" id="admin-pass" placeholder="SENHA" onkeydown="if(event.key==='Enter'){event.preventDefault();checkAdmin(event);}" class="flex-1 py-4 px-4 rounded-2xl bg-zinc-950/70 border border-white/5 text-white focus:border-orange-500 outline-none text-center tracking-widest font-bold transition-all placeholder:text-zinc-500">
+      <div class="animate-item-3 flex items-center gap-2">
+        <input type="password" id="admin-pass" placeholder="SENHA" onkeydown="if(event.key==='Enter'){event.preventDefault();checkAdmin(event);}" class="flex-1 py-4 px-4 rounded-2xl bg-black/50 border border-white/10 text-white focus:border-orange-500 focus:bg-black/80 outline-none text-center tracking-widest font-black transition-all placeholder:text-zinc-600 shadow-inner">
         
-        <button type="button" onclick="toggleAdminPassVisibility()" class="w-[56px] h-[56px] flex items-center justify-center rounded-2xl bg-zinc-950/70 border border-white/5 text-zinc-400 hover:text-white hover:border-orange-500 transition-all shrink-0">
+        <button type="button" onclick="toggleAdminPassVisibility()" class="w-[56px] h-[56px] flex items-center justify-center rounded-2xl bg-black/50 border border-white/10 text-zinc-500 hover:text-orange-400 hover:border-orange-500 transition-all shrink-0 shadow-inner">
           <svg id="admin-pass-eye" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -270,9 +297,11 @@
         </button>
       </div>
 
-      <button type="button" id="btn-admin-login" onclick="checkAdmin(event)" class="w-full py-4 mt-2 bg-gradient-to-r from-orange-600/90 to-orange-500/90 hover:from-orange-500 hover:to-orange-400 text-black font-black uppercase tracking-widest rounded-2xl shadow-[0_0_20px_rgba(249,115,22,.15)] transition-all transform hover:scale-[1.02]">
-        Acessar Painel
-      </button>
+      <div class="animate-item-4 pt-2">
+        <button type="button" id="btn-admin-login" onclick="checkAdmin(event)" class="w-full py-4 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-black font-black uppercase tracking-widest rounded-2xl shadow-[0_0_30px_rgba(249,115,22,.25)] transition-all transform hover:scale-[1.03] active:scale-[0.98]">
+          Acessar Painel
+        </button>
+      </div>
     </div>
   </div>
 </div>
